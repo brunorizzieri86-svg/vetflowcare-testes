@@ -1,14 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head><script>
-// Test build: scope every app storage key; never access production keys.
-const testStorage=(()=>{
- const raw=window.localStorage,prefix='vfc_test::';
- const keys=()=>Object.keys(raw).filter(k=>k.startsWith(prefix)).map(k=>k.slice(prefix.length));
- const api={getItem:k=>raw.getItem(prefix+k),setItem:(k,v)=>raw.setItem(prefix+k,v),removeItem:k=>raw.removeItem(prefix+k),clear:()=>keys().forEach(k=>raw.removeItem(prefix+k)),key:i=>keys()[i]||null};
- return new Proxy({}, {get:(_,k)=>k==='length'?keys().length:api[k],ownKeys:keys,getOwnPropertyDescriptor:()=>({enumerable:true,configurable:true})});
-})();
-</script>
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
@@ -233,8 +225,12 @@ canvas{width:100%!important}
 @media(min-width:600px){.art-screen{padding:24px 0!important}.art-layout{border-radius:24px;box-shadow:0 25px 90px #135a7624;min-height:820px!important}.art-settings .art-layout,.art-delete .art-layout{min-height:720px!important}.art-forgot .art-layout{min-height:820px!important}#splash.art-registration{padding:24px!important}}
 @media(max-width:360px){.art-screen .access-card{padding-left:15px;padding-right:15px}.art-screen .access-card h1{font-size:22px}.art-screen .access-email{font-size:13px}.art-screen .access-card button{font-size:13px}}
 </style>
-<meta name="robots" content="noindex,nofollow"><style>.testing-ribbon{position:fixed;bottom:0;right:0;z-index:20000;font:10px Arial,sans-serif;background:#ffe6a5;color:#614000;padding:4px 9px;border-radius:8px 0 0 0;pointer-events:none}</style></head>
-<body><div class="testing-ribbon">TESTES · DADOS SEPARADOS</div>
+<link rel="stylesheet" href="ui-updates.css">
+<script>
+const testStorage=(()=>{const raw=window.localStorage,prefix='vfc_test::';const keys=()=>Object.keys(raw).filter(k=>k.startsWith(prefix)).map(k=>k.slice(prefix.length));const api={getItem:k=>raw.getItem(prefix+k),setItem:(k,v)=>raw.setItem(prefix+k,v),removeItem:k=>raw.removeItem(prefix+k),clear:()=>keys().forEach(k=>raw.removeItem(prefix+k)),key:i=>keys()[i]||null};return new Proxy({},{get:(_,k)=>k==='length'?keys().length:api[k],ownKeys:keys,getOwnPropertyDescriptor:()=>({enumerable:true,configurable:true})});})();
+</script><script src="ui-updates.js"></script>
+</head>
+<body>
 
 <div id="splash">
   <img src="logo.jpg" alt="VetFlowCare" onerror="this.style.display='none'">
@@ -330,14 +326,17 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.63';
+const APP_VER = '9.66';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.63',
+  ver: '9.66',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['📱','Acesso ajustado ao celular','Telas de acesso com altura adaptada e cadastro dividido em duas etapas.'],
+    ['💾','Backups com anexos','As exportações agora incluem os documentos dos pacientes e as fichas dos tutores. Confira sempre o arquivo salvo.'],
+    ['📢','Avisos de atualização','Lembrete de segunda-feira e avisos com período definido para preparar seu backup.'],
     ['🔍','Busca global','Encontre qualquer paciente, tutor, atendimento ou vacina com uma busca rápida. Toque no ícone 🔍 no topo do app. Os resultados são agrupados por categoria e navegam direto para o paciente ou atendimento.'],
     ['📋','Agenda com histórico completo','O calendário agora exibe todos os atendimentos realizados, incluindo meses anteriores. Você pode registrar consultas retroativas em qualquer data passada — o app abre automaticamente o mês correto após salvar.'],
     ['🔐','Já tenho cadastro','Nova opção na tela de acesso: <b>Já tenho cadastro — entrar</b>. Para quem apagou o app e quer recuperar o acesso. Após entrar aparece aviso para restaurar o backup em Ajustes.'],
@@ -386,47 +385,15 @@ const NOVIDADES = {
 // Se houver outro formulário aberto na frente (ex: cadastro do profissional),
 // espera fechar em vez de simplesmente desistir — era assim que o aviso sumia.
 let _novTentativas = 0;
-function fecharAvisoAtualizacao(){
-  document.querySelector('.vfc-aviso')?.remove();
-  // Só mostra novidades DEPOIS que o usuário fechou o aviso
-  setTimeout(checarNovidades, 400);
-}
-function mostrarAvisoAtualizacao(){
-  if(testStorage.getItem('vfc_aviso_set26c')) return;
-  testStorage.setItem('vfc_aviso_set26c','1');
-  const ov = document.createElement('div');
-  ov.className = 'vfc-aviso';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(13,34,64,.85);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
-  const d = document.createElement('div');
-  d.style.cssText = 'background:#fff;border-radius:24px;padding:28px 24px;max-width:360px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.4);text-align:center;max-height:90vh;overflow-y:auto';
-  d.innerHTML = [
-    '<div style="font-size:26px;font-weight:900;color:#1E3A6E;margin-bottom:2px">VetFlow<span style="color:#2DC0AE">Care</span></div>',
-    '<div style="font-size:10px;letter-spacing:2px;color:#94A3B8;margin-bottom:16px">ORGANIZA &middot; CONECTA &middot; CUIDA</div>',
-    '<div style="font-size:42px;margin-bottom:10px">🙏</div>',
-    '<div style="display:inline-flex;align-items:center;gap:5px;background:#F0FDFB;border:1.5px solid #2DC0AE;border-radius:99px;padding:5px 12px;font-size:11px;font-weight:700;color:#2DC0AE;margin-bottom:12px">📢 Aviso importante</div>',
-    '<div style="font-size:16px;font-weight:900;color:#1E3A6E;margin-bottom:8px;line-height:1.3">Passamos por atualizações importantes e pedimos desculpas</div>',
-    '<div style="width:40px;height:3px;background:linear-gradient(90deg,#2DC0AE,#1E3A6E);border-radius:99px;margin:0 auto 14px"></div>',
-    '<div style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:12px">Nos últimos dias realizamos <b style="color:#1E3A6E">atualizações significativas</b> para preparar o VetFlowCare para a <b style="color:#1E3A6E">Google Play Store</b>. Essas mudanças causaram instabilidades temporárias para alguns usuários.<br><br>Sabemos que qualquer interrupção no seu dia a dia clínico é inaceitável, e assumimos total responsabilidade por cada transtorno causado.</div>',
-    '<div style="background:linear-gradient(135deg,#F0FDFB,#EFF6FF);border:1.5px solid #A7F3D0;border-radius:14px;padding:12px 14px;font-size:12px;color:#065F46;line-height:1.6;margin-bottom:12px"><div style="font-size:18px;margin-bottom:5px">💚</div>Vocês que estão aqui desde o início — testando, reportando erros e confiando no nosso trabalho — são a razão pela qual o VetFlowCare existe. <b>Foi pensando em vocês que cada linha de código foi escrita.</b></div>',
-    '<div style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:16px">O app está em constante evolução graças à contribuição de cada um. Cada feedback e relato nos torna <b style="color:#1E3A6E">melhores a cada atualização</b>.</div>',
-  ].join('');
-  const btn = document.createElement('button');
-  btn.textContent = '✓ Entendido, obrigado!';
-  btn.style.cssText = 'width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#2DC0AE,#1a9d8e);color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px';
-  btn.onclick = fecharAvisoAtualizacao;
-  const assin = document.createElement('div');
-  assin.style.cssText = 'font-size:11px;color:#94A3B8';
-  assin.innerHTML = 'Com carinho e gratidão, <b style="color:#2DC0AE;display:block;margin-top:3px">Equipe VetFlowCare 🐾</b>';
-  d.appendChild(btn); d.appendChild(assin);
-  ov.appendChild(d); document.body.appendChild(ov);
-}
+function mostrarAvisoAtualizacao(){ window.VFCNotices?.check(); }
 function checarNovidades(delay){
   if(!testStorage.getItem('vfc_tut_done')) return;              // novato: vê o tutorial
   if(testStorage.getItem('vfc_seen_ver') === APP_VER) return;   // já viu esta versão
   setTimeout(function(){
     const ocupado = (document.getElementById('modals')?.innerHTML || '').trim()
                  || (document.getElementById('modals2')?.innerHTML || '').trim();
-    if(ocupado && _novTentativas < 12){ _novTentativas++; checarNovidades(4000); return; }
+    if((ocupado || document.querySelector('.vfc-aviso') || window._LOCKED) && _novTentativas < 12){ _novTentativas++; checarNovidades(4000); return; }
+    if(ocupado || document.querySelector('.vfc-aviso') || window._LOCKED)return;
     showWhatsNew();
   }, delay || 900);
 }
@@ -747,10 +714,10 @@ let _saveTimer = null;
 function save(){ clearTimeout(_saveTimer); _saveTimer = setTimeout(persistDB, 80); }
 let _storageQueue=Promise.resolve();
 function queueStorage(fn){const job=_storageQueue.then(fn,fn);_storageQueue=job.catch(()=>{});return job;}
-async function encodeDatabase(key,auth){
-  if(!key)return JSON.stringify({...DB,__auth:null});
+async function encodeDatabase(key,auth,source=DB){
+  if(!key)return JSON.stringify({...source,__auth:null});
   const iv=crypto.getRandomValues(new Uint8Array(12));
-  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(DB)));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(source)));
   return JSON.stringify({__enc:1,__auth:auth,iv:b64e(iv),ct:b64e(new Uint8Array(ct))});
 }
 async function commitProtection(key,auth){
@@ -2718,6 +2685,7 @@ function doDeactivatePro(){
 function allEvents(){
   const evts = [];
   for(const pet of DB.pets){
+    if(pet.deceased) continue;
     const base = {petId:pet.id, pet:pet.name, emo:petEmoji(pet)};
     pet.vaccines.filter(v => v.status !== 'aplicada').forEach(v => {
       const d = daysUntil(v.due);
@@ -2747,12 +2715,7 @@ function enterApp(){
   render();
   if(!testStorage.getItem('vfc_tut_done')){ setTimeout(()=>openTutorial(parseInt(testStorage.getItem('vfc_tut_step')||'0')), 500); }
   else if(!DB.vet.name){ setTimeout(openVetSetup, 500); }
-  // Aviso aparece primeiro (500ms). Se não mostrar (já viu), novidades aparecem normalmente.
-  setTimeout(function(){
-    const jaViu = testStorage.getItem('vfc_aviso_set26c');
-    if(!jaViu){ mostrarAvisoAtualizacao(); }  // aviso → ao fechar → dispara novidades
-    else{ checarNovidades(); }                 // sem aviso → novidades normalmente
-  }, 500);
+  setTimeout(()=>{mostrarAvisoAtualizacao();checarNovidades();},1000);
 }
 
 // Modal obrigatório de primeiro acesso — dados do profissional
@@ -3220,7 +3183,7 @@ function renderScorecard(){
   const od = overdueEvents().length;
   document.getElementById('profileName').textContent = DB.vet.name ? DB.vet.name.split(' ')[0] : 'Perfil';
   document.getElementById('scorecard').innerHTML = `
-    <div class="lbl">ÍNDICE DE SAÚDE DOS PACIENTES</div>
+    <img class="health-watermark" src="vfc-mark.webp" alt="" aria-hidden="true"><div class="lbl">ÍNDICE DE SAÚDE DOS PACIENTES</div>
     <div class="row">${ringSVG(avg, 64, true)}
       <div><div class="big">${pets.length} ${pets.length===1?'paciente':'pacientes'}</div>
       <div class="sub">${od>0?`⚠ ${od} ${od===1?'item vencido':'itens vencidos'}`:'✓ Tudo em ordem!'}</div>
@@ -3296,7 +3259,7 @@ function renderHome(){
   if(DB.settings.confirmPanel !== false){
     const janela = DB.settings.confirmDays || 1;
     const aConfirmar = [];
-    DB.pets.forEach(p => (p.appointments||[]).forEach(a => {
+    DB.pets.filter(p=>!p.deceased).forEach(p => (p.appointments||[]).forEach(a => {
       const d = daysUntil(a.date);
       // futuro, dentro da janela, não concluído, e não confirmado ainda hoje
       if(d >= 1 && d <= janela && !a.done && a.confirmDismiss !== todayISO()){
@@ -3630,7 +3593,7 @@ async function uploadTutorFicha(tid, input){
 async function viewTutorFicha(tid){
   const t = DB.tutors.find(x=>x.id===tid);
   if(!t?.ficha) return;
-  const data = await idbGet(t.ficha.id);
+  const data = t.ficha.data || await idbGet(t.ficha.id);
   if(!data){ toast('⚠ Arquivo não encontrado'); return; }
   if(t.ficha.kind === 'pdf'){
     const b64 = data.split(',')[1], bytes = atob(b64);
@@ -3644,7 +3607,7 @@ async function viewTutorFicha(tid){
   }
   const w = window.open('');
   if(!w){ toast('⚠ Permita pop-ups'); return; }
-  w.document.write(`<title>${esc(t.ficha.name)}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${data}" style="max-width:100%;max-height:100vh"></body>`);
+  w.document.write(`<title>${esc(t.ficha.name)}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${data}" style="max-width:100%;max-height:100vh"><div style="position:fixed;right:0;bottom:0;z-index:10001;background:#ffedb5;color:#665328;font:9px Arial;padding:3px 6px;pointer-events:none">TESTES · DADOS SEPARADOS</div></body>`);
 }
 function delTutorFicha(tid){
   askDel('📎 Excluir ficha', 'Deseja excluir <b>a ficha anexada</b> deste tutor?', `doDelTutorFicha('${tid}')`);
@@ -4811,7 +4774,7 @@ function renderPetDocs(pet){
     ${!pet.documents.length?'<div class="empty" style="padding-top:14px">Nenhum arquivo enviado</div>':''}
     ${pet.deceased
       ? '<div style="margin-top:18px;padding:14px 16px;background:#FEF2F2;border:1.5px solid #FECACA;border-radius:14px;display:flex;align-items:center;gap:12px"><span style="font-size:26px">🕊️</span><div style="flex:1"><div style="font-weight:800;color:#991B1B;font-size:13px">Paciente falecido</div><div style="font-size:11px;color:#B91C1C;margin-top:2px">' + (pet.deceased.date ? 'Em ' + fmtDateBR(pet.deceased.date) : 'Data não informada') + (pet.deceased.notes ? ' · ' + esc(pet.deceased.notes.slice(0,60)) : '') + '</div></div><button onclick="reativarPaciente(\'' + pet.id + '\')" style="background:none;border:1.5px solid #FECACA;color:#B91C1C;border-radius:10px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer">↩ Reativar</button></div>'
-      : '<div style="margin-top:20px;padding-top:16px;border-top:1px dashed #E2E8F0;text-align:center"><button onclick="abrirModalObito(\'' + pet.id + '\')" style="background:none;border:1.5px solid #E2E8F0;color:#94A3B8;border-radius:12px;padding:10px 20px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px">🕊️ Registrar óbito do paciente</button></div>'}
+      : '<div style="margin-top:20px;padding-top:16px;border-top:1px dashed #E2E8F0;text-align:center"><button onclick="abrirModalObito(\'' + pet.id + '\')" style="background:#F5FAFA;border:1.5px solid #83ACB2;color:#476E78;border-radius:12px;padding:10px 20px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px">🕊️ Registrar óbito do paciente</button></div>'}
   </div>`;
 }
 
@@ -4820,7 +4783,7 @@ function abrirModalObito(petId){
   const pet = DB.pets.find(p=>p.id===petId); if(!pet) return;
   showSheet('🕊️ Registrar óbito — ' + esc(pet.name), `
     <div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">
-      O paciente será desativado e não aparecerá na agenda ou alertas.<br>
+      Os lembretes clínicos pendentes serão suspensos. Atendimentos concluídos e pendências financeiras continuarão no histórico.<br>
       Todos os registros e histórico são preservados.
     </div>
     <div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:12px;padding:10px 13px;font-size:12px;color:#78350F;margin-bottom:16px;line-height:1.5">
@@ -4922,7 +4885,7 @@ async function viewDoc(petId, docId){
   }
   const w = window.open('');
   if(!w){ toast('⚠ Permita pop-ups para visualizar'); return; }
-  w.document.write(`<title>${esc(d.name)}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${d.data}" style="max-width:100%;max-height:100vh"></body>`);
+  w.document.write(`<title>${esc(d.name)}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${d.data}" style="max-width:100%;max-height:100vh"><div style="position:fixed;right:0;bottom:0;z-index:10001;background:#ffedb5;color:#665328;font:9px Arial;padding:3px 6px;pointer-events:none">TESTES · DADOS SEPARADOS</div></body>`);
   delete d.data;
 }
 function delRecord(petId, coll, id){
@@ -5369,7 +5332,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.63 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.66 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -5700,18 +5663,24 @@ async function sharePendFile(){
     toast('💾 Backup enviado ao destino escolhido!');
   }catch(e){ if(e.name !== 'AbortError') dlPendFile(); }
 }
-function exportEncBackup(){
+async function completeBackupSnapshot(){
+  const snapshot=JSON.parse(JSON.stringify(DB));
+  const documents=[...snapshot.pets.flatMap(p=>p.documents||[]),...(snapshot.tutors||[]).filter(t=>t.ficha).map(t=>t.ficha)];
+  for(const doc of documents){
+    if(!doc.data)doc.data=await idbGet(doc.id);
+    if(!doc.data)throw new Error('Anexo indisponível: '+(doc.name||doc.id));
+  }
+  return snapshot;
+}
+async function exportEncBackup(){
   if(bloqueioTrial('Backup dos dados')) return;
-  // CORREÇÃO CRÍTICA v9.8: auth deve ir como STRING crua do testStorage.
-  // Antes ia como objeto e, ao restaurar, virava "[object Object]" — credenciais
-  // corrompidas faziam o app zerar tudo como se fosse usuário novo.
-  const authStr = testStorage.getItem(LS_AUTH);
-  const blob = testStorage.getItem(LS_KEY);
-  if(!getAuth() || !blob){ toast('⚠ Ative a senha primeiro (Segurança)'); return; }
-  zerarAlteracoes();
-  const pack = JSON.stringify({__vfcbak:2, exportedAt:todayISO(), auth:authStr, blob});
-  saveFileSAF('vetflowcare_backup_criptografado_' + todayISO() + '.vfcbak',
-    new Blob([pack], {type:'application/json'}));
+  if(!getAuth() || !window._cryptoKey){toast('⚠ Ative a senha primeiro (Segurança)');return;}
+  try{
+    const snapshot=await completeBackupSnapshot();
+    const auth=getAuth(),blob=await encodeDatabase(window._cryptoKey,auth,snapshot);
+    const pack=JSON.stringify({__vfcbak:2,exportedAt:todayISO(),auth:JSON.stringify(auth),blob});
+    await saveFileSAF('vetflowcare_backup_criptografado_'+todayISO()+'.vfcbak',new Blob([pack],{type:'application/json'}));
+  }catch(e){if(e?.name!=='AbortError')toast('⚠ Backup não concluído. '+e.message);}
 }
 // ═══ TUTORIAL: como funcionam os backups ═══
 function openBackupHelp(){
@@ -5746,8 +5715,9 @@ function exportJSON(){
 }
 async function doExportJSON(){
   gcEvent('backup-feito');
-  zerarAlteracoes();
-  const blob = new Blob([JSON.stringify(DB,null,2)], {type:'application/json'});
+  let snapshot;
+  try{snapshot=await completeBackupSnapshot();}catch(e){toast('⚠ Backup não concluído. '+e.message);return;}
+  const blob = new Blob([JSON.stringify(snapshot,null,2)], {type:'application/json'});
   try{
     if(window.showSaveFilePicker){ await saveFileSAF('vetflowcare_backup_'+todayISO()+'.json', blob); toast('💾 Backup salvo!'); return; }
     throw new Error('unsupported');
@@ -5757,10 +5727,26 @@ async function doExportJSON(){
   a.download = `vetflowcare_backup_${todayISO()}.json`;
   a.click(); toast('📥 Backup exportado!');
 }
+async function restoreJSONSnapshot(data){
+  if(!data || !Array.isArray(data.pets))throw new Error('Backup inválido');
+  const candidate=data.version>=4?migrate(data):migrateV3(data);
+  const added=[];
+  try{
+    const docs=[...candidate.pets.flatMap(p=>p.documents||[]),...(candidate.tutors||[]).filter(t=>t.ficha).map(t=>t.ficha)];
+    for(const doc of docs){if(doc.data){const id='restore-'+uid();await idbPut(id,doc.data);added.push(id);doc.id=id;delete doc.data;}}
+    clearTimeout(_saveTimer);
+    await queueStorage(async()=>{
+      const raw=await encodeDatabase(window._cryptoKey,getAuth(),candidate);
+      testStorage.setItem(LS_KEY,raw);
+      DB=candidate;agendarEspelho(raw);
+    });
+    return true;
+  }catch(e){await Promise.all(added.map(id=>idbDel(id)));throw e;}
+}
 function importJSON(input){
   const f = input.files[0]; if(!f) return;
   const r = new FileReader();
-  r.onload = e => {
+  r.onload = async e => {
     try{
       const data = JSON.parse(e.target.result);
       // Backup criptografado (.vfcbak): restaura credenciais + dados cifrados
@@ -5773,9 +5759,9 @@ function importJSON(input){
           noLabel:'Cancelar', yesLabel:'🔐 Sim, restaurar', yesBg:'var(--primary)', yes:'doRestoreVfcbak()'});
         return;
       }
-      DB = data.version >= 4 ? migrate(data) : migrateV3(data);
-      save(); applyDark(); render(); toast('✅ Dados importados com sucesso!');
-    }catch(err){ toast('⚠ Arquivo inválido'); }
+      await restoreJSONSnapshot(data);
+      applyDark(); render(); toast('✅ Dados importados com sucesso!');
+    }catch(err){ toast('⚠ Importação não concluída. Os dados anteriores foram mantidos. '+err.message); }
   };
   r.readAsText(f);
   input.value = '';
@@ -5789,8 +5775,14 @@ function doRestoreVfcbak(){
     const a = JSON.parse(authStr);
     if(!a || !a.salt || !a.check) throw 0;
   }catch(e){ toast('⚠ Credenciais do backup inválidas — use um backup .vfcbak novo'); return; }
-  testStorage.setItem(LS_AUTH, authStr);
-  testStorage.setItem(LS_KEY, blobStr);
+  try{
+    const payload=JSON.parse(blobStr);
+    if(payload.__enc!==1 || typeof payload.iv!=='string' || typeof payload.ct!=='string')throw new Error('Conteúdo inválido');
+    payload.__auth=JSON.parse(authStr);
+    testStorage.setItem(LS_KEY,JSON.stringify(payload));
+    try{testStorage.setItem(LS_AUTH,authStr);}catch{}
+  }catch(e){toast('⚠ Não foi possível restaurar. Confira o arquivo e o espaço disponível. Dados anteriores mantidos.');return;}
+
   window._pendBak = null;
   toast('🔐 Backup restaurado! Recarregando…');
   setTimeout(()=>location.reload(), 900);
@@ -6102,7 +6094,7 @@ function atendsDoDia(iso){
   const out = [];
   DB.pets.forEach(pet => {
     pet.appointments.forEach(a => {
-      if(a.date !== iso || a.phone) return;   // orientação por telefone não entra na rota
+      if(a.date !== iso || a.phone || (pet.deceased && !a.done)) return;   // orientação por telefone não entra na rota
       const t = tutorOf(pet);
       out.push({a, pet, tutor:t, end: a.clinic || endTutor(t)});
     });
@@ -7281,7 +7273,7 @@ function printShell(title, inner){
   </style>
 </head><body>${inner}
   ${isPro()?'':'<div class="wmfree">VERSÃO GRATUITA</div>'}
-  <div class="foot"><b style="color:#1E3A6E;letter-spacing:1px">VetFlowCare</b> · ORGANIZA · CONECTA · CUIDA${isPro()?'':' · Versão gratuita'}</div></body></html>`;
+  <div class="foot"><b style="color:#1E3A6E;letter-spacing:1px">VetFlowCare</b> · ORGANIZA · CONECTA · CUIDA${isPro()?'':' · Versão gratuita'}</div><div style="position:fixed;right:0;bottom:0;z-index:10001;background:#ffedb5;color:#665328;font:9px Arial;padding:3px 6px;pointer-events:none">TESTES · DADOS SEPARADOS</div></body></html>`;
   // Impressão via iframe oculto (funciona mesmo com pop-ups bloqueados)
   document.getElementById('printFrame')?.remove();
   const f = document.createElement('iframe');
@@ -7855,6 +7847,7 @@ function showEntryRegister(){
   const sub=document.createElement('h2');sub.textContent='SEGURANÇA DO ACESSO';security.before(sub);
   const toggleRow=document.getElementById('regSenhaToggle').parentElement;toggleRow.classList.add('registration-toggle');
   sp.querySelectorAll('.eye').forEach(b=>{b.innerHTML=accessIcon('eye');b.setAttribute('aria-label','Mostrar senha');});
+  setupRegistrationSteps(sp);
   const toggle=document.getElementById('regSenhaToggle');toggle.setAttribute('role','switch');toggle.tabIndex=0;toggle.setAttribute('aria-label','Proteger com senha');toggle.setAttribute('aria-checked','true');toggle.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();toggleRegSenha();}};
 
 }
@@ -8019,5 +8012,5 @@ function afterLGPD(){
 if(!testStorage.getItem('vfc_lgpd'))showLGPD();else afterLGPD();
 </script>
 
-</body>
+<div style="position:fixed;right:0;bottom:0;z-index:10001;background:#ffedb5;color:#665328;font:9px Arial;padding:3px 6px;pointer-events:none">TESTES · DADOS SEPARADOS</div></body>
 </html>

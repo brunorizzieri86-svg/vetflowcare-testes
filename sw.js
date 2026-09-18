@@ -2,13 +2,16 @@
 // Estratégia: Network-First (busca atualização na rede; cache só responde offline)
 // B&G Systems | Todos os direitos reservados
 
-const CACHE = 'vfc-test-v9.65-art';
+const CACHE = 'vfc-test-v9.66';
 
 const CORE_FILES = [
   './index.html',
   './manifest.json',
   './logo.jpg',
   './access-art.jpg',
+  './ui-updates.css',
+  './ui-updates.js',
+  './vfc-mark.webp',
   './icon-192.png',
   './icon-512.png',
   './icon-512-maskable.png'
@@ -40,6 +43,8 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   if (url.origin !== location.origin) return;
+  // Avisos sempre vêm da rede: nunca exibir campanha antiga do cache.
+  if (url.pathname.endsWith('/avisos.json')) return;
 
   e.respondWith(
     fetch(e.request)

@@ -1,0 +1,39 @@
+/* v9.66 — altura real do visor, sem recortar a arte de acesso. */
+.art-screen{padding:0!important}
+.art-screen .art-layout{min-height:100dvh!important;border-radius:0}
+.art-login .art-layout,.art-existing .art-layout{height:100dvh;display:flex!important;flex-direction:column}
+.art-login .art-header,.art-existing .art-header{flex:1 1 0;min-height:100px;max-height:none;overflow:visible;display:flex;justify-content:center}
+.art-login .art-pets,.art-existing .art-pets{flex:1 1 0;min-height:90px;margin:0;display:flex;justify-content:center}
+.art-screen .art-header svg,.art-screen .art-pets svg{height:100%;width:100%;margin:0;object-fit:contain}
+.art-login .access-card,.art-existing .access-card{flex:0 0 auto;margin:0 auto;padding-top:10px;padding-bottom:12px}
+.art-login .access-email{margin:6px 0 10px}
+.art-small-footer{padding:16px 8px}
+.art-forgot .art-emblem{width:65px;height:65px;margin:4px auto 12px}
+.art-forgot .art-small-brand{height:72px}
+.art-settings .art-layout,.art-delete .art-layout,.art-forgot .art-layout{min-height:100dvh!important}
+#splash.art-registration{min-height:100dvh;justify-content:center!important;padding:10px!important}
+.reg-step-hidden{display:none!important}
+.reg-step-label{text-align:center;color:#376778;font-size:12px;margin:8px 0}
+.register-shell .reg-back{background:transparent!important;color:#176478!important;border:1px solid #9bc9cc!important}
+.scorecard{position:relative;overflow:hidden;isolation:isolate}
+.scorecard .health-watermark{position:absolute;right:-8px;bottom:-20px;width:160px;height:150px;object-fit:contain;opacity:.15;pointer-events:none;z-index:-1}
+.vfc-aviso{position:fixed;inset:0;z-index:10000;padding:20px;display:grid;place-items:center;background:#092d4de0;backdrop-filter:blur(5px);font-family:Arial,sans-serif}
+.vfc-notice-card{width:100%;max-width:410px;max-height:calc(100dvh - 40px);overflow:auto;border-radius:25px;background:#f7fdfd;box-shadow:0 20px 80px #001c3b66;color:#133b57;padding:28px;text-align:center}
+.vfc-notice-brand{font-size:24px;font-weight:800}.vfc-notice-brand span{color:#099d9d}.vfc-notice-tag{font-size:9px;letter-spacing:2px;margin:5px 0 23px;color:#597884}
+.vfc-notice-icon{font-size:34px;line-height:60px;width:65px;margin:auto;border-radius:50%;background:#d8f4ef}
+.vfc-notice-card h2{font-size:23px;margin:16px 0;line-height:1.2}.vfc-notice-body{font-size:14px;line-height:1.65;white-space:pre-line;text-align:left;color:#3f5d6e}
+.vfc-notice-card button{display:block;width:100%;padding:13px;border:0;border-radius:22px;background:linear-gradient(100deg,#12b8a9,#0087a3);color:white;font-size:14px;font-weight:700;margin-top:20px;cursor:pointer}
+.vfc-notice-card .notice-later{background:transparent;color:#376e7d;border:1px solid #a5cbd0;margin-top:9px}
+.vfc-notice-signature{font-size:11px;color:#53818b;margin-top:18px}
+#vfcNoticeBanner{width:calc(100% - 24px);margin:10px 12px;padding:12px 15px;border:1px solid #70b8b6;border-radius:13px;text-align:left;background:#e4f7f2;color:#155969;font:600 13px Arial;cursor:pointer}
+@media(min-width:600px){.art-screen .art-layout{max-width:480px!important;box-shadow:0 20px 80px #18516a20}}
+@media(max-height:700px){.art-settings .access-card,.art-delete .access-card{padding:12px 16px}.art-small-brand{height:54px;padding:4px}.art-small-brand img{height:48px}.art-forgot .access-card{padding:0 18px 10px}.art-forgot .art-emblem{width:48px;height:48px}.art-forgot .art-emblem svg{width:28px;height:28px}.art-screen .access-notice{padding:10px}.art-screen .access-description{margin-bottom:8px}.art-small-footer{padding:10px}}
+/* Teclado e zoom: permite acessar todos os campos em vez de cortar conteúdo. */
+@media(max-height:480px){.art-login .art-header,.art-existing .art-header{min-height:55px}.art-login .art-pets,.art-existing .art-pets{min-height:55px}}
+.art-registration .register-shell.step-security>img{height:42px!important;width:60px!important}
+.art-registration .step-security .registration-title p,.art-registration .step-security>.sub,.art-registration .step-security>div[style*="rgba(45,192,174"],.art-registration .step-security>button[onclick="showLoginExistente()"]{display:none!important}
+.art-registration .step-security>button{margin:8px 0 0!important;line-height:1.2!important}
+.art-registration .step-security .reg-back{display:block;box-shadow:none!important}
+.art-registration .step-security h2{margin:5px 0!important}
+@media(max-height:700px){.art-settings .access-card button{margin-top:8px}.art-settings .access-note{margin:7px 0}.art-settings .access-card .access-notice{padding:8px}.art-settings .art-small-footer{padding:5px}.art-settings .access-card h1{margin:4px 0}}
+.vfc-notice-icon{display:flex;height:65px;align-items:center;justify-content:center}.vfc-notice-icon svg{width:32px;height:32px;color:#079c9e}
