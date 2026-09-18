@@ -1,5 +1,13 @@
 {
   "version": 1,
   "weekly": true,
-  "announcement": { "enabled": false }
+  "announcement": {
+    "enabled": true,
+    "id": "update-2026-09-20-1789753843648",
+    "start": "2026-09-18",
+    "end": "2026-09-20",
+    "updateDate": "2026-09-20",
+    "title": "Atualização neste domingo: prepare seu backup",
+    "body": "Neste domingo, 20/09/2026, está prevista uma atualização do VetFlowCare.\n\nAntes da atualização, faça um Backup Completo em Ajustes e guarde o arquivo em um local seguro, fora do aplicativo. Confira se o arquivo foi salvo e mantenha também uma cópia anterior.\n\nSe usar o backup criptografado, guarde a senha utilizada. Não desinstale o app nem limpe os dados do navegador.\n\nObrigado por cuidar dos seus dados e evoluir com a gente!"
+  }
 }
