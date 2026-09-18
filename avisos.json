@@ -1,5 +1,7 @@
 {
   "version": 1,
   "weekly": true,
-  "announcement": { "enabled": false }
+  "announcement": {
+    "enabled": false
+  }
 }
