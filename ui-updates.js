@@ -1,19 +1,59 @@
-/* Interface e avisos independentes dos dados clínicos. Nenhum aviso altera o banco. */
+/* Referências oficiais recebidas: arte intacta e controles HTML sobrepostos. */
+function referenceIcon(name){
+ const paths={person:'<circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 6 0 0 1 16 0v3z"/>',calendar:'<rect x="3" y="5" width="18" height="17" rx="2"/><path d="M7 2v6m10-6v6M3 11h18"/>',gender:'<circle cx="10" cy="10" r="6"/><path d="M10 16v7m-3-3h6m1-14 7-5m-5 0h5v5"/>',document:'<rect x="5" y="2" width="14" height="21" rx="2"/><path d="M8 7h8M8 11h8m-8 4h5"/>',mail:'<rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 6 9 8 9-8"/>',bulb:'<path d="M8 17c0-4-4-4-4-9a8 8 0 0 1 16 0c0 5-4 5-4 9zM8 20h8m-6 3h4"/>',gift:'<rect x="2" y="8" width="20" height="5" rx="1"/><path d="M4 13v10h16V13M12 8v15"/><path d="M12 8C2 8 3 0 7 2c3 1 5 6 5 6s2-5 5-6c4-2 5 6-5 6"/>'};
+ return paths[name]?'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+paths[name]+'</svg>':accessIcon(name);
+}
+function fitReferenceFrames(){
+ const viewport=window.visualViewport;if(viewport&&Math.abs(viewport.scale-1)>.02)return;
+ document.querySelectorAll('.reference-frame').forEach(frame=>{
+  const parent=frame.parentElement,style=getComputedStyle(parent);
+  const width=parent.clientWidth-(parseFloat(style.paddingLeft)||0)-(parseFloat(style.paddingRight)||0);
+  const height=(viewport?.height||innerHeight)-(parseFloat(style.paddingTop)||0)-(parseFloat(style.paddingBottom)||0);
+  const baseW=Number(frame.dataset.artWidth),baseH=Number(frame.dataset.artHeight);
+  const scale=Math.min(width/baseW,Math.max(640,height)/baseH,720/baseW);
+  frame.style.width=(baseW*scale)+'px';frame.style.height=(baseH*scale)+'px';frame.style.setProperty('--ref-scale',String(scale));
+ });
+}
+function setupReferenceFrame(frame,width,height){
+ frame.classList.add('reference-frame');frame.dataset.artWidth=width;frame.dataset.artHeight=height;
+ const stage=document.createElement('div');stage.className='reference-stage';stage.style.width=width+'px';stage.style.height=height+'px';
+ while(frame.firstChild)stage.appendChild(frame.firstChild);frame.appendChild(stage);fitReferenceFrames();
+}
+window.addEventListener('resize',fitReferenceFrames);window.visualViewport?.addEventListener('resize',fitReferenceFrames);
 function setupRegistrationSteps(sp){
  const shell=sp.querySelector('.register-shell'),fields=sp.querySelector('.registration-fields');
  const security=sp.querySelector('.registration-security'),heading=security.previousElementSibling;
+ const row=document.createElement('div');row.className='registration-pair';
+ const cpf=sp.querySelector('#regCPF'),user=sp.querySelector('#regUser');cpf.before(row);row.append(cpf,user);
+ sp.querySelector('#regIdade').parentElement.classList.add('registration-person-row');
+ sp.querySelector('#regPass').placeholder='Senha (6+)';sp.querySelector('#regPass2').placeholder='Confirmar';sp.querySelector('#regHint').placeholder='Dica de senha (opcional)';
+ for(const[id,icon]of Object.entries({regNome:'person',regIdade:'calendar',regSexo:'gender',regCPF:'document',regUser:'person',regEmail:'mail',regPass:'lock',regPass2:'lock',regHint:'bulb'})){
+  const input=sp.querySelector('#'+id);let wrap=input.parentElement;
+  if(!wrap.classList.contains('pwwrap')){wrap=document.createElement('div');input.before(wrap);wrap.appendChild(input);}
+  wrap.classList.add('reference-field');if(['regNome','regEmail','regHint'].includes(id))wrap.classList.add('reference-wide');
+  const symbol=document.createElement('span');symbol.className='reference-field-icon';symbol.innerHTML=referenceIcon(icon);wrap.prepend(symbol);
+ }
+ const toggle=sp.querySelector('.registration-toggle');
+ toggle.firstElementChild.firstElementChild.textContent='Proteger com senha?';toggle.insertAdjacentHTML('afterbegin','<span class="reference-toggle-icon">'+referenceIcon('lock')+'</span>');
+ const note=sp.querySelector('#regSenhaCampos').lastElementChild;note.classList.add('reference-security-note');note.innerHTML=referenceIcon('shield')+'<span>Dados criptografados (AES-256) · Guarde bem a senha</span>';
+ const trial=shell.querySelector(':scope>div[style*="rgba(45,192,174"]');trial.classList.add('reference-trial');trial.innerHTML=referenceIcon('gift')+'<div><b>Teste grátis por 30 dias</b><p>Ao criar sua conta, você libera <strong>todas as funções</strong> por 30 dias, sem compromisso.</p></div>';
  const personal=[...fields.children].filter(x=>x!==security&&x!==heading);
  const submit=shell.querySelector('button[onclick="doEntryRegister()"]');
  const step=document.createElement('p');step.className='reg-step-label';shell.querySelector('.registration-title').after(step);
  const back=document.createElement('button');back.type='button';back.className='reg-back';back.textContent='Voltar aos dados pessoais';submit.after(back);
+ const scene=document.createElement('div');scene.className='registration-scene';
+ scene.innerHTML='<img class="registration-background" src="register-data-art.png" alt=""><img class="registration-foreground" src="register-data-art.png" alt="" aria-hidden="true">';
+ sp.appendChild(scene);scene.querySelector('.registration-background').after(shell);setupReferenceFrame(scene,864,1536);
  function show(n){
-  shell.classList.toggle('step-security',n===2);
+  shell.classList.toggle('step-security',n===2);scene.classList.toggle('reference-step-security',n===2);
+  for(const img of scene.querySelectorAll('.registration-background,.registration-foreground'))img.src=n===1?'register-data-art.png':'register-security-art.png';
   personal.forEach(x=>x.classList.toggle('reg-step-hidden',n===2));
   [security,heading].forEach(x=>x.classList.toggle('reg-step-hidden',n===1));
   shell.querySelector('.registration-title h2').classList.toggle('reg-step-hidden',n===2);
   back.classList.toggle('reg-step-hidden',n===1);step.textContent=`Etapa ${n} de 2 · ${n===1?'Seus dados':'Segurança'}`;
-  submit.textContent=n===1?'Continuar →':'Criar acesso e entrar';
+  submit.textContent=n===1?'Continuar →':'Criar acesso e entrar →';
   submit.onclick=()=>{if(n===1){const missing=['regNome','regIdade','regSexo','regCPF','regUser'].map(id=>document.getElementById(id)).find(x=>!x.value.trim());if(missing){document.getElementById('regErr').textContent='Preencha os dados pessoais para continuar.';missing.focus();return;}document.getElementById('regErr').textContent='';show(2);}else doEntryRegister();};
+  fitReferenceFrames();
  }
  back.onclick=()=>show(1);show(1);
 }
@@ -60,4 +100,15 @@ window.VFCNotices=(()=>{
  }
  document.addEventListener('DOMContentLoaded',()=>{refresh();setInterval(()=>{if(Date.now()-lastFetch>300000)refresh();else check();},15000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh();});});
  return {check,refresh,validate,candidate,show};
+})();
+/* VisualViewport mantém formulários e rodapés de diálogos acessíveis com teclado. */
+(function(){
+ function size(){
+  const viewport=window.visualViewport;
+  // O zoom manual deve continuar livre: só acompanha teclado/rotação em escala normal.
+  if(viewport && Math.abs(viewport.scale-1)>.02)return;
+  document.documentElement.style.setProperty('--vfc-visual-height',(viewport?viewport.height:window.innerHeight)+'px');
+  document.documentElement.style.setProperty('--vfc-offset',(viewport?viewport.offsetTop:0)+'px');
+ }
+ window.addEventListener('resize',size);window.visualViewport?.addEventListener('resize',size);window.visualViewport?.addEventListener('scroll',size);size();
 })();

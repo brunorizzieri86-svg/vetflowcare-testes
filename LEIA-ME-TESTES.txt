@@ -1,20 +1,7 @@
-VETFLOWCARE — AMBIENTE DE TESTES
-
-Este pacote é exclusivo de testes. Não substitua o repositório vetflowcare atual.
-
-1. No GitHub, clique em + > New repository e crie vetflowcare-testes.
-2. Extraia o ZIP. Envie os arquivos da pasta diretamente para a raiz do novo repositório, mantendo index.html, sw.js, manifest.json, access-art.jpg, logo.jpg e os ícones juntos. Não envie apenas o ZIP.
-3. No NOVO repositório: Settings > Pages > Deploy from a branch.
-4. Selecione a branch existente (normalmente main) e /(root); clique Save.
-5. Use o endereço exibido pelo GitHub Pages. Não copie o domínio personalizado ou o CNAME da produção.
-6. Abra o ambiente de testes em outro perfil do navegador, usando apenas dados fictícios. Não divulgue esse link aos clientes.
-7. Faça backup no app de produção antes de qualquer futura atualização.
-
-O novo index usa chaves localStorage prefixadas por vfc_test::, IndexedDB vetflowcare-tests, cache vfc-test-* e identidade de PWA de testes. Não migra nem lê automaticamente a base de produção. A separação foi verificada por teste no mesmo domínio com dados simulados.
-
-Um repositório diferente não cria por si só uma origem diferente: sites em usuario.github.io/projeto compartilham a origem. Um perfil separado ou domínio próprio de testes adiciona isolamento. A versão antiga da produção pode limpar caches de outros apps ao atualizar; por isso também recomendamos perfil separado.
-
-Nenhum repositório foi criado ou publicado por esta entrega. A aprovação global AQC continua pendente; os testes funcionais não certificam todos os módulos do app.
-
-Documentação: https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site
-Armazenamento por origem: https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage
+VetFlowCare 9.70 — SOMENTE TESTES
+Extraia o ZIP e envie os arquivos para a raiz de vetflowcare-testes. Não envie o ZIP fechado.
+Não usar no repositório nem no domínio dos clientes. O pacote usa armazenamento e cache próprios de testes e não inclui CNAME.
+Teste com dados fictícios. O pacote de produção só será gerado após aprovação explícita deste pacote.
+Inclui index, CSS, JavaScript, service worker, manifest, imagens e avisos.json.
+Verifique os dois passos do cadastro, acesso, senha, óbito/reativação e backup/restauração em seu celular e tablet.
+Em tela baixa, com teclado aberto ou texto ampliado, a rolagem é permitida para manter os controles acessíveis.

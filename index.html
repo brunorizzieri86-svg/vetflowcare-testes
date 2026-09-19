@@ -226,9 +226,8 @@ canvas{width:100%!important}
 @media(max-width:360px){.art-screen .access-card{padding-left:15px;padding-right:15px}.art-screen .access-card h1{font-size:22px}.art-screen .access-email{font-size:13px}.art-screen .access-card button{font-size:13px}}
 </style>
 <link rel="stylesheet" href="ui-updates.css">
-<script>
-const testStorage=(()=>{const raw=window.localStorage,prefix='vfc_test::';const keys=()=>Object.keys(raw).filter(k=>k.startsWith(prefix)).map(k=>k.slice(prefix.length));const api={getItem:k=>raw.getItem(prefix+k),setItem:(k,v)=>raw.setItem(prefix+k,v),removeItem:k=>raw.removeItem(prefix+k),clear:()=>keys().forEach(k=>raw.removeItem(prefix+k)),key:i=>keys()[i]||null};return new Proxy({},{get:(_,k)=>k==='length'?keys().length:api[k],ownKeys:keys,getOwnPropertyDescriptor:()=>({enumerable:true,configurable:true})});})();
-</script><script src="ui-updates.js"></script>
+<link rel="stylesheet" href="access-reference.css">
+<script>const testStorage=(()=>{const raw=window.localStorage,prefix='vfc_test::';const keys=()=>Object.keys(raw).filter(k=>k.startsWith(prefix)).map(k=>k.slice(prefix.length));const api={getItem:k=>raw.getItem(prefix+k),setItem:(k,v)=>raw.setItem(prefix+k,v),removeItem:k=>raw.removeItem(prefix+k),clear:()=>keys().forEach(k=>raw.removeItem(prefix+k)),key:i=>keys()[i]||null};return new Proxy({},{get:(_,k)=>k==='length'?keys().length:api[k],ownKeys:keys,getOwnPropertyDescriptor:()=>({enumerable:true,configurable:true})});})();</script><script src="ui-updates.js"></script>
 </head>
 <body>
 
@@ -326,22 +325,19 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.66';
+const APP_VER = '9.70';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.66',
+  ver: '9.70',
   titulo: 'Novidades da versão 🚀',
   itens: [
-    ['📱','Acesso ajustado ao celular','Telas de acesso com altura adaptada e cadastro dividido em duas etapas.'],
     ['💾','Backups com anexos','As exportações agora incluem os documentos dos pacientes e as fichas dos tutores. Confira sempre o arquivo salvo.'],
     ['📢','Avisos de atualização','Lembrete de segunda-feira e avisos com período definido para preparar seu backup.'],
     ['🔍','Busca global','Encontre qualquer paciente, tutor, atendimento ou vacina com uma busca rápida. Toque no ícone 🔍 no topo do app. Os resultados são agrupados por categoria e navegam direto para o paciente ou atendimento.'],
     ['📋','Agenda com histórico completo','O calendário agora exibe todos os atendimentos realizados, incluindo meses anteriores. Você pode registrar consultas retroativas em qualquer data passada — o app abre automaticamente o mês correto após salvar.'],
     ['🔐','Já tenho cadastro','Nova opção na tela de acesso: <b>Já tenho cadastro — entrar</b>. Para quem apagou o app e quer recuperar o acesso. Após entrar aparece aviso para restaurar o backup em Ajustes.'],
-    ['🐛','Correção: erro na Agenda','Corrigido erro <i>apptId is not defined</i> que aparecia ao salvar atendimentos na tela de Agenda.'],
-    ['🛡️','Domínio autorizado','O endereço <b>app.vetflowcare.com.br</b> foi adicionado aos domínios oficiais do anti-cópia.'],
     ['🔓','Senha opcional no cadastro','No primeiro acesso, um toggle permite escolher: <b>com senha</b> (criptografado, recomendado) ou <b>sem senha</b> (abre direto). Pode mudar depois em Ajustes → Segurança.'],
     ['🔑','Esqueceu a senha? Agora funciona','Ao clicar em <b>Esqueci minha senha</b>, a tela muda na hora — exibe a dica de senha, botão de ajuda pelo WhatsApp e a opção de apagar (com confirmação extra).'],
     ['💬','Lembrete de senha no WhatsApp','Ao criar a conta ou ativar a senha, o app oferece enviar um lembrete pra você mesmo no WhatsApp com e-mail e dica — backup no histórico do WA.'],
@@ -350,10 +346,8 @@ const NOVIDADES = {
     ['🔑','Dica de senha','Ao criar sua conta você pode cadastrar uma <b>dica de senha</b> — uma frase que aparece se você esquecer a senha, sem comprometer a segurança.'],
     ['📚','Tutorial Completo','Em Ajustes → Ajuda tem agora o link para o <b>Manual Completo</b> do app — todos os módulos detalhados, dicas profissionais e perguntas frequentes.'],
     ['💬','Mensagens Pro inteligentes','Ao solicitar o Plano Pro, a mensagem já informa se você está <b>no trial, após o trial, renovando ou assinando direto</b>.'],
-    ['🎁','Boas-vindas mais clara','O modal após o cadastro agora deixa <b>explícito que os 30 dias já estão ativos</b> — sem confusão.'],
     ['📸','Siga a gente no Instagram','Agora tem um botão para seguir o <b>@vetflowcare.app</b> na tela inicial, nos ajustes e aqui nas novidades. Siga para receber dicas, novidades e falar direto com a equipe! 💚'],
     ['🌐','Conheça os planos no site','Ao fim do teste, você encontra os planos e o passo a passo para assinar direto no nosso site <b>vetflowcare.com.br</b> — tudo mais simples e organizado.'],
-    ['🎁','Teste grátis de 30 dias','Agora é só <b>criar sua conta</b> e você libera <b>todas as funções</b> por 30 dias, sem precisar de código. Um presente para você conhecer tudo. 🐾'],
     ['📝','Cadastro completo','No primeiro acesso você preenche seus dados (nome, idade, sexo, CPF, usuário, e-mail e senha). O <b>CPF é validado</b> automaticamente.'],
     ['⏳','Aviso antes de acabar','Quando faltarem <b>5 dias</b> para o teste terminar, um aviso aparece na tela inicial para você renovar com calma.'],
     ['🔒','Depois dos 30 dias','Ao fim do teste, os recursos avançados ficam bloqueados até você assinar o <b>Pro</b> — mas <b>seus dados continuam salvos</b>, nada é apagado.'],
@@ -374,7 +368,6 @@ const NOVIDADES = {
     ['🗂️','Arquivo Morto','Exporte o prontuário de um ano inteiro em PDF para guarda legal (o CFMV exige <b>20 anos</b>). Em Ajustes → Arquivo Morto.'],
     ['📄','Tudo em PDF com seu timbre','Todos os documentos saem em PDF com logo, nome e CRMV no cabeçalho e <b>VetFlowCare</b> no rodapé — profissional para imprimir e arquivar.'],
     ['💰','Financeiro mais completo','Nova visão <b>"🗂️ Todas as datas"</b> nas Despesas — nenhuma some por estar em outro mês. Agora com <b>campo de observações</b>, aviso de despesa futura e edição total.'],
-    ['🍎','Correção para iPhone','O termo de uso ocupava a tela inteira e escondia o botão de aceitar, impedindo a entrada no app. Corrigido — junto com as telas de login e cadastro.'],
     ['🎙️','Ditado por voz','Fale o prontuário e o texto se <b>organiza sozinho</b> em Queixa, Anamnese, Exame Físico, Diagnóstico e Conduta — sem repetir palavras e sem parar no meio da consulta.'],
     ['🗺️','Rota do dia','Na Agenda: seus atendimentos na ordem dos horários, com <b>Waze</b> e <b>Google Maps</b> em cada parada — e a quilometragem vira despesa sozinha.'],
     ['🛡️','Proteção de Dados','Cópia interna automática em dois lugares do aparelho, verificação de integridade ao abrir e pontos de restauração de até <b>6 meses</b>.'],
@@ -1024,9 +1017,18 @@ function accessView(id,title,description,body,footer=''){
  const variant=title==='Entrar'?'login':id==='lgvOverlay'?'existing':title==='Esqueceu a senha?'?'forgot':title==='Confirmar exclusão'?'delete':'settings';
  const key=variant==='forgot'?'key':variant==='delete'?'trash':title==='Segurança'?'shield':'lock';
  const el=document.createElement('section');el.id=id;el.className='access-screen art-screen art-'+variant;el.setAttribute('aria-label',title);
- const hero=variant==='login'||variant==='existing';
+ const hero=variant==='login';
  el.innerHTML=`<div class="access-layout art-layout">${hero?`<div class="art-header">${accessArt('top')}</div>`:`<div class="art-small-brand"><img src="logo.jpg" alt="VetFlow Care — Organiza. Conecta. Cuida."></div>`}<main class="access-card"><div class="art-emblem">${accessIcon(key)}</div><h1>${title}</h1><p class="access-description">${description}</p>${body}${footer}<p id="securityErr" class="access-error" role="alert" aria-live="polite"></p></main>${hero?`<div class="art-pets">${accessArt('bottom')}</div>`:'<div class="art-small-footer">ORGANIZA · CONECTA · CUIDA</div>'}</div>`;
  document.body.appendChild(el);
+ if(variant==='login'){
+  el.classList.add('art-integrated');
+  const layout=el.querySelector('.art-layout');
+  layout.querySelector('.art-header')?.remove();layout.querySelector('.art-pets')?.remove();
+  layout.insertAdjacentHTML('afterbegin','<svg class="integrated-background" viewBox="0 52 691 1401" aria-hidden="true"><svg x="0" y="52" width="691" height="1401" viewBox="0 52 691 1401" overflow="hidden"><image href="access-art.jpg" width="691" height="1536"/></svg></svg>');
+  const foreground=layout.querySelector('.integrated-background').cloneNode(true);foreground.classList.add('integrated-foreground');layout.appendChild(foreground);
+  const field=layout.querySelector('.access-field');if(field)field.insertAdjacentHTML('afterbegin','<span class="reference-field-icon">'+accessIcon('lock')+'</span>');
+  setupReferenceFrame(layout,691,1401);
+ }
  el.querySelectorAll('.access-field button').forEach(b=>b.innerHTML=accessIcon('eye'));
  el.querySelectorAll('button span').forEach(b=>{if(b.textContent==='→')b.innerHTML=accessIcon('arrow')});
  return el;
@@ -4773,7 +4775,7 @@ function renderPetDocs(pet){
       <button style="background:none;color:var(--muted)" onclick="delRecord('${pet.id}','documents','${d.id}')">🗑</button></div>`).join('')}
     ${!pet.documents.length?'<div class="empty" style="padding-top:14px">Nenhum arquivo enviado</div>':''}
     ${pet.deceased
-      ? '<div style="margin-top:18px;padding:14px 16px;background:#FEF2F2;border:1.5px solid #FECACA;border-radius:14px;display:flex;align-items:center;gap:12px"><span style="font-size:26px">🕊️</span><div style="flex:1"><div style="font-weight:800;color:#991B1B;font-size:13px">Paciente falecido</div><div style="font-size:11px;color:#B91C1C;margin-top:2px">' + (pet.deceased.date ? 'Em ' + fmtDateBR(pet.deceased.date) : 'Data não informada') + (pet.deceased.notes ? ' · ' + esc(pet.deceased.notes.slice(0,60)) : '') + '</div></div><button onclick="reativarPaciente(\'' + pet.id + '\')" style="background:none;border:1.5px solid #FECACA;color:#B91C1C;border-radius:10px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer">↩ Reativar</button></div>'
+      ? '<div style="margin-top:18px;padding:14px 16px;background:#FEF2F2;border:1.5px solid #FECACA;border-radius:14px;display:flex;align-items:center;gap:12px"><span style="font-size:26px">🕊️</span><div style="flex:1"><div style="font-weight:800;color:#991B1B;font-size:13px">Paciente falecido</div><div style="font-size:11px;color:#B91C1C;margin-top:2px">' + (pet.deceased.date ? 'Em ' + fmtDate(pet.deceased.date) : 'Data não informada') + (pet.deceased.notes ? ' · ' + esc(pet.deceased.notes.slice(0,60)) : '') + '</div></div><button onclick="reativarPaciente(\'' + pet.id + '\')" style="background:none;border:1.5px solid #FECACA;color:#B91C1C;border-radius:10px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer">↩ Reativar</button></div>'
       : '<div style="margin-top:20px;padding-top:16px;border-top:1px dashed #E2E8F0;text-align:center"><button onclick="abrirModalObito(\'' + pet.id + '\')" style="background:#F5FAFA;border:1.5px solid #83ACB2;color:#476E78;border-radius:12px;padding:10px 20px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px">🕊️ Registrar óbito do paciente</button></div>'}
   </div>`;
 }
@@ -4809,7 +4811,7 @@ function reativarPaciente(petId){
   const pet = DB.pets.find(p=>p.id===petId); if(!pet) return;
   vfcConfirm({
     msg: 'Reativar <b>' + esc(pet.name) + '</b>?<br><small style="color:var(--muted)">O paciente voltará a aparecer normalmente na agenda e alertas.</small>',
-    yesLabel:'↩ Reativar', yes: 'doReativarPaciente("' + petId + '")',
+    yesLabel:'↩ Reativar', yes: esc('doReativarPaciente('+JSON.stringify(petId)+')'),
     noLabel: 'Cancelar'
   });
 }
@@ -5332,7 +5334,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.66 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.70 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
