@@ -1,4 +1,4 @@
-VetFlowCare 9.70 — SOMENTE TESTES
+VetFlowCare 9.69 — SOMENTE TESTES
 Extraia o ZIP e envie os arquivos para a raiz de vetflowcare-testes. Não envie o ZIP fechado.
 Não usar no repositório nem no domínio dos clientes. O pacote usa armazenamento e cache próprios de testes e não inclui CNAME.
 Teste com dados fictícios. O pacote de produção só será gerado após aprovação explícita deste pacote.

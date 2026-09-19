@@ -1,8 +1,8 @@
-// VetFlowCare — Service Worker v9.70 — TESTES
+// VetFlowCare — Service Worker v9.69 — TESTES
 // Estratégia: Network-First (busca atualização na rede; cache só responde offline)
 // B&G Systems | Todos os direitos reservados
 
-const CACHE = 'vfc-test-v9.70';
+const CACHE = 'vfc-test-v9.69';
 
 const CORE_FILES = [
   './index.html',
@@ -10,9 +10,6 @@ const CORE_FILES = [
   './logo.jpg',
   './access-art.jpg',
   './ui-updates.css',
-  './access-reference.css',
-  './register-data-art.png',
-  './register-security-art.png',
   './ui-updates.js',
   './vfc-mark.webp',
   './icon-192.png',
