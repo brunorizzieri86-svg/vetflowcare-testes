@@ -1,7 +1,11 @@
 /* Arte oficial contínua, com formulários reais em coordenadas proporcionais. */
 #splash.art-registration,.art-screen.art-login.art-integrated{display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start;background:#e7f6f7;overflow:auto}
 #splash.art-registration.hidden{display:none!important}
-#splash.art-registration .reference-frame,.art-login.art-integrated .reference-frame{position:relative;flex:none;max-width:none;min-height:0!important;padding:0!important;margin:auto!important;display:block;overflow:hidden;aspect-ratio:auto}
+/* height:100% (não px calculado via JS/innerHeight): herda a altura real da caixa
+   position:fixed;inset:0 (#splash / .access-screen) que o próprio navegador já resolveu —
+   isso evita o descompasso entre innerHeight e a altura de fato renderizada em telas reais
+   (barra de endereço do celular), que causava corte na arte/caixa da senha. */
+#splash.art-registration .reference-frame,.art-login.art-integrated .reference-frame{position:relative;flex:none;max-width:none;min-height:0!important;height:100%;padding:0!important;margin:auto!important;display:block;overflow:hidden;aspect-ratio:auto}
 .reference-stage{position:absolute;left:0;top:0;transform:scale(var(--ref-scale,1));transform-origin:top left;isolation:isolate}
 #splash.art-registration .reference-stage>img{position:absolute;inset:0;width:864px!important;height:1536px!important;max-width:none!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:none!important;pointer-events:none}
 .registration-background{z-index:0}.registration-foreground{z-index:3;clip-path:inset(70% 0 0)}

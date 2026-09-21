@@ -28,27 +28,28 @@ function fitReferenceFrames(){
   const parent=frame.parentElement,style=getComputedStyle(parent);
   const rawWidth=parent.clientWidth-(parseFloat(style.paddingLeft)||0)-(parseFloat(style.paddingRight)||0);
   const width=Math.min(rawWidth,480);
-  // Usa innerHeight (não visualViewport.height) para o cálculo de escala: innerHeight não encolhe
-  // quando o teclado abre, então a arte/cartão mantém o tamanho normal — a seção rola se precisar.
-  const height=Math.max(640,innerHeight-(parseFloat(style.paddingTop)||0)-(parseFloat(style.paddingBottom)||0));
+  frame.style.width=width+'px';
+  // A altura NÃO é mais calculada a partir de innerHeight: em celulares reais, innerHeight pode
+  // não bater com a altura de fato renderizada da caixa position:fixed;inset:0 (#splash /
+  // .access-screen) — varia com a barra de endereço do navegador — e esse descompasso é o que
+  // causava corte na arte/caixa da senha (frame com altura diferente da área realmente visível).
+  // Em vez disso, .reference-frame tem height:100% no CSS (herda a altura real já resolvida pelo
+  // navegador para o próprio container fixo) e aqui só LEMOS o valor já renderizado.
+  const height=Math.max(320,frame.clientHeight||innerHeight);
   const baseW=Number(frame.dataset.artWidth),baseH=Number(frame.dataset.artHeight);
-  // Sempre "contain" (a arte inteira cabe, nunca corta): o texto decorativo ("Medicina
-  // Veterinária...", "Cuidar também é organizar") fica a poucos % da borda da arte, então
-  // qualquer corte de lateral ("cover") já cortava esse texto — confirmado nas fotos do usuário.
-  const scale=Math.min(width/baseW,height/baseH);
-  frame.style.width=width+'px';frame.style.height=height+'px';frame.style.setProperty('--ref-scale',String(scale));
+  // "Cover" (por pedido explícito do Bruno): a arte SEMPRE preenche a tela inteira, sem sobrar
+  // nenhuma faixa vazia — se a proporção do aparelho não bater com a da arte, o excesso é cortado
+  // (geralmente nas laterais, no texto decorativo/patinhas), nunca deixado como espaço em branco.
+  // Antes usávamos "contain" pra nunca cortar o texto lateral, mas o espaço vazio resultante
+  // parecia "serviço mal feito" — o Bruno prefere o corte a sobrar espaço.
+  const scale=Math.max(width/baseW,height/baseH);
+  frame.style.setProperty('--ref-scale',String(scale));
   const stage=frame.querySelector('.reference-stage');
   if(stage){
-   const gapY=height-baseH*scale;
-   // Quando a proporção do aparelho não bate com a da arte, sobra espaço vertical — em vez de
-   // dividir ao meio (o que deixava faixas vazias em cima E embaixo), jogamos toda a sobra pro
-   // lado onde a cor da própria arte é clara/parecida com o fundo do app (quase imperceptível):
-   // no login o topo é escuro e deve tocar a borda real da tela, então a sobra vai pro rodapé
-   // (claro); no cadastro o rodapé é escuro (barra de navegação) e deve tocar a borda real, então
-   // a sobra vai pro topo (claro, atrás do logo).
-   const anchorTop=!!frame.closest('.art-login');
+   // Centraliza o corte (sobra/falta dividida igual dos dois lados) — sem isso o corte inteiro
+   // cairia de um lado só, ainda mais perceptível.
    stage.style.left=((width-baseW*scale)/2)+'px';
-   stage.style.top=(anchorTop?0:gapY)+'px';
+   stage.style.top=((height-baseH*scale)/2)+'px';
   }
  });
 }
