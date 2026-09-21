@@ -32,19 +32,23 @@ function fitReferenceFrames(){
   // quando o teclado abre, então a arte/cartão mantém o tamanho normal — a seção rola se precisar.
   const height=Math.max(640,innerHeight-(parseFloat(style.paddingTop)||0)-(parseFloat(style.paddingBottom)||0));
   const baseW=Number(frame.dataset.artWidth),baseH=Number(frame.dataset.artHeight);
-  // "contain" garante que a arte inteira caiba sem cortes; "cover" preenche 100% da tela mas
-  // pode cortar as bordas. Usamos o maior valor possível entre os dois, respeitando um limite
-  // de corte seguro (safeCap) que nunca invade a área do cartão/campos — só a margem decorativa
-  // da foto de fundo. Isso elimina as faixas vazias em cima/embaixo sem cortar o formulário.
-  const containScale=Math.min(width/baseW,height/baseH);
-  const coverScale=Math.max(width/baseW,height/baseH);
-  const safeCap=width/(baseW*0.76);
-  const scale=Math.max(containScale,Math.min(coverScale,safeCap));
+  // Sempre "contain" (a arte inteira cabe, nunca corta): o texto decorativo ("Medicina
+  // Veterinária...", "Cuidar também é organizar") fica a poucos % da borda da arte, então
+  // qualquer corte de lateral ("cover") já cortava esse texto — confirmado nas fotos do usuário.
+  const scale=Math.min(width/baseW,height/baseH);
   frame.style.width=width+'px';frame.style.height=height+'px';frame.style.setProperty('--ref-scale',String(scale));
   const stage=frame.querySelector('.reference-stage');
   if(stage){
+   const gapY=height-baseH*scale;
+   // Quando a proporção do aparelho não bate com a da arte, sobra espaço vertical — em vez de
+   // dividir ao meio (o que deixava faixas vazias em cima E embaixo), jogamos toda a sobra pro
+   // lado onde a cor da própria arte é clara/parecida com o fundo do app (quase imperceptível):
+   // no login o topo é escuro e deve tocar a borda real da tela, então a sobra vai pro rodapé
+   // (claro); no cadastro o rodapé é escuro (barra de navegação) e deve tocar a borda real, então
+   // a sobra vai pro topo (claro, atrás do logo).
+   const anchorTop=!!frame.closest('.art-login');
    stage.style.left=((width-baseW*scale)/2)+'px';
-   stage.style.top=((height-baseH*scale)/2)+'px';
+   stage.style.top=(anchorTop?0:gapY)+'px';
   }
  });
 }

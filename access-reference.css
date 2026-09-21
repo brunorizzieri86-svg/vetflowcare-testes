@@ -5,11 +5,18 @@
 .reference-stage{position:absolute;left:0;top:0;transform:scale(var(--ref-scale,1));transform-origin:top left;isolation:isolate}
 #splash.art-registration .reference-stage>img{position:absolute;inset:0;width:864px!important;height:1536px!important;max-width:none!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:none!important;pointer-events:none}
 .registration-background{z-index:0}.registration-foreground{z-index:3;clip-path:inset(70% 0 0)}
-.reference-step-security .registration-foreground{clip-path:inset(71.5% 0 0)}
-#splash.art-registration .reference-stage .register-shell{position:absolute;left:60px;top:330px;width:744px!important;height:708px;max-width:none!important;padding:14px 30px 20px!important;margin:0!important;box-sizing:border-box;border:0;border-radius:48px;background:linear-gradient(140deg,#fff,#f4fcfc);box-shadow:none;display:flex;flex-direction:column;gap:0}
-/* Etapa 2 (Segurança) tem um campo a mais que a etapa 1 — altura maior evita que o botão
-   "Voltar aos dados pessoais" fique espremido contra a borda inferior do card. */
-#splash.art-registration .reference-stage .register-shell.step-security{top:330px;height:750px;padding-top:18px!important}
+/* 73% ≈ (369+752)/1536 — acompanha a nova altura do card na etapa de Segurança (ver regra do
+   .register-shell.step-security acima), pra camada de patinhas nunca desenhar por cima do botão. */
+.reference-step-security .registration-foreground{clip-path:inset(73% 0 0)}
+/* top:369px é a posição exata do card na arte de referência (conferido pixel a pixel na imagem
+   original) — não mexer aqui, senão o card cobre o logo desenhado na própria arte. */
+#splash.art-registration .reference-stage .register-shell{position:absolute;left:60px;top:369px;width:744px!important;height:708px;max-width:none!important;padding:14px 30px 20px!important;margin:0!important;box-sizing:border-box;border:0;border-radius:48px;background:linear-gradient(140deg,#fff,#f4fcfc);box-shadow:none;display:flex;flex-direction:column;gap:0}
+/* Etapa 2 (Segurança) tem um campo a mais que a etapa 1: o conteúdo real (fonte do navegador)
+   precisa de ~20px a mais do que a arte de referência previa, senão o botão "Voltar aos dados
+   pessoais" estoura a borda inferior do card. Aumentamos a altura e empurramos para baixo, em
+   conjunto, o recorte da camada de patinhas/rodapé (.reference-step-security .registration-foreground
+   abaixo) na mesma medida, pra elas continuarem só "por cima" do card, nunca sobre o botão. */
+#splash.art-registration .reference-stage .register-shell.step-security{top:369px;height:752px;padding-top:18px!important}
 #splash.art-registration .reference-stage .registration-title h1{font-size:52px!important;line-height:1.12;margin:0!important;font-weight:750;color:#07314d}
 #splash.art-registration .reference-stage .reg-step-label{font-size:29px;line-height:1.3;margin:6px 0 20px;text-align:center}
 #splash.art-registration .reference-stage .registration-fields{gap:16px!important;margin:0!important}

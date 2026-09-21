@@ -61,6 +61,13 @@
 .art-screen:not(.art-login) .access-card .danger,.art-screen:not(.art-login) .access-card .danger-button{color:#b63750;border:1px solid #edb9c2;background:#fff1f3}
 .art-screen.art-delete .art-emblem{background:#ffebee;color:#d34760}
 .art-screen.art-delete .access-card button.danger-button{background:#df4863;color:white;border:0}
+/* Confirmação de exclusão por checkbox — mais claro que "digite APAGAR para confirmar".
+   text-transform/font-weight:none porque a regra genérica de <label> do app (maiúsculas,
+   negrito, 11px) foi pensada pra rótulos curtos de campo, não pra uma frase inteira. */
+.art-screen.art-delete .wipe-confirm-check{display:flex;align-items:flex-start;gap:10px;text-align:left;cursor:pointer;padding:12px 14px;margin:2px 0 10px;background:#fff1f3;border:1.5px solid #f3c3cb;border-radius:14px;text-transform:none;font-weight:400;letter-spacing:normal}
+.art-screen.art-delete .wipe-confirm-check input{width:20px;height:20px;min-height:0;flex-shrink:0;margin:2px 0 0;accent-color:#df4863}
+.art-screen.art-delete .wipe-confirm-check span{font-size:13px;line-height:1.45;color:#7a2436;text-transform:none;font-weight:400}
+.art-screen.art-delete .wipe-confirm-check b{font-weight:800}
 .art-screen:not(.art-login) .access-notice.warning{background:#fff4f1;border-color:#f1d8d1;color:#854f50}
 #splash.art-registration{display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start!important;height:100dvh;min-height:100dvh;padding:0!important;background:radial-gradient(ellipse at top left,#c3eeeb,transparent 55%),#edf7f8!important}
 #splash.art-registration.hidden{display:none!important}

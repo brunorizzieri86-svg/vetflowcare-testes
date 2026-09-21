@@ -1110,12 +1110,15 @@ function lockForgotWhats(email){
 function lockForgot2(){
  accessView('lockScreen','Confirmar exclusão','Esta ação não pode ser desfeita.',`
  <div class="access-notice warning">Serão apagados os cadastros, atendimentos, anexos e cópias internas deste app no aparelho. Arquivos exportados anteriormente não são excluídos. A exclusão não cancela assinaturas.</div>
- <label for="wipeText">Digite APAGAR para confirmar</label><input id="wipeText" autocomplete="off" oninput="document.getElementById('wipeConfirm').disabled=this.value!=='APAGAR'">
+ <label class="wipe-confirm-check" for="wipeCk">
+  <input id="wipeCk" type="checkbox" oninput="document.getElementById('wipeConfirm').disabled=!this.checked">
+  <span>Entendo que essa ação é <b>permanente</b> e vai apagar todos os meus dados deste aparelho.</span>
+ </label>
  <button class="secondary" onclick="cancelWipe()">Manter meus dados</button><button id="wipeConfirm" class="danger-button" disabled onclick="doWipeCrypto()">Apagar dados permanentemente</button><p id="wipeErr" role="alert" class="access-error"></p>`);
 }
 function cancelWipe(){if(window._LOCKED)showLockScreen();else{document.getElementById('lockScreen')?.remove();render();}}
 async function doWipeCrypto(){
- if(document.getElementById('wipeText')?.value!=='APAGAR'){lockForgot2();return;}
+ if(!document.getElementById('wipeCk')?.checked){lockForgot2();return;}
  const btn=document.getElementById('wipeConfirm');btn.disabled=true;
  window._wiping=true;clearTimeout(_saveTimer);clearTimeout(_mirrorTimer);
  try{
