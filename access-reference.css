@@ -8,10 +8,13 @@
 #splash.art-registration .reference-frame,.art-login.art-integrated .reference-frame{position:relative;flex:none;max-width:none;min-height:0!important;height:100%;padding:0!important;margin:auto!important;display:block;overflow:hidden;aspect-ratio:auto}
 .reference-stage{position:absolute;left:0;top:0;transform:scale(var(--ref-scale,1));transform-origin:top left;isolation:isolate}
 #splash.art-registration .reference-stage>img{position:absolute;inset:0;width:864px!important;height:1536px!important;max-width:none!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:none!important;pointer-events:none}
-.registration-background{z-index:0}.registration-foreground{z-index:3;clip-path:inset(70% 0 0)}
-/* 73% ≈ (369+752)/1536 — acompanha a nova altura do card na etapa de Segurança (ver regra do
-   .register-shell.step-security acima), pra camada de patinhas nunca desenhar por cima do botão. */
-.reference-step-security .registration-foreground{clip-path:inset(73% 0 0)}
+/* 72.6% ≈ (369+708+38)/1536 — borda do card (1077px) + ~38px de respiro real, pra camada de
+   patinhas/cabeça do cachorro nunca tocar/encostar visualmente no rodapé do card "CRIE SEU ACESSO"
+   (antes era 70% = 1075.2px, ou seja, ANTES do fim do card — por isso parecia sobreposto). */
+.registration-background{z-index:0}.registration-foreground{z-index:3;clip-path:inset(72.6% 0 0)}
+/* 75.5% ≈ (369+752+38)/1536 — mesma lógica acima, mas pra etapa de Segurança (card termina em
+   1121px), garantindo o mesmo respiro real de ~38px antes da arte de patinhas aparecer. */
+.reference-step-security .registration-foreground{clip-path:inset(75.5% 0 0)}
 /* top:369px é a posição exata do card na arte de referência (conferido pixel a pixel na imagem
    original) — não mexer aqui, senão o card cobre o logo desenhado na própria arte. */
 #splash.art-registration .reference-stage .register-shell{position:absolute;left:60px;top:369px;width:744px!important;height:708px;max-width:none!important;padding:14px 30px 20px!important;margin:0!important;box-sizing:border-box;border:0;border-radius:48px;background:linear-gradient(140deg,#fff,#f4fcfc);box-shadow:none;display:flex;flex-direction:column;gap:0}
