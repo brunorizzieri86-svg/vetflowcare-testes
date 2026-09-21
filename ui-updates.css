@@ -1,0 +1,207 @@
+/* v9.66 — altura real do visor, sem recortar a arte de acesso. */
+.art-screen{padding:0!important}
+.art-screen .art-layout{min-height:100dvh!important;border-radius:0}
+.art-login .art-layout,.art-existing .art-layout{height:100dvh;display:flex!important;flex-direction:column}
+.art-login .art-header,.art-existing .art-header{flex:1 1 0;min-height:100px;max-height:none;overflow:visible;display:flex;justify-content:center}
+.art-login .art-pets,.art-existing .art-pets{flex:1 1 0;min-height:90px;margin:0;display:flex;justify-content:center}
+.art-screen .art-header svg,.art-screen .art-pets svg{height:100%;width:100%;margin:0;object-fit:contain}
+.art-login .access-card,.art-existing .access-card{flex:0 0 auto;margin:0 auto;padding-top:10px;padding-bottom:12px}
+.art-login .access-email{margin:6px 0 10px}
+.art-small-footer{padding:16px 8px}
+.art-forgot .art-emblem{width:65px;height:65px;margin:4px auto 12px}
+.art-forgot .art-small-brand{height:72px}
+.art-settings .art-layout,.art-delete .art-layout,.art-forgot .art-layout{min-height:100dvh!important}
+#splash.art-registration{min-height:100dvh;justify-content:center!important;padding:10px!important}
+.reg-step-hidden{display:none!important}
+.reg-step-label{text-align:center;color:#376778;font-size:12px;margin:8px 0}
+.register-shell .reg-back{background:transparent!important;color:#176478!important;border:1px solid #9bc9cc!important}
+.scorecard{position:relative;overflow:hidden;isolation:isolate}
+.scorecard .health-watermark{position:absolute;right:-8px;bottom:-20px;width:160px;height:150px;object-fit:contain;opacity:.15;pointer-events:none;z-index:-1}
+.vfc-aviso{position:fixed;inset:0;z-index:10000;padding:20px;display:grid;place-items:center;background:#092d4de0;backdrop-filter:blur(5px);font-family:Arial,sans-serif}
+.vfc-notice-card{width:100%;max-width:410px;max-height:calc(100dvh - 40px);overflow:auto;border-radius:25px;background:#f7fdfd;box-shadow:0 20px 80px #001c3b66;color:#133b57;padding:28px;text-align:center}
+.vfc-notice-brand{font-size:24px;font-weight:800}.vfc-notice-brand span{color:#099d9d}.vfc-notice-tag{font-size:9px;letter-spacing:2px;margin:5px 0 23px;color:#597884}
+.vfc-notice-icon{font-size:34px;line-height:60px;width:65px;margin:auto;border-radius:50%;background:#d8f4ef}
+.vfc-notice-card h2{font-size:23px;margin:16px 0;line-height:1.2}.vfc-notice-body{font-size:14px;line-height:1.65;white-space:pre-line;text-align:left;color:#3f5d6e}
+.vfc-notice-card button{display:block;width:100%;padding:13px;border:0;border-radius:22px;background:linear-gradient(100deg,#12b8a9,#0087a3);color:white;font-size:14px;font-weight:700;margin-top:20px;cursor:pointer}
+.vfc-notice-card .notice-later{background:transparent;color:#376e7d;border:1px solid #a5cbd0;margin-top:9px}
+.vfc-notice-signature{font-size:11px;color:#53818b;margin-top:18px}
+#vfcNoticeBanner{width:calc(100% - 24px);margin:10px 12px;padding:12px 15px;border:1px solid #70b8b6;border-radius:13px;text-align:left;background:#e4f7f2;color:#155969;font:600 13px Arial;cursor:pointer}
+@media(min-width:600px){.art-screen .art-layout{max-width:480px!important;box-shadow:0 20px 80px #18516a20}}
+@media(max-height:700px){.art-settings .access-card,.art-delete .access-card{padding:12px 16px}.art-small-brand{height:54px;padding:4px}.art-small-brand img{height:48px}.art-forgot .access-card{padding:0 18px 10px}.art-forgot .art-emblem{width:48px;height:48px}.art-forgot .art-emblem svg{width:28px;height:28px}.art-screen .access-notice{padding:10px}.art-screen .access-description{margin-bottom:8px}.art-small-footer{padding:10px}}
+/* Teclado e zoom: permite acessar todos os campos em vez de cortar conteúdo. */
+@media(max-height:480px){.art-login .art-header,.art-existing .art-header{min-height:55px}.art-login .art-pets,.art-existing .art-pets{min-height:55px}}
+.art-registration .register-shell.step-security>img{height:42px!important;width:60px!important}
+.art-registration .step-security .registration-title p,.art-registration .step-security>.sub,.art-registration .step-security>div[style*="rgba(45,192,174"],.art-registration .step-security>button[onclick="showLoginExistente()"]{display:none!important}
+.art-registration .step-security>button{margin:8px 0 0!important;line-height:1.2!important}
+.art-registration .step-security .reg-back{display:block;box-shadow:none!important}
+.art-registration .step-security h2{margin:5px 0!important}
+@media(max-height:700px){.art-settings .access-card button{margin-top:8px}.art-settings .access-note{margin:7px 0}.art-settings .access-card .access-notice{padding:8px}.art-settings .art-small-footer{padding:5px}.art-settings .access-card h1{margin:4px 0}}
+.vfc-notice-icon{display:flex;height:65px;align-items:center;justify-content:center}.vfc-notice-icon svg{width:32px;height:32px;color:#079c9e}
+/* Revisão visual 2: uma identidade, fotografias apenas no cadastro e desbloqueio. */
+.art-screen:not(.art-login) .art-layout{display:flex!important;flex-direction:column;align-items:center;gap:12px;height:auto;min-height:100dvh!important;padding:18px 0 12px;background:radial-gradient(ellipse at 0% 0%,#c3eeeb,transparent 55%),linear-gradient(145deg,#effafb,#f6fcfd 70%,#d6eff1);color:#12465c}
+.art-screen:not(.art-login) .art-layout::after{display:none}
+.art-screen:not(.art-login) .art-small-brand{height:76px;width:100%;padding:0;justify-content:center;flex-shrink:0}
+.art-screen:not(.art-login) .art-small-brand img{width:88px;height:76px;object-fit:contain;background:transparent;border-radius:0;mix-blend-mode:multiply}
+.art-screen:not(.art-login) .access-card{width:90%;flex:0 0 auto;margin:0 auto;padding:18px;border-radius:24px;border:1px solid #dbecee;background:#fbffffee;box-shadow:0 12px 30px #235b7310;text-align:center}
+.art-screen:not(.art-login) .art-emblem{width:38px;height:38px;margin:0 auto 8px;box-shadow:none;border:0;background:#d9f4ef;color:#029c9e}
+.art-screen:not(.art-login) .art-emblem svg{width:22px;height:22px}
+.art-screen:not(.art-login) .access-card h1{color:#07465f;font-size:22px;line-height:1.2;margin:5px 0 9px}
+.art-screen:not(.art-login) .access-description{color:#567b88;font-size:12px;line-height:1.5;margin-bottom:14px}
+.art-screen:not(.art-login) .access-notice{padding:12px;border:1px solid #cceae7;border-radius:14px;background:#eaf7f5;color:#2b5d67;font-size:12px;text-align:left;line-height:1.5}
+.art-screen:not(.art-login) .access-notice b{font-size:12px;text-transform:none;letter-spacing:0}
+.art-screen:not(.art-login) .access-notice p{font-size:12px;margin:6px 0 0}
+.art-screen:not(.art-login) .access-note{font-size:12px;line-height:1.5;color:#567480;text-align:left}
+.art-screen:not(.art-login) .access-card button{border-radius:22px;box-shadow:none;font-size:13px;min-height:42px;margin-top:10px}
+.art-screen:not(.art-login) .access-card>button:first-of-type{background:linear-gradient(105deg,#10b9ab,#0096aa);border:0;color:white}
+.art-screen:not(.art-login) .access-card button.secondary{background:transparent;border:1px solid #94c9cf;color:#166579}
+.art-screen:not(.art-login) .access-card button.access-link{border:0;background:transparent;color:#2d7180;min-height:30px;padding:6px}
+.art-screen:not(.art-login) .access-field input,.art-screen:not(.art-login) .access-card>input{border-radius:14px;font-size:14px}
+.art-screen:not(.art-login) .access-card .access-field button{background:none;min-height:34px;margin:0;border:0;padding:0}
+.art-screen:not(.art-login) .art-small-footer{margin-top:auto;color:#427886;padding:12px 4px 0;letter-spacing:2px;font-size:9px}
+.art-screen:not(.art-login) .access-card .danger,.art-screen:not(.art-login) .access-card .danger-button{color:#b63750;border:1px solid #edb9c2;background:#fff1f3}
+.art-screen.art-delete .art-emblem{background:#ffebee;color:#d34760}
+.art-screen.art-delete .access-card button.danger-button{background:#df4863;color:white;border:0}
+/* Confirmação de exclusão por checkbox — mais claro que "digite APAGAR para confirmar".
+   text-transform/font-weight:none porque a regra genérica de <label> do app (maiúsculas,
+   negrito, 11px) foi pensada pra rótulos curtos de campo, não pra uma frase inteira. */
+.art-screen.art-delete .wipe-confirm-check{display:flex;align-items:flex-start;gap:10px;text-align:left;cursor:pointer;padding:12px 14px;margin:2px 0 10px;background:#fff1f3;border:1.5px solid #f3c3cb;border-radius:14px;text-transform:none;font-weight:400;letter-spacing:normal}
+.art-screen.art-delete .wipe-confirm-check input{width:20px;height:20px;min-height:0;flex-shrink:0;margin:2px 0 0;accent-color:#df4863}
+.art-screen.art-delete .wipe-confirm-check span{font-size:13px;line-height:1.45;color:#7a2436;text-transform:none;font-weight:400}
+.art-screen.art-delete .wipe-confirm-check b{font-weight:800}
+.art-screen:not(.art-login) .access-notice.warning{background:#fff4f1;border-color:#f1d8d1;color:#854f50}
+#splash.art-registration{display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start!important;height:100dvh;min-height:100dvh;padding:0!important;background:radial-gradient(ellipse at top left,#c3eeeb,transparent 55%),#edf7f8!important}
+#splash.art-registration.hidden{display:none!important}
+.art-registration .register-shell{width:90%;max-width:432px;margin:12px auto 0;flex:0 0 auto;padding:12px 16px;border-radius:24px;background:#fbffffee;border:1px solid #dbecee;box-shadow:0 12px 30px #235b7310}
+.art-registration .register-shell>img{width:76px!important;height:54px!important;margin-bottom:2px!important}
+.art-registration .step-security>img{width:76px!important;height:54px!important}
+.art-registration .registration-title h1{font-size:22px;margin:4px 0 6px}
+.art-registration .registration-title p,.art-registration .registration-title h2,.art-registration .register-shell>.sub{display:none!important}
+.art-registration .reg-step-label{margin:4px 0 12px;font-size:12px;color:#447586}
+.art-registration .register-shell input,.art-registration .register-shell select{border-radius:12px!important;min-height:38px;padding:9px 11px!important}
+.art-registration .register-shell>button{box-shadow:none!important;border-radius:22px!important;margin-top:10px!important;min-height:40px!important}
+.art-registration .register-shell>button+button{min-height:30px!important;margin-top:6px!important}
+.art-registration .registration-toggle{border-radius:14px!important}
+.art-registration .registration-pets{width:100%;max-width:480px;flex:1 1 0;min-height:100px;line-height:0;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;margin-top:8px}
+.art-registration .registration-pets svg{display:block;width:100%;height:100%;max-height:290px}
+.art-registration .register-shell .eye{transform:none!important;top:4px!important}
+@media(max-height:700px){
+ .art-screen:not(.art-login) .art-layout{padding:8px 0;gap:8px}
+ .art-screen:not(.art-login) .art-small-brand{height:50px}
+ .art-screen:not(.art-login) .art-small-brand img{height:50px;width:64px}
+ .art-screen:not(.art-login) .access-card{padding:12px 16px}
+ .art-screen:not(.art-login) .access-description{margin-bottom:9px}
+ .art-screen:not(.art-login) .access-card button{margin-top:8px}
+ .art-screen:not(.art-login) .art-small-footer{padding-top:4px}
+ .art-registration .register-shell>img,.art-registration .step-security>img{height:40px!important;width:56px!important}
+ .art-registration .register-shell{padding:8px 14px;margin-top:8px}
+ .art-registration .registration-fields{gap:6px!important}
+ .art-registration .reg-step-label{margin-bottom:8px}
+ .art-registration .register-shell>div[style*="rgba(45,192,174"]{margin-top:8px!important;padding:7px 9px!important}
+}
+/* Acesso: arte contínua; formulário real sobre a área do cartão original. */
+.art-screen.art-login.art-integrated{display:flex!important;align-items:center;justify-content:center;height:100dvh;overflow:auto;background:#dff1f3!important}
+.art-login.art-integrated .art-layout{display:block!important;flex:none;width:min(100vw,calc(100dvh * 691 / 1401));max-width:none!important;height:auto;min-height:0!important;aspect-ratio:691/1401;overflow:hidden;box-shadow:none}
+.art-integrated .integrated-background{display:block;width:100%!important;height:100%!important}
+.art-login.art-integrated .access-card{position:absolute;top:36.35%;left:7.5%;width:85%;height:31%;margin:0;padding:2.8% 4.8% 2%;border-radius:clamp(16px,4vw,30px);border:0;background:linear-gradient(140deg,#fbffff,#f0fafa);box-shadow:none;display:flex;flex-direction:column;justify-content:center}
+.art-login.art-integrated .art-emblem{width:28px;height:28px;margin:0 auto 3px;flex-shrink:0}
+.art-login.art-integrated .art-emblem svg{width:17px;height:17px}
+.art-login.art-integrated .access-card h1{font-size:clamp(18px,5vw,24px);margin:3px 0 6px}
+.art-login.art-integrated .access-email{font-size:12px;margin:2px 0 9px}
+.art-login.art-integrated .access-field input{height:40px;padding:9px 38px 9px 14px;font-size:13px}
+.art-login.art-integrated .access-card button{margin-top:9px;min-height:38px;padding:10px 13px;font-size:13px}
+.art-login.art-integrated .access-card .access-field button{margin:0;min-height:30px;width:30px;height:30px;padding:0;top:5px}
+.art-login.art-integrated .access-card .access-link{font-size:11px;margin-top:8px;padding:4px;min-height:24px}
+.art-login.art-integrated .access-error{font-size:11px;margin:3px 0 0}
+.art-login.art-integrated .access-card button span{height:25px;width:25px}
+/* Les mêmes largeurs pour les champs et actions d'inscription. */
+#splash.art-registration .register-shell>button,#splash.art-registration .registration-fields,#splash.art-registration .register-shell>div[style*="rgba(45,192,174"]{width:100%!important;max-width:none!important;box-sizing:border-box;margin-left:auto!important;margin-right:auto!important;align-self:stretch;float:none;transform:none}
+#splash.art-registration .register-shell>button{display:block;text-align:center}
+@media(max-height:700px){
+ .art-screen.art-settings .access-card .access-notice{padding:8px}
+ .art-screen.art-settings .access-description{margin-bottom:6px}
+ .art-screen.art-settings .access-note{font-size:11px;margin:5px 0}
+ .art-screen.art-settings .art-emblem{height:29px;width:29px;margin-bottom:3px}
+ .art-screen.art-settings .access-card h1{margin:2px 0 6px}
+ .art-screen.art-settings .access-card button{margin-top:6px;min-height:36px;padding:9px 13px}
+ .art-screen.art-settings .access-card .access-link{min-height:26px}
+ .art-screen.art-settings .access-email{margin:6px 0}
+ .art-screen.art-settings .access-card label{margin-top:7px}
+ .art-screen.art-settings .access-card>input{padding:10px 14px}
+}
+@media(max-height:660px){.art-login.art-integrated .access-card{height:33%;top:35.6%;padding:2% 4.8%}.art-login.art-integrated .art-emblem{display:none}.art-login.art-integrated .access-card h1{font-size:19px}.art-login.art-integrated .access-card .access-link{margin-top:4px}}
+.art-integrated .integrated-foreground{position:absolute;inset:0;clip-path:inset(65.7% 0 0);pointer-events:none;z-index:3}
+.art-registration .registration-pets{margin-top:0;max-height:270px;mask-image:linear-gradient(to right,transparent,#000 5%,#000 95%,transparent)}
+.art-registration .registration-pets svg{max-height:260px;align-self:flex-end}
+.art-registration .registration-pets svg image{pointer-events:none}
+.art-registration .register-shell{z-index:2}
+@media(max-height:700px){.art-registration .step-security h2{display:none}.art-registration .step-security>img{height:32px!important}.art-registration .step-security .reg-step-label{margin-bottom:8px}.art-registration .step-security .registration-fields{gap:3px!important}}
+.art-registration .registration-pets{max-height:240px;min-height:100px;margin-top:auto;mask-image:linear-gradient(to bottom,transparent,#000 13%,#000 100%)}
+.art-registration .registration-pets svg{overflow:hidden;max-height:240px}
+.art-registration .register-shell{margin-top:auto;margin-bottom:0}
+.art-registration .registration-pets{flex:0 0 clamp(100px,calc(100dvh - 510px),220px);height:clamp(100px,calc(100dvh - 510px),220px);margin-top:0;min-height:100px;max-height:220px}
+/* v9.68: cenário único atrás do cadastro; nenhuma faixa de imagem separada. */
+:root{--vfc-screen:100vh}
+@supports(height:100dvh){:root{--vfc-screen:100dvh}}
+body{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px));overflow-wrap:break-word}
+main,header,nav,.sheet,.card,.row>*{min-width:0}
+input,select,textarea{max-width:100%;min-width:0}
+.modal .sheet{max-height:calc(var(--vfc-screen) - env(safe-area-inset-top,0px) - 12px)}
+.modal .mh h2{min-width:0;overflow-wrap:anywhere}
+.modal .mf{flex-wrap:wrap}
+.modal .mf>button{min-width:0;flex:1 1 120px}
+nav{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav button{min-width:0}
+#splash.art-registration{height:var(--vfc-screen);min-height:0;overflow:auto;display:block!important;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)!important}
+#splash.art-registration.hidden{display:none!important}
+.registration-scene{position:relative;isolation:isolate;width:100%;max-width:480px;min-height:740px;height:calc(var(--vfc-screen) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));margin:auto;display:flex;align-items:center;justify-content:center;padding:115px 0 155px}
+.registration-background{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+#splash.art-registration .register-shell{position:relative;flex:none;width:88%;max-width:none;margin:0!important;padding:14px 16px;background:linear-gradient(140deg,#fbffff,#f0fafa);border:0;border-radius:24px;box-shadow:0 6px 24px #0c526410}
+#splash.art-registration .register-shell input,#splash.art-registration .register-shell select{font-size:16px!important;min-height:40px}
+#splash.art-registration .register-shell>button{min-height:40px!important}
+#splash.art-registration .register-shell>.reg-step-hidden{display:none!important}
+.art-screen{max-height:none;overflow-y:auto}
+.art-screen:not(.art-login) .art-layout{min-height:var(--vfc-screen)!important;padding-top:max(12px,env(safe-area-inset-top,0px));padding-bottom:max(12px,env(safe-area-inset-bottom,0px))}
+.art-screen input{font-size:16px!important}
+.art-screen.art-login.art-integrated{height:var(--vfc-screen);align-items:flex-start;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)!important}
+.art-login.art-integrated .art-layout{width:min(100%,calc(max(640px,var(--vfc-screen)) * 691 / 1401));min-height:640px!important;height:calc(var(--vfc-screen) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));aspect-ratio:auto;position:relative}
+.art-login.art-integrated .integrated-background,.art-login.art-integrated .integrated-foreground{height:100%!important}
+@media(min-width:768px){
+ body{max-width:800px}nav{max-width:800px}.modal .sheet{max-width:640px}
+ main{padding:24px}.art-screen:not(.art-login) .art-layout{max-width:520px!important}
+}
+@media(max-width:359px){main{padding:12px}.topbar{gap:6px}.topbar img{width:32px;height:32px}.scorecard{padding:12px}.registration-scene{min-height:770px}#splash.art-registration .register-shell{width:92%;padding:12px}.art-screen:not(.art-login) .access-card{width:94%}}
+.modal{top:var(--vfc-offset,0px);bottom:auto;height:var(--vfc-screen)}
+#splash.art-registration,.art-screen{top:var(--vfc-offset,0px)}
+/* Reservar espaço maior para os animais sem duplicar a marca sobre a marca do fundo. */
+#splash.art-registration .register-shell>img{display:none!important}
+.registration-scene{padding-top:110px;padding-bottom:180px}
+@media(min-height:640px) and (min-width:360px){.registration-scene{min-height:640px}}
+.registration-pair{display:flex;gap:8px}.registration-pair>input{flex:1;width:0!important}
+.art-registration #regSenhaCampos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}
+.art-registration #regSenhaCampos>input,.art-registration #regSenhaCampos>div:not(.pwwrap){grid-column:1 / -1}
+.art-registration #regSenhaCampos input{margin:0!important}
+.art-registration #regSenhaCampos .pwwrap{margin:0;min-width:0}
+.art-registration #regSenhaCampos .pwwrap input{font-size:14px!important}
+.art-registration .step-security h2{display:none!important}
+.art-registration #regSenhaCampos>div:not(.pwwrap){margin-top:0!important;font-size:10px!important}
+.registration-scene{padding-top:245px;padding-bottom:160px}
+#splash.art-registration .register-shell{padding:12px 14px}
+.art-registration .registration-toggle{padding:7px!important;margin-bottom:6px!important}
+@media(max-height:740px){.registration-scene{padding-top:170px;padding-bottom:95px}}
+.registration-scene{padding-top:190px;padding-bottom:185px}
+.art-registration #regSenhaCampos .pwwrap input{font-size:16px!important}
+@media(max-height:740px){.registration-scene{padding-top:150px;padding-bottom:110px}}
+/* Limita imediatamente a altura após girar; VisualViewport completa o ajuste do teclado. */
+:root{--vfc-screen:min(100vh,var(--vfc-visual-height,100vh))}
+@supports(height:100dvh){:root{--vfc-screen:min(100dvh,var(--vfc-visual-height,100dvh))}}
+/* A imagem original mantém as proporções inclusive nos tablets. */
+.registration-scene{width:min(100%,calc(max(640px,var(--vfc-screen)) * 691 / 1401));max-width:480px}
+/* Cartão compacto: preserva área visível da marca e dos animais. */
+#splash.art-registration .register-shell{padding-top:10px;padding-bottom:10px}
+.art-registration .registration-title h1{margin:0 0 4px}
+.art-registration .reg-step-label{margin:3px 0 7px}
+#splash.art-registration .register-shell>button{margin-top:7px!important}
+#splash.art-registration .register-shell>button+button{min-height:30px!important;margin-top:5px!important}
+.art-registration .register-shell>div[style*="rgba(45,192,174"] div{line-height:1.25}
+.art-registration .registration-toggle{padding:5px 7px!important}
+@media(min-height:741px){.registration-scene{padding-top:170px}}
