@@ -8,7 +8,9 @@ function fitReferenceFrames(){
  document.querySelectorAll('.reference-frame').forEach(frame=>{
   const parent=frame.parentElement,style=getComputedStyle(parent);
   const width=parent.clientWidth-(parseFloat(style.paddingLeft)||0)-(parseFloat(style.paddingRight)||0);
-  const height=(viewport?.height||innerHeight)-(parseFloat(style.paddingTop)||0)-(parseFloat(style.paddingBottom)||0);
+  // Usa innerHeight (não visualViewport.height) para o cálculo de escala: innerHeight não encolhe
+  // quando o teclado abre, então a arte/cartão mantém o tamanho normal — a seção rola se precisar.
+  const height=innerHeight-(parseFloat(style.paddingTop)||0)-(parseFloat(style.paddingBottom)||0);
   const baseW=Number(frame.dataset.artWidth),baseH=Number(frame.dataset.artHeight);
   const scale=Math.min(width/baseW,Math.max(640,height)/baseH,720/baseW);
   frame.style.width=(baseW*scale)+'px';frame.style.height=(baseH*scale)+'px';frame.style.setProperty('--ref-scale',String(scale));
