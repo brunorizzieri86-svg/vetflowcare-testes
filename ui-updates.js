@@ -1,4 +1,23 @@
 /* Referências oficiais recebidas: arte intacta e controles HTML sobrepostos. */
+// Mostra o erro de validação do cadastro diretamente no campo (borda vermelha + foco), em vez de
+// só num texto pequeno lá embaixo. Se o campo estiver na etapa 1 mas a tela atual for a etapa 2
+// (Segurança), volta para a etapa 1 automaticamente antes de focar, pra o campo ficar visível.
+function regFieldErr(fieldId, msg){
+ const err = document.getElementById('regErr');
+ document.querySelectorAll('#splash.art-registration input.field-error,#splash.art-registration select.field-error').forEach(x=>x.classList.remove('field-error'));
+ const shell = document.querySelector('.register-shell');
+ const stepOneFields = ['regNome','regIdade','regSexo','regCPF','regUser'];
+ if(fieldId && shell?.classList.contains('step-security') && stepOneFields.includes(fieldId)){
+  document.querySelector('.reg-back')?.click();
+ }
+ if(err) err.textContent = msg;
+ const input = fieldId && document.getElementById(fieldId);
+ if(input){
+  input.classList.add('field-error');
+  input.focus();
+  input.scrollIntoView?.({block:'center',behavior:'smooth'});
+ }
+}
 function referenceIcon(name){
  const paths={person:'<circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 6 0 0 1 16 0v3z"/>',calendar:'<rect x="3" y="5" width="18" height="17" rx="2"/><path d="M7 2v6m10-6v6M3 11h18"/>',gender:'<circle cx="10" cy="10" r="6"/><path d="M10 16v7m-3-3h6m1-14 7-5m-5 0h5v5"/>',document:'<rect x="5" y="2" width="14" height="21" rx="2"/><path d="M8 7h8M8 11h8m-8 4h5"/>',mail:'<rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 6 9 8 9-8"/>',bulb:'<path d="M8 17c0-4-4-4-4-9a8 8 0 0 1 16 0c0 5-4 5-4 9zM8 20h8m-6 3h4"/>',gift:'<rect x="2" y="8" width="20" height="5" rx="1"/><path d="M4 13v10h16V13M12 8v15"/><path d="M12 8C2 8 3 0 7 2c3 1 5 6 5 6s2-5 5-6c4-2 5 6-5 6"/>'};
  return paths[name]?'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+paths[name]+'</svg>':accessIcon(name);
@@ -7,13 +26,26 @@ function fitReferenceFrames(){
  const viewport=window.visualViewport;if(viewport&&Math.abs(viewport.scale-1)>.02)return;
  document.querySelectorAll('.reference-frame').forEach(frame=>{
   const parent=frame.parentElement,style=getComputedStyle(parent);
-  const width=parent.clientWidth-(parseFloat(style.paddingLeft)||0)-(parseFloat(style.paddingRight)||0);
+  const rawWidth=parent.clientWidth-(parseFloat(style.paddingLeft)||0)-(parseFloat(style.paddingRight)||0);
+  const width=Math.min(rawWidth,480);
   // Usa innerHeight (não visualViewport.height) para o cálculo de escala: innerHeight não encolhe
   // quando o teclado abre, então a arte/cartão mantém o tamanho normal — a seção rola se precisar.
-  const height=innerHeight-(parseFloat(style.paddingTop)||0)-(parseFloat(style.paddingBottom)||0);
+  const height=Math.max(640,innerHeight-(parseFloat(style.paddingTop)||0)-(parseFloat(style.paddingBottom)||0));
   const baseW=Number(frame.dataset.artWidth),baseH=Number(frame.dataset.artHeight);
-  const scale=Math.min(width/baseW,Math.max(640,height)/baseH,720/baseW);
-  frame.style.width=(baseW*scale)+'px';frame.style.height=(baseH*scale)+'px';frame.style.setProperty('--ref-scale',String(scale));
+  // "contain" garante que a arte inteira caiba sem cortes; "cover" preenche 100% da tela mas
+  // pode cortar as bordas. Usamos o maior valor possível entre os dois, respeitando um limite
+  // de corte seguro (safeCap) que nunca invade a área do cartão/campos — só a margem decorativa
+  // da foto de fundo. Isso elimina as faixas vazias em cima/embaixo sem cortar o formulário.
+  const containScale=Math.min(width/baseW,height/baseH);
+  const coverScale=Math.max(width/baseW,height/baseH);
+  const safeCap=width/(baseW*0.76);
+  const scale=Math.max(containScale,Math.min(coverScale,safeCap));
+  frame.style.width=width+'px';frame.style.height=height+'px';frame.style.setProperty('--ref-scale',String(scale));
+  const stage=frame.querySelector('.reference-stage');
+  if(stage){
+   stage.style.left=((width-baseW*scale)/2)+'px';
+   stage.style.top=((height-baseH*scale)/2)+'px';
+  }
  });
 }
 function setupReferenceFrame(frame,width,height){
@@ -47,6 +79,10 @@ function setupRegistrationSteps(sp){
  scene.innerHTML='<img class="registration-background" src="register-data-art.png" alt=""><img class="registration-foreground" src="register-data-art.png" alt="" aria-hidden="true">';
  sp.appendChild(scene);scene.querySelector('.registration-background').after(shell);setupReferenceFrame(scene,864,1536);
  function show(n){
+  // Troca de etapa sempre limpa aviso de erro e destaque de campo anteriores — evita mensagem
+  // "fantasma" de uma etapa aparecendo em outra (ex: erro do passo 1 ainda visível após "Voltar").
+  document.getElementById('regErr').textContent='';
+  sp.querySelectorAll('input.field-error,select.field-error').forEach(x=>x.classList.remove('field-error'));
   shell.classList.toggle('step-security',n===2);scene.classList.toggle('reference-step-security',n===2);
   for(const img of scene.querySelectorAll('.registration-background,.registration-foreground'))img.src=n===1?'register-data-art.png':'register-security-art.png';
   personal.forEach(x=>x.classList.toggle('reg-step-hidden',n===2));
@@ -54,7 +90,17 @@ function setupRegistrationSteps(sp){
   shell.querySelector('.registration-title h2').classList.toggle('reg-step-hidden',n===2);
   back.classList.toggle('reg-step-hidden',n===1);step.textContent=`Etapa ${n} de 2 · ${n===1?'Seus dados':'Segurança'}`;
   submit.textContent=n===1?'Continuar →':'Criar acesso e entrar →';
-  submit.onclick=()=>{if(n===1){const missing=['regNome','regIdade','regSexo','regCPF','regUser'].map(id=>document.getElementById(id)).find(x=>!x.value.trim());if(missing){document.getElementById('regErr').textContent='Preencha os dados pessoais para continuar.';missing.focus();return;}document.getElementById('regErr').textContent='';show(2);}else doEntryRegister();};
+  submit.onclick=()=>{
+   if(n===1){
+    const missing=['regNome','regIdade','regSexo','regCPF','regUser'].map(id=>document.getElementById(id)).find(x=>!x.value.trim());
+    if(missing){regFieldErr(missing.id,'⚠ Preencha os dados pessoais para continuar');return;}
+    const nomeVal=document.getElementById('regNome').value.trim();
+    // Valida nome completo já na etapa 1 (antes o aviso só aparecia depois, na etapa 2, com o
+    // campo Nome Completo fora de vista — agora o usuário vê e corrige na hora).
+    if(nomeVal.length<3||!nomeVal.includes(' ')){regFieldErr('regNome','⚠ Informe seu nome completo (nome e sobrenome)');return;}
+    show(2);
+   }else doEntryRegister();
+  };
   fitReferenceFrames();
  }
  back.onclick=()=>show(1);show(1);

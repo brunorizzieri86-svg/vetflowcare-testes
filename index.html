@@ -7830,7 +7830,7 @@ function showEntryRegister(){
     </div>
     <button onclick="doEntryRegister()" style="margin-top:14px">✓ Criar acesso e entrar</button>
     <button onclick="showLoginExistente()" style="margin-top:6px;background:none;border:none;color:rgba(255,255,255,.5);font-size:13px;text-decoration:underline;cursor:pointer;display:block;width:100%;text-align:center">Já tenho cadastro — entrar</button>
-    <div id="regErr" style="color:#FF8C69;font-size:13px;font-weight:700;min-height:18px;margin-top:8px"></div>
+    <div id="regErr" style="color:#c0392b;font-size:14px;font-weight:700;min-height:18px;margin-top:8px"></div>
     <div class="sub" style="margin-top:14px">B&G Systems · Gestão veterinária completa</div>`;
   sp.classList.add('access-register');
   const content=sp.innerHTML;
@@ -7896,12 +7896,14 @@ async function doEntryRegister(){
   const user  = (document.getElementById('regUser').value||'').trim();
   const email = (document.getElementById('regEmail').value||'').trim();
   // ── validações ──
-  if(nome.length < 3 || !nome.includes(' ')){ err.textContent = '⚠ Informe seu nome completo'; return; }
+  // regFieldErr (ui-updates.js) destaca o campo com borda vermelha e foca nele; se o campo for
+  // da etapa 1 mas a tela estiver na etapa 2, ele volta pra etapa 1 sozinho antes de focar.
+  if(nome.length < 3 || !nome.includes(' ')){ regFieldErr('regNome','⚠ Informe seu nome completo (nome e sobrenome)'); return; }
   const idadeN = parseInt(idade);
-  if(!idadeN || idadeN < 18 || idadeN > 120){ err.textContent = '⚠ Informe uma idade válida (18+)'; return; }
-  if(!sexo){ err.textContent = '⚠ Selecione o sexo'; return; }
-  if(!validaCPF(cpf)){ err.textContent = '⚠ CPF inválido — confira os números'; return; }
-  if(user.length < 3){ err.textContent = '⚠ Escolha um nome de usuário (mín. 3)'; return; }
+  if(!idadeN || idadeN < 18 || idadeN > 120){ regFieldErr('regIdade','⚠ Informe uma idade válida (18+)'); return; }
+  if(!sexo){ regFieldErr('regSexo','⚠ Selecione o sexo'); return; }
+  if(!validaCPF(cpf)){ regFieldErr('regCPF','⚠ CPF inválido — confira os números'); return; }
+  if(user.length < 3){ regFieldErr('regUser','⚠ Escolha um nome de usuário (mín. 3)'); return; }
   // ── verifica se o usuário quer senha ──
   const togEl = document.getElementById('regSenhaToggle');
   const querSenha = !togEl || togEl.dataset.on !== 'false'; // default: sim

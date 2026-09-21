@@ -6,8 +6,10 @@
 #splash.art-registration .reference-stage>img{position:absolute;inset:0;width:864px!important;height:1536px!important;max-width:none!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:none!important;pointer-events:none}
 .registration-background{z-index:0}.registration-foreground{z-index:3;clip-path:inset(70% 0 0)}
 .reference-step-security .registration-foreground{clip-path:inset(71.5% 0 0)}
-#splash.art-registration .reference-stage .register-shell{position:absolute;left:60px;top:369px;width:744px!important;height:708px;max-width:none!important;padding:14px 30px 20px!important;margin:0!important;box-sizing:border-box;border:0;border-radius:48px;background:linear-gradient(140deg,#fff,#f4fcfc);box-shadow:none;display:flex;flex-direction:column;gap:0}
-#splash.art-registration .reference-stage .register-shell.step-security{top:372px;height:727px;padding-top:18px!important}
+#splash.art-registration .reference-stage .register-shell{position:absolute;left:60px;top:330px;width:744px!important;height:708px;max-width:none!important;padding:14px 30px 20px!important;margin:0!important;box-sizing:border-box;border:0;border-radius:48px;background:linear-gradient(140deg,#fff,#f4fcfc);box-shadow:none;display:flex;flex-direction:column;gap:0}
+/* Etapa 2 (Segurança) tem um campo a mais que a etapa 1 — altura maior evita que o botão
+   "Voltar aos dados pessoais" fique espremido contra a borda inferior do card. */
+#splash.art-registration .reference-stage .register-shell.step-security{top:330px;height:750px;padding-top:18px!important}
 #splash.art-registration .reference-stage .registration-title h1{font-size:52px!important;line-height:1.12;margin:0!important;font-weight:750;color:#07314d}
 #splash.art-registration .reference-stage .reg-step-label{font-size:29px;line-height:1.3;margin:6px 0 20px;text-align:center}
 #splash.art-registration .reference-stage .registration-fields{gap:16px!important;margin:0!important}
@@ -16,6 +18,9 @@
 .reference-field-icon{position:absolute;left:22px;top:50%;transform:translateY(-50%);width:34px;height:36px;color:#4c6c79;pointer-events:none;z-index:1;display:flex;align-items:center}
 .reference-field-icon svg{width:100%;height:100%}
 #splash.art-registration .reference-stage .register-shell input,#splash.art-registration .reference-stage .register-shell select{display:block;box-sizing:border-box;width:100%!important;height:78px!important;min-height:78px!important;border:2px solid #d4dfe3!important;border-radius:20px!important;font-size:30px!important;line-height:1.2;padding:12px 14px 12px 80px!important;background:#fcfefe!important;margin:0!important;color:#345565!important}
+/* Campo com erro de validação: borda vermelha bem visível + ícone destacado. */
+#splash.art-registration .reference-stage .register-shell input.field-error,#splash.art-registration .reference-stage .register-shell select.field-error{border-color:#e2483c!important;background:#fff5f4!important;box-shadow:0 0 0 4px #e2483c22!important}
+.reference-field.field-error .reference-field-icon{color:#e2483c}
 #splash.art-registration .reference-stage .pwwrap input{padding-left:66px!important;padding-right:54px!important;font-size:27px!important}
 #splash.art-registration .reference-stage .pwwrap .reference-field-icon{left:18px;width:30px}
 #splash.art-registration .reference-stage .pwwrap button{position:absolute;right:12px;top:18px;width:40px;height:40px;min-height:0;padding:0;margin:0;background:transparent;border:0;box-shadow:none;color:#4c6c79}
@@ -27,7 +32,10 @@
 #splash.art-registration .reference-stage .register-shell>button+button{height:40px!important;min-height:40px!important;margin-top:8px!important;background:transparent!important;box-shadow:none!important;color:#087f8a!important;font-size:25px!important;padding:0!important}
 #splash.art-registration .reference-stage .register-shell>button[onclick="showLoginExistente()"]{text-decoration:underline}
 #splash.art-registration .reference-stage .register-shell>.reg-step-hidden,#splash.art-registration .reference-stage .reg-step-hidden{display:none!important}
-#splash.art-registration .reference-stage #regErr{font-size:18px!important;margin:2px 0 0!important;min-height:0!important}
+/* Aviso de validação: caixa com fundo/borda vermelha, bem mais visível que um texto solto.
+   Aparece/some sozinho via :empty — nenhuma mudança de JS necessária nas chamadas existentes. */
+#splash.art-registration .reference-stage #regErr{display:none;align-items:center;gap:12px;font-size:26px!important;font-weight:800!important;line-height:1.3;margin:16px 0 0!important;min-height:0!important;color:#9c2c22!important;background:#fff0ee;border:2px solid #f3aa9e;border-radius:20px;padding:16px 20px;text-align:left}
+#splash.art-registration .reference-stage #regErr:not(:empty){display:flex}
 #splash.art-registration .reference-stage .registration-toggle{display:flex;align-items:center;gap:22px;height:90px;padding:12px 20px!important;margin:0 0 15px!important;border:2px solid #cceae5;border-radius:22px;box-sizing:border-box;background:#e6f9f5}
 .reference-toggle-icon{width:42px;height:48px;flex:none}.reference-toggle-icon svg{width:100%;height:100%}
 #splash.art-registration .reference-stage .registration-toggle>div>div:first-child{font-size:28px!important;line-height:1.15!important}
