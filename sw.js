@@ -1,8 +1,8 @@
-// VetFlowCare — Service Worker v9.71 — TESTES
+// VetFlowCare — Service Worker v9.70 — TESTES
 // Estratégia: Network-First (busca atualização na rede; cache só responde offline)
 // B&G Systems | Todos os direitos reservados
 
-const CACHE = 'vfc-test-v9.71';
+const CACHE = 'vfc-test-v9.70';
 
 const CORE_FILES = [
   './index.html',
@@ -50,7 +50,7 @@ self.addEventListener('fetch', e => {
   if (url.pathname.endsWith('/avisos.json')) return;
 
   e.respondWith(
-    fetch(e.request, {cache: 'no-cache'})
+    fetch(e.request)
       .then(resp => {
         // Atualiza o cache com a resposta mais nova
         if (resp && resp.status === 200 && resp.type === 'basic') {

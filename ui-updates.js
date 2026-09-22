@@ -24,14 +24,33 @@ function referenceIcon(name){
 }
 function fitReferenceFrames(){
  const viewport=window.visualViewport;if(viewport&&Math.abs(viewport.scale-1)>.02)return;
- document.documentElement.style.setProperty('--vfc-visual-height',(viewport?.height||innerHeight)+'px');
  document.querySelectorAll('.reference-frame').forEach(frame=>{
   const parent=frame.parentElement,style=getComputedStyle(parent);
-  const width=parent.clientWidth-(parseFloat(style.paddingLeft)||0)-(parseFloat(style.paddingRight)||0);
-  const height=(viewport?.height||innerHeight)-(parseFloat(style.paddingTop)||0)-(parseFloat(style.paddingBottom)||0);
+  const rawWidth=parent.clientWidth-(parseFloat(style.paddingLeft)||0)-(parseFloat(style.paddingRight)||0);
+  const width=Math.min(rawWidth,480);
+  frame.style.width=width+'px';
+  // A altura NÃO é mais calculada a partir de innerHeight: em celulares reais, innerHeight pode
+  // não bater com a altura de fato renderizada da caixa position:fixed;inset:0 (#splash /
+  // .access-screen) — varia com a barra de endereço do navegador — e esse descompasso é o que
+  // causava corte na arte/caixa da senha (frame com altura diferente da área realmente visível).
+  // Em vez disso, .reference-frame tem height:100% no CSS (herda a altura real já resolvida pelo
+  // navegador para o próprio container fixo) e aqui só LEMOS o valor já renderizado.
+  const height=Math.max(320,frame.clientHeight||innerHeight);
   const baseW=Number(frame.dataset.artWidth),baseH=Number(frame.dataset.artHeight);
-  const scale=Math.min(width/baseW,Math.max(640,height)/baseH,720/baseW);
-  frame.style.width=(baseW*scale)+'px';frame.style.height=(baseH*scale)+'px';frame.style.setProperty('--ref-scale',String(scale));
+  // "Cover" (por pedido explícito do Bruno): a arte SEMPRE preenche a tela inteira, sem sobrar
+  // nenhuma faixa vazia — se a proporção do aparelho não bater com a da arte, o excesso é cortado
+  // (geralmente nas laterais, no texto decorativo/patinhas), nunca deixado como espaço em branco.
+  // Antes usávamos "contain" pra nunca cortar o texto lateral, mas o espaço vazio resultante
+  // parecia "serviço mal feito" — o Bruno prefere o corte a sobrar espaço.
+  const scale=Math.max(width/baseW,height/baseH);
+  frame.style.setProperty('--ref-scale',String(scale));
+  const stage=frame.querySelector('.reference-stage');
+  if(stage){
+   // Centraliza o corte (sobra/falta dividida igual dos dois lados) — sem isso o corte inteiro
+   // cairia de um lado só, ainda mais perceptível.
+   stage.style.left=((width-baseW*scale)/2)+'px';
+   stage.style.top=((height-baseH*scale)/2)+'px';
+  }
  });
 }
 function setupReferenceFrame(frame,width,height){
@@ -62,7 +81,7 @@ function setupRegistrationSteps(sp){
  const step=document.createElement('p');step.className='reg-step-label';shell.querySelector('.registration-title').after(step);
  const back=document.createElement('button');back.type='button';back.className='reg-back';back.textContent='Voltar aos dados pessoais';submit.after(back);
  const scene=document.createElement('div');scene.className='registration-scene';
- scene.innerHTML='<img class="registration-background" src="register-data-art.png" alt="">';
+ scene.innerHTML='<img class="registration-background" src="register-data-art.png" alt=""><img class="registration-foreground" src="register-data-art.png" alt="" aria-hidden="true">';
  sp.appendChild(scene);scene.querySelector('.registration-background').after(shell);setupReferenceFrame(scene,864,1536);
  function show(n){
   // Troca de etapa sempre limpa aviso de erro e destaque de campo anteriores — evita mensagem
