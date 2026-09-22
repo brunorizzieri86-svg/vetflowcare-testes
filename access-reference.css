@@ -77,3 +77,7 @@
 #splash.art-registration .reference-stage .reference-trial div,#splash.art-registration .reference-stage .reference-trial p{font-size:25px!important;line-height:1.15!important}
 #splash.art-registration .reference-stage #regUser{font-size:26px!important;padding-left:68px!important}
 #splash.art-registration .reference-stage .pwwrap .eye{top:18px!important;height:40px!important;min-height:40px!important}
+
+/* 9.71: cadastro sem fotografias/frases; arte contínua fornecida pelo usuário. */
+#splash.art-registration .reference-frame,.art-login.art-integrated .reference-frame{height:auto;min-height:0!important;margin:auto!important;max-width:none!important;flex:none}
+#splash.art-registration .reference-stage .register-shell,#splash.art-registration .reference-stage .register-shell.step-security{top:374px;height:724px}

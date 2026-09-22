@@ -1,0 +1,6 @@
+VetFlowCare 9.71 — SOMENTE TESTES
+Envie TODOS os arquivos extraídos à raiz do repositório vetflowcare-testes, substituindo os anteriores. Aguarde concluir a publicação e reabra o app conectado à internet.
+Não desinstale nem limpe dados do navegador. Os cadastros e as credenciais de testes mantêm as mesmas chaves de armazenamento.
+Cadastro sem animais e frases laterais; acesso com a arte original.
+CSS e funções de interface estão também incorporados no index para evitar mistura com scripts antigos do cache.
+Nenhum pacote de produção foi gerado.
