@@ -813,12 +813,12 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.74';
+const APP_VER = '9.75';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.74',
+  ver: '9.75',
   titulo: 'Novidades da versão 🚀',
   itens: [
     ['💾','Backups com anexos','As exportações agora incluem os documentos dos pacientes e as fichas dos tutores. Confira sempre o arquivo salvo.'],
@@ -1369,10 +1369,24 @@ const PRI_CLR = {overdue:'var(--danger)', today:'var(--warning)', high:'var(--ac
 const PROTOCOLS = {
   anual:     {label:'Vacinação anual',                      days:365},
   primo:     {label:'Primovacinação (2 doses · 21 dias)',   days:21},
+  d30:       {label:'A cada 30 dias',                       days:30},
   librela:   {label:'Protocolo Librela (a cada 45 dias)',   days:45},
   cytopoint: {label:'Protocolo Cytopoint (a cada 60 dias)', days:60},
   unica:     {label:'Dose única (sem reforço)',             days:0}
 };
+// "manual" não entra no dicionário acima de propósito: seus dias vêm do
+// campo digitado pelo veterinário (customDays), não de um valor fixo.
+// protocolDaysFor/protocolLabelFor tratam esse caso em todos os pontos
+// que antes liam PROTOCOLS[chave] diretamente.
+function protocolDaysFor(protocolKey, customDays){
+  if(protocolKey === 'manual') return Number(customDays) || 0;
+  return PROTOCOLS[protocolKey]?.days ?? 0;
+}
+function protocolLabelFor(v){
+  if(!v) return '';
+  if(v.protocol === 'manual') return v.customDays ? `A cada ${v.customDays} dias (personalizado)` : 'Personalizado';
+  return PROTOCOLS[v.protocol]?.label || '';
+}
 function addDays(iso, n){
   const d = new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n);
   return d.toISOString().slice(0,10);
@@ -3456,7 +3470,7 @@ const TUT_STEPS = [
    • A busca encontra por nome, raça <b>ou tutor</b>`},
   {emo:'💉', title:'Vacinas — protocolos automáticos',
    body:`Na ficha do animal → <b>Saúde</b>:<br><br>
-   • Registre a vacina escolhendo o <b>protocolo</b>: Anual, Primovacinação (21d), Librela (45d) ou Cytopoint (60d)<br>
+   • Registre a vacina escolhendo o <b>protocolo</b>: Anual, Primovacinação (21d), 30 dias, Librela (45d), Cytopoint (60d) ou <b>Personalizado</b> (você informa os dias)<br>
    • O app <b>calcula a próxima dose</b> e cria a "Programada" com alertas<br>
    • Ao aplicar: toque <b>✓ Aplicar</b>, informe <b>data e lote</b> — a seguinte entra sozinha<br>
    • Primovacinação vira reforço anual após a 2ª dose, automaticamente`},
@@ -4447,7 +4461,7 @@ function renderPetHealth(pet){
       .sort((a,b)=>(b.applied||'').localeCompare(a.applied||''));
     const next = doses.filter(d=>d.status==='programada')
       .sort((a,b)=>a.due.localeCompare(b.due))[0] || null;
-    return {name, applied, next, protocol: doses[doses.length-1].protocol};
+    return {name, applied, next, protocol: doses[doses.length-1].protocol, customDays: doses[doses.length-1].customDays};
   }).sort((a,b)=>{
     const da = a.next ? daysUntil(a.next.due) : 99999;
     const db2 = b.next ? daysUntil(b.next.due) : 99999;
@@ -4470,7 +4484,7 @@ function renderPetHealth(pet){
       return `<div class="card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div><b style="font-size:14px">${esc(g.name)}</b>
-        <div style="color:var(--muted);font-size:11px;margin-top:1px">${PROTOCOLS[g.protocol]?.label||''}</div></div>
+        <div style="color:var(--muted);font-size:11px;margin-top:1px">${protocolLabelFor(g)}</div></div>
         <span style="display:flex;gap:6px;align-items:center">
         ${g.next ? (late?'<span class="st bad">⚠ Atrasada</span>':'<span class="st prog">📅 Programada</span>') : '<span class="st ok">✓ Em dia</span>'}
         <button style="background:none;color:var(--muted)" onclick="delVaccineGroup('${pet.id}','${escJS(g.name)}')" aria-label="Excluir vacina">🗑</button></span></div>
@@ -5982,7 +5996,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.74 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.75 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -7246,12 +7260,17 @@ function openVaccineForm(petId){
   };
   const common = bySpecies[pet.species] || bySpecies['Cão'];
   const protOpts = Object.entries(PROTOCOLS).map(([k,p])=>
-    `<option value="${k}">${p.label}</option>`).join('');
+    `<option value="${k}">${p.label}</option>`).join('') +
+    `<option value="manual">✏️ Personalizado (informar dias)</option>`;
   showSheet('Registrar Vacina / Protocolo', `
     <label>Vacinas comuns (${esc(pet.species)})</label><div class="chips">${common.map(v=>
       `<button class="chip" onclick="document.getElementById('fVName').value='${v}';autoProtocol('${v}')">${v}</button>`).join('')}</div>
     <label>Nome da vacina *</label><input id="fVName" placeholder="Ou escreva aqui">
-    <label>Protocolo *</label><select id="fVProt" onchange="calcNextDose()">${protOpts}</select>
+    <label>Protocolo *</label><select id="fVProt" onchange="onProtocolChange()">${protOpts}</select>
+    <div id="fVManualWrap" style="display:none">
+      <label>A cada quantos dias? *</label>
+      <input id="fVManualDays" type="number" min="1" inputmode="numeric" placeholder="Ex: 30" oninput="calcNextDose()">
+    </div>
     <label>Data aplicada *</label><input id="fVApplied" type="date" value="${todayISO()}" onchange="calcNextDose()">
     <div style="background:var(--vacbg);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--vac);margin-top:12px">
       📅 Próxima aplicação: <b id="fVNext">${fmtDate(addDays(todayISO(),365))}</b>
@@ -7267,27 +7286,46 @@ function autoProtocol(name){
   if(n.includes('librela')) sel.value = 'librela';
   else if(n.includes('cytopoint')) sel.value = 'cytopoint';
   else sel.value = 'anual';
+  onProtocolChange();
+}
+// Mostra/esconde o campo de dias personalizados conforme o protocolo escolhido.
+function onProtocolChange(){
+  const prot = document.getElementById('fVProt')?.value;
+  const wrap = document.getElementById('fVManualWrap');
+  if(wrap) wrap.style.display = prot === 'manual' ? 'block' : 'none';
   calcNextDose();
 }
 function calcNextDose(){
   const prot = document.getElementById('fVProt')?.value || 'anual';
   const applied = document.getElementById('fVApplied')?.value || todayISO();
-  const days = PROTOCOLS[prot].days;
   const el = document.getElementById('fVNext');
-  if(el) el.textContent = days > 0 ? fmtDate(addDays(applied, days)) : '— (dose única)';
+  if(!el) return;
+  if(prot === 'manual'){
+    const days = parseInt(document.getElementById('fVManualDays')?.value, 10);
+    el.textContent = (days > 0) ? fmtDate(addDays(applied, days)) : '— (informe os dias)';
+    return;
+  }
+  const days = PROTOCOLS[prot].days;
+  el.textContent = days > 0 ? fmtDate(addDays(applied, days)) : '— (dose única)';
 }
 function saveVaccine(petId){
   const name = val('fVName'), applied = val('fVApplied');
   const prot = document.getElementById('fVProt').value || 'anual';
   if(!name || !applied){ toast('⚠ Preencha nome e data'); return; }
+  let customDays;
+  if(prot === 'manual'){
+    customDays = parseInt(val('fVManualDays'), 10);
+    if(!(customDays > 0)){ toast('⚠ Informe a cada quantos dias (personalizado)'); return; }
+  }
   const pet = DB.pets.find(p=>p.id===petId);
   const lot = val('fVLot'), vet = val('fVVet');
+  const days = protocolDaysFor(prot, customDays);
   // Dose aplicada
-  pet.vaccines.push({id:uid(), name, protocol:prot, applied, due:applied, status:'aplicada', lot, vet});
+  pet.vaccines.push({id:uid(), name, protocol:prot, ...(prot==='manual'?{customDays}:{}),
+    applied, due:applied, status:'aplicada', lot, vet});
   // Próxima dose programada, conforme o protocolo
-  const days = PROTOCOLS[prot].days;
   if(days > 0){
-    pet.vaccines.push({id:uid(), name, protocol:prot, applied:null,
+    pet.vaccines.push({id:uid(), name, protocol:prot, ...(prot==='manual'?{customDays}:{}), applied:null,
       due:addDays(applied, days), status:'programada', lot:'', vet});
   }
   save(); closeSheet(); render();
@@ -7299,7 +7337,7 @@ function openApplyVaccineForm(petId, vid){
     <label>Data da aplicação *</label><input id="fAVDate" type="date" value="${todayISO()}">
     <label>Lote da vacina</label><input id="fAVLot" placeholder="Ex: 019/24">
     <div style="background:var(--vacbg);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--vac);margin-top:12px">
-      A próxima dose será agendada automaticamente pelo protocolo (${PROTOCOLS[v.protocol]?.label||''}).</div>`,
+      A próxima dose será agendada automaticamente pelo protocolo (${protocolLabelFor(v)}).</div>`,
     `<button class="btn gray" onclick="closeSheet()">Cancelar</button>
      <button class="btn success" onclick="saveApplyVaccine('${petId}','${vid}')">✓ Confirmar Aplicação</button>`);
 }
@@ -7311,9 +7349,9 @@ function saveApplyVaccine(petId, vid){
   v.status = 'aplicada'; v.applied = dt; v.due = dt; v.lot = val('fAVLot');
   // Primovacinação: após a 2ª dose, o reforço passa a ser anual
   const nextProt = v.protocol === 'primo' ? 'anual' : v.protocol;
-  const days = PROTOCOLS[nextProt].days;
+  const days = protocolDaysFor(nextProt, v.customDays);
   if(days > 0){
-    pet.vaccines.push({id:uid(), name:v.name, protocol:nextProt, applied:null,
+    pet.vaccines.push({id:uid(), name:v.name, protocol:nextProt, ...(nextProt==='manual'?{customDays:v.customDays}:{}), applied:null,
       due:addDays(dt, days), status:'programada', lot:'', vet:v.vet||''});
   }
   save(); closeSheet(); render();
