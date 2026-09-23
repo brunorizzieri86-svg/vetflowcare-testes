@@ -45,17 +45,21 @@ h2{font-size:20px;font-weight:900;letter-spacing:-.3px}
 #splash .tag{color:rgba(255,255,255,.55);font-size:11px;letter-spacing:2.5px;font-weight:600;margin-top:12px}
 #splash button{margin-top:40px;width:100%;max-width:320px;background:#2DC0AE;color:#fff;padding:16px;border-radius:26px;font-size:16px;font-weight:800;box-shadow:0 8px 32px rgba(45,192,174,.5)}
 #splash .sub{color:rgba(255,255,255,.4);font-size:11px;margin-top:12px}
-/* position:sticky sozinho, num elemento com filho "pesado" de pintar (blur, gradiente grande),
-   pode obrigar o navegador a repintar esse elemento a cada frame de rolagem em vez de só
-   recompor uma camada de GPU já pronta — isso aparece pro usuário como o cabeçalho fixo "pulando"
-   ou "atrasando" atrás do dedo durante a rolagem rápida no celular. translateZ(0)/will-change força
-   o navegador a promover o elemento pra sua própria camada de composição, que acompanha a rolagem
-   nativamente sem depender de repintura da thread principal. */
-header{background:linear-gradient(145deg,var(--dark) 0%,#1a3060 60%,rgba(45,192,174,.75) 100%);padding:16px 16px 20px;color:#fff;border-radius:0 0 24px 24px;position:sticky;top:0;z-index:30;transform:translateZ(0);will-change:transform;backface-visibility:hidden}
+/* v9.77 tentou corrigir o "pulo"/jank do scroll relatado pelo Bruno promovendo header/.sticky-toolbar
+   a camadas de GPU próprias (translateZ(0)+will-change:transform). Revertido na v9.78: (1) o Bruno
+   confirmou que o jank continua idêntico mesmo com essa mudança — não resolveu o problema real; e
+   (2) essa promoção tem um efeito colateral sério, encontrado nesta rodada: um elemento
+   position:fixed (o botão "+" flutuante de Pacientes, .fab) que fica DENTRO de um ancestral com
+   transform/will-change deixa de se posicionar em relação à tela inteira e passa a se posicionar em
+   relação a esse ancestral — foi exatamente isso que jogou o botão "+" em cima da barra de busca em
+   vez de flutuar no canto inferior (ver JANK-001/FAB-001 na bancada). Como a promoção de camada não
+   trouxe benefício comprovado e ainda quebrou esse botão, ela foi removida; a causa raiz do jank em
+   si segue sob investigação (precisa de mais dados do aparelho do Bruno — ver bancada). */
+header{background:linear-gradient(145deg,var(--dark) 0%,#1a3060 60%,rgba(45,192,174,.75) 100%);padding:16px 16px 20px;color:#fff;border-radius:0 0 24px 24px;position:sticky;top:0;z-index:30}
 /* Barra de ferramentas fixa dentro das abas (Pacientes/Financeiro/Agenda/Alertas): título, busca e
    filtros ficam parados no topo — só a lista abaixo rola. As margens negativas compensam o padding
    de 16px do <main>, para o fundo cobrir a largura toda sem deixar o conteúdo da lista "vazar" nas bordas. */
-.sticky-toolbar{position:sticky;top:0;z-index:20;background:var(--bg);margin:-16px -16px 12px -16px;padding:16px 16px 10px 16px;transform:translateZ(0);will-change:transform;backface-visibility:hidden}
+.sticky-toolbar{position:sticky;top:0;z-index:20;background:var(--bg);margin:-16px -16px 12px -16px;padding:16px 16px 10px 16px}
 .topbar{display:flex;align-items:center;gap:10px}
 .topbar img{width:40px;height:40px;border-radius:10px;background:#fff;padding:3px;object-fit:contain}
 .topbar .wm{font-weight:900;font-size:19px;letter-spacing:-.4px}
@@ -610,6 +614,12 @@ function referenceIcon(name){
 }
 function fitReferenceFrames(){
  const viewport=window.visualViewport;if(viewport&&Math.abs(viewport.scale-1)>.02)return;
+ // JANK-001 (v9.79): mesma lógica do listener de size() logo abaixo — só faz sentido recalcular
+ // isso enquanto a tela de splash/login (onde fica a arte cão/gato com .reference-frame) está
+ // visível. Depois do login ela fica escondida (.hidden) para o resto da sessão, então este
+ // listener de resize rodava à toa em qualquer outra tela.
+ const splash = document.getElementById('splash');
+ if(!splash || splash.classList.contains('hidden')) return;
  document.documentElement.style.setProperty('--vfc-visual-height',(viewport?.height||innerHeight)+'px');
  document.querySelectorAll('.reference-frame').forEach(frame=>{
   const parent=frame.parentElement,style=getComputedStyle(parent);
@@ -727,6 +737,20 @@ window.VFCNotices=(()=>{
   const viewport=window.visualViewport;
   // O zoom manual deve continuar livre: só acompanha teclado/rotação em escala normal.
   if(viewport && Math.abs(viewport.scale-1)>.02)return;
+  // JANK-001 (v9.79): --vfc-visual-height/--vfc-offset só têm efeito visual em .modal e na tela de
+  // splash/login (ver CSS) — em qualquer outra tela (Início, Pacientes, Financeiro, Agenda,
+  // Alertas) escrever essas variáveis no <html> não muda nada na tela, mas ainda obriga o navegador
+  // a reavaliar o estilo de toda a árvore do documento. Este listener fica ativo o tempo todo, em
+  // QUALQUER tela do app, e dispara a cada evento de scroll/resize do visualViewport — em celular
+  // real isso acontece várias vezes durante uma rolagem rápida, porque a barra de endereço do
+  // navegador some/aparece (tipicamente reaparecendo ao rolar pra CIMA). Isso bate com o relatado
+  // pelo Bruno: "pulo"/"amortecimento" em TODAS as telas do app, especificamente ao rolar pra cima.
+  // Agora só escreve as variáveis quando existe algo na tela que realmente as usa (um modal aberto,
+  // ou a tela de splash/login ainda visível) — nas 5 telas principais, fora desses casos, o
+  // listener não faz mais nada.
+  const splash = document.getElementById('splash');
+  const precisaAtualizar = document.querySelector('.modal') || (splash && !splash.classList.contains('hidden'));
+  if(!precisaAtualizar) return;
   document.documentElement.style.setProperty('--vfc-visual-height',(viewport?viewport.height:window.innerHeight)+'px');
   document.documentElement.style.setProperty('--vfc-offset',(viewport?viewport.offsetTop:0)+'px');
  }
@@ -831,12 +855,12 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.77';
+const APP_VER = '9.79';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.77',
+  ver: '9.79',
   titulo: 'Novidades da versão 🚀',
   itens: [
     ['💾','Backups com anexos','As exportações agora incluem os documentos dos pacientes e as fichas dos tutores. Confira sempre o arquivo salvo.'],
@@ -4120,8 +4144,14 @@ function renderPetsList(q=''){
       <button class="chip ${petSort==='tutor'?'on':''}" onclick="petSort='tutor';render()">👤 Tutor</button>
       <button class="chip ${petSpec==='Cão'?'on':''}" onclick="petSpec=petSpec==='Cão'?'all':'Cão';render()">🐕 Cães</button>
       <button class="chip ${petSpec==='Gato'?'on':''}" onclick="petSpec=petSpec==='Gato'?'all':'Gato';render()">🐈 Gatos</button>
-    </div>`:''}
-    <button class="fab" onclick="${pplView==='tutores'?"openTutorForm()":"openPetForm()"}" title="${pplView==='tutores'?'Novo Tutor':'Novo Paciente'}">+</button>`;
+    </div>`:''}`;
+  // FAB-001 (v9.78): o botão "+" flutuante foi removido a pedido do Bruno ("pode tirar esse botao,
+  // nao tem muita necessidade dele") — também corrigia, de quebra, um bug real que ele causava: por
+  // estar dentro do .sticky-toolbar (que na v9.77 ganhou um transform como parte da tentativa de
+  // corrigir o jank), o position:fixed do botão passou a se posicionar em relação ao próprio
+  // .sticky-toolbar em vez da tela inteira, jogando-o em cima da barra de busca. Cadastrar novo
+  // paciente/tutor continua disponível pelo card "Novo Paciente" no Início e pelos botões
+  // "+ Cadastrar Paciente"/"➕ Adicionar tutor" nos estados vazios.
 
   if(pplView === 'tutores'){
     let tutors = DB.tutors.filter(t =>
@@ -6030,7 +6060,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.77 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.79 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
