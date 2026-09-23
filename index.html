@@ -45,7 +45,11 @@ h2{font-size:20px;font-weight:900;letter-spacing:-.3px}
 #splash .tag{color:rgba(255,255,255,.55);font-size:11px;letter-spacing:2.5px;font-weight:600;margin-top:12px}
 #splash button{margin-top:40px;width:100%;max-width:320px;background:#2DC0AE;color:#fff;padding:16px;border-radius:26px;font-size:16px;font-weight:800;box-shadow:0 8px 32px rgba(45,192,174,.5)}
 #splash .sub{color:rgba(255,255,255,.4);font-size:11px;margin-top:12px}
-header{background:linear-gradient(145deg,var(--dark) 0%,#1a3060 60%,rgba(45,192,174,.75) 100%);padding:16px 16px 20px;color:#fff;border-radius:0 0 24px 24px}
+header{background:linear-gradient(145deg,var(--dark) 0%,#1a3060 60%,rgba(45,192,174,.75) 100%);padding:16px 16px 20px;color:#fff;border-radius:0 0 24px 24px;position:sticky;top:0;z-index:30}
+/* Barra de ferramentas fixa dentro das abas (Pacientes/Financeiro/Agenda/Alertas): título, busca e
+   filtros ficam parados no topo — só a lista abaixo rola. As margens negativas compensam o padding
+   de 16px do <main>, para o fundo cobrir a largura toda sem deixar o conteúdo da lista "vazar" nas bordas. */
+.sticky-toolbar{position:sticky;top:0;z-index:20;background:var(--bg);margin:-16px -16px 12px -16px;padding:16px 16px 10px 16px}
 .topbar{display:flex;align-items:center;gap:10px}
 .topbar img{width:40px;height:40px;border-radius:10px;background:#fff;padding:3px;object-fit:contain}
 .topbar .wm{font-weight:900;font-size:19px;letter-spacing:-.4px}
@@ -396,8 +400,12 @@ nav button{min-width:0}
 @media(min-width:768px){
  body{max-width:800px}nav{max-width:800px}.modal .sheet{max-width:640px}
  main{padding:24px}.art-screen:not(.art-login) .art-layout{max-width:520px!important}
+ /* .sticky-toolbar usa margem negativa igual ao padding de <main> para "sangrar" até a borda —
+    precisa acompanhar o padding de main nesse breakpoint, senão sobra/falta 8px e gera overflow horizontal. */
+ .sticky-toolbar{margin:-24px -24px 12px -24px;padding:24px 24px 10px 24px}
 }
-@media(max-width:359px){main{padding:12px}.topbar{gap:6px}.topbar img{width:32px;height:32px}.scorecard{padding:12px}.registration-scene{min-height:770px}#splash.art-registration .register-shell{width:92%;padding:12px}.art-screen:not(.art-login) .access-card{width:94%}}
+@media(max-width:359px){main{padding:12px}.topbar{gap:6px}.topbar img{width:32px;height:32px}.scorecard{padding:12px}.registration-scene{min-height:770px}#splash.art-registration .register-shell{width:92%;padding:12px}.art-screen:not(.art-login) .access-card{width:94%}
+ .sticky-toolbar{margin:-12px -12px 12px -12px;padding:12px 12px 10px 12px}}
 .modal{top:var(--vfc-offset,0px);bottom:auto;height:var(--vfc-screen)}
 #splash.art-registration,.art-screen{top:var(--vfc-offset,0px)}
 /* Reservar espaço maior para os animais sem duplicar a marca sobre a marca do fundo. */
@@ -813,12 +821,12 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.75';
+const APP_VER = '9.76';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.75',
+  ver: '9.76',
   titulo: 'Novidades da versão 🚀',
   itens: [
     ['💾','Backups com anexos','As exportações agora incluem os documentos dos pacientes e as fichas dos tutores. Confira sempre o arquivo salvo.'],
@@ -859,7 +867,8 @@ const NOVIDADES = {
     ['🎙️','Ditado por voz','Fale o prontuário e o texto se <b>organiza sozinho</b> em Queixa, Anamnese, Exame Físico, Diagnóstico e Conduta — sem repetir palavras e sem parar no meio da consulta.'],
     ['🗺️','Rota do dia','Na Agenda: seus atendimentos na ordem dos horários, com <b>Waze</b> e <b>Google Maps</b> em cada parada — e a quilometragem vira despesa sozinha.'],
     ['🛡️','Proteção de Dados','Cópia interna automática em dois lugares do aparelho, verificação de integridade ao abrir e pontos de restauração de até <b>6 meses</b>.'],
-    ['💬','Avisar o tutor','Botão de WhatsApp no atendimento, na vacina, na medicação e em cada alerta — com a mensagem já escrita.']
+    ['💬','Avisar o tutor','Botão de WhatsApp no atendimento, na vacina, na medicação e em cada alerta — com a mensagem já escrita.'],
+    ['📌','Cabeçalhos fixos nas telas principais','Início, Pacientes, Financeiro, Agenda e Alertas agora mantêm título, busca, filtros e botões <b>parados no topo</b> — só a lista de baixo rola. Mais fácil buscar, filtrar ou trocar de aba sem precisar voltar ao topo da tela.']
   ]
 };
 // Garante que o aviso apareça para TODO usuário, uma vez por versão.
@@ -1843,35 +1852,36 @@ function renderFinance(){
   const totRecebido = recebidos.reduce((s,r)=>s+r.valor,0);
 
   // ═══ Privacidade: botão do olho — mostra/oculta todo R$ nesta aba (não altera os dados) ═══
+  // "top" = cabeçalho fixo (navegação, abas, busca, resumo/filtros) — só a lista de lançamentos abaixo rola.
   const valoresOcultos = !!DB.settings.finHideValues;
-  let h = `<button class="btn sm" style="width:100%;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;background:${valoresOcultos?'var(--primary)':'var(--card,#fff)'};color:${valoresOcultos?'#fff':'var(--primary)'};border:1.5px solid var(--primary)"
+  let top = `<button class="btn sm" style="width:100%;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;background:${valoresOcultos?'var(--primary)':'var(--card,#fff)'};color:${valoresOcultos?'#fff':'var(--primary)'};border:1.5px solid var(--primary)"
     onclick="toggleFinValues()" aria-pressed="${valoresOcultos}">
     <span style="width:18px;height:18px;display:inline-flex">${accessIcon(valoresOcultos?'eye':'eyeoff')}</span>
     ${valoresOcultos?'Mostrar valores':'Ocultar valores'}</button>`;
   // ═══ Cabeçalho + navegação em 2 linhas ═══
-  h += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+  top += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
     <button class="btn sm gray" onclick="goTab(currentTab||'home')">‹</button>
     <h2 style="flex:1">💰 Financeiro</h2>
     ${finView==='rec'||finView==='atrasado'?`<button class="btn sm" onclick="openChargeForm()">➕ Cobrança</button>`:''}
     ${finView==='desp'&&isPro()?`<button class="btn sm" onclick="openExpenseForm()">➕ Despesa</button>`:''}</div>`;
   // Linha 1: Recebido / A Receber / Atrasado
-  h += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
+  top += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
     <button class="chip ${finView==='receb'?'on':''}" style="justify-content:center;text-align:center" onclick="finView='receb';render()">🟢 Recebido</button>
     <button class="chip ${finView==='rec'?'on':''}" style="justify-content:center;text-align:center" onclick="finView='rec';render()">🟡 A Receber</button>
     <button class="chip ${finView==='atrasado'?'on':''}" style="justify-content:center;text-align:center" onclick="finView='atrasado';render()">🔴 Atrasado</button>
   </div>`;
   // Linha 2: Despesas / Fluxo
-  h += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
+  top += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
     <button class="chip ${finView==='desp'?'on':''}" style="justify-content:center;text-align:center" onclick="finView='desp';render()">🧾 Despesas${isPro()?'':' 🔒'}</button>
     <button class="chip ${finView==='fluxo'?'on':''}" style="justify-content:center;text-align:center" onclick="finView='fluxo';render()">📊 Fluxo${isPro()?'':' 🔒'}</button>
   </div>`;
 
   // Abas que têm tela própria
-  if(finView === 'desp') return h + renderExpenses();
-  if(finView === 'fluxo') return h + renderFluxo();
+  if(finView === 'desp'){ const ex = renderExpenses(); return stickyToolbar(top + ex.toolbar) + ex.list; }
+  if(finView === 'fluxo') return stickyToolbar(top) + renderFluxo();
 
   // Barra de busca (Recebido, A Receber, Atrasado)
-  h += `<input placeholder="🔍 Buscar por paciente ou descrição…" value="${esc(finQ)}" style="margin-bottom:12px"
+  top += `<input placeholder="🔍 Buscar por paciente ou descrição…" value="${esc(finQ)}" style="margin-bottom:12px"
     oninput="finQ=this.value.toLowerCase();debQ(()=>{document.getElementById('mainContent').innerHTML=renderFinance();
     const i=document.querySelector('#mainContent input');i.focus();i.setSelectionRange(i.value.length,i.value.length)})">`;
 
@@ -1911,13 +1921,13 @@ function renderFinance(){
   // ═══════════════════════════════════════
   if(finView === 'receb'){
     const lista = aplicaBusca(recebidos);
-    h += `<div class="card" style="margin-bottom:12px;background:rgba(45,179,122,.08);border-color:var(--success);text-align:center">
+    top += `<div class="card" style="margin-bottom:12px;background:rgba(45,179,122,.08);border-color:var(--success);text-align:center">
       <div style="font-size:10px;font-weight:700;color:var(--success);text-transform:uppercase">Total recebido · ${MONTHS[new Date().getMonth()]}</div>
       <div style="font-size:26px;font-weight:900;color:var(--success);margin-top:2px">${fmtBRLFin(totRecebido)}</div>
       <div style="font-size:11px;color:var(--muted)">${recebidos.length} ${recebidos.length===1?'recebimento':'recebimentos'}</div></div>`;
-    h += lista.length ? lista.map(cardRecebivel).join('')
+    const list = lista.length ? lista.map(cardRecebivel).join('')
       : `<div class="card empty"><div class="big">💸</div>Nenhum recebimento neste mês ainda</div>`;
-    return h;
+    return stickyToolbar(top) + list;
   }
 
   // ═══════════════════════════════════════
@@ -1925,20 +1935,20 @@ function renderFinance(){
   // ═══════════════════════════════════════
   if(finView === 'atrasado'){
     const lista = aplicaBusca(lateArr).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
-    h += `<div class="card" style="margin-bottom:12px;text-align:center;${lateArr.length?'background:rgba(224,82,82,.08);border-color:var(--danger)':''}">
+    top += `<div class="card" style="margin-bottom:12px;text-align:center;${lateArr.length?'background:rgba(224,82,82,.08);border-color:var(--danger)':''}">
       <div style="font-size:10px;font-weight:700;color:var(--danger);text-transform:uppercase">🔴 Total atrasado</div>
       <div style="font-size:26px;font-weight:900;margin-top:2px;color:${lateArr.length?'var(--danger)':'var(--muted)'}">${fmtBRLFin(lateTot)}</div>
       <div style="font-size:11px;color:var(--muted)">${lateArr.length} ${lateArr.length===1?'item vencido':'itens vencidos'}</div></div>`;
-    h += lista.length ? lista.map(cardRecebivel).join('')
+    const list = lista.length ? lista.map(cardRecebivel).join('')
       : `<div class="card empty"><div class="big">🎉</div>Nenhuma cobrança atrasada!</div>`;
-    return h;
+    return stickyToolbar(top) + list;
   }
 
   // ═══════════════════════════════════════
   //  🟡 ABA A RECEBER (padrão)
   // ═══════════════════════════════════════
   // Resumo
-  h += `<div class="card" style="margin-bottom:12px;text-align:center;background:rgba(240,165,0,.08);border-color:var(--warning)">
+  top += `<div class="card" style="margin-bottom:12px;text-align:center;background:rgba(240,165,0,.08);border-color:var(--warning)">
     <div style="font-size:10px;font-weight:700;color:var(--warning);text-transform:uppercase">🟡 Total a receber</div>
     <div style="font-size:26px;font-weight:900;color:var(--warning);margin-top:2px">${fmtBRLFin(tot)}</div>
     <div style="font-size:11px;color:var(--muted)">${naoAtrasados.length} ${naoAtrasados.length===1?'item':'itens'}${lateArr.length?` · +${fmtBRLFin(lateTot)} atrasado`:''}</div></div>`;
@@ -1947,7 +1957,7 @@ function renderFinance(){
   DB.settings.payRem = DB.settings.payRem !== false;
   const lembrar = pend.filter(r => !r.rem && daysUntil(r.due) >= 0 && daysUntil(r.due) <= 3);
   if(DB.settings.payRem && lembrar.length){
-    h += `<div class="card" style="border-color:var(--warning);margin-bottom:12px">
+    top += `<div class="card" style="border-color:var(--warning);margin-bottom:12px">
       <b style="font-size:13px">🔔 ${lembrar.length} ${lembrar.length===1?'cobrança vence':'cobranças vencem'} em até 3 dias</b>
       <div style="font-size:11px;color:var(--muted);margin:2px 0 8px">Toque em 💬 para enviar o lembrete pelo WhatsApp${isPro()?'':' (recurso Pro)'}</div>
       ${lembrar.slice(0,6).map(r=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;border-top:1px solid var(--border)">
@@ -1967,7 +1977,7 @@ function renderFinance(){
     ['todos','Todos', r=>daysUntil(r.due)>=0]
   ];
   if(!periodos.find(p=>p[0]===finFilter)) finFilter = 'todos';
-  h += `<div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px">${periodos.map(([k,l,fn])=>{
+  top += `<div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px">${periodos.map(([k,l,fn])=>{
     const n = naoAtrasados.filter(fn).length;
     return `<button class="chip ${finFilter===k?'on':''}" style="white-space:nowrap;flex-shrink:0" onclick="finFilter='${k}';render()">${l} (${n})</button>`;
   }).join('')}</div>`;
@@ -1975,9 +1985,9 @@ function renderFinance(){
   // 3) Lista filtrada e ordenada por data
   const fdef = periodos.find(p=>p[0]===finFilter) || periodos[4];
   let lista = aplicaBusca(naoAtrasados.filter(fdef[2])).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
-  h += lista.length ? lista.map(cardRecebivel).join('')
+  const list = lista.length ? lista.map(cardRecebivel).join('')
     : `<div class="card empty"><div class="big">🎉</div>Nada a receber neste período!</div>`;
-  return h;
+  return stickyToolbar(top) + list;
 }
 
 
@@ -2317,9 +2327,9 @@ function cobrarWhats(kind, id){
 // ═══ DESPESAS (Pro) ═══
 const EXP_CATS = ['Serviços/Procedimentos','Materiais','Medicamentos','Transporte','Equipamentos','Laboratório','Outros'];
 function renderExpenses(){
-  if(!isPro()) return `<div class="card" style="cursor:pointer" onclick="openProModal('O controle de despesas é um recurso Pro.')">
+  if(!isPro()) return { toolbar:'', list: `<div class="card" style="cursor:pointer" onclick="openProModal('O controle de despesas é um recurso Pro.')">
     <div style="font-size:14px">🔒 <b>Controle de Despesas</b></div>
-    <div style="font-size:12px;color:var(--muted);margin-top:4px">Registre gastos com materiais, medicamentos, transporte etc. e acompanhe o saldo real no fluxo mensal — disponível no <b style="color:var(--rx)">✨ Pro</b>.</div></div>`;
+    <div style="font-size:12px;color:var(--muted);margin-top:4px">Registre gastos com materiais, medicamentos, transporte etc. e acompanhe o saldo real no fluxo mensal — disponível no <b style="color:var(--rx)">✨ Pro</b>.</div></div>` };
   const now = new Date();
   const md = new Date(now.getFullYear(), now.getMonth() + finExpM, 1);
   const ym = md.toISOString().slice(0,7);
@@ -2338,7 +2348,7 @@ function renderExpenses(){
   if(finExpCat !== 'all') lista = lista.filter(e => (e.cat||'Outros') === finExpCat);
 
   // Cabeçalho: alterna entre "por mês" e "todas as datas"
-  let h = `<div class="chips" style="margin-bottom:10px">
+  let top = `<div class="chips" style="margin-bottom:10px">
     <button class="chip ${!todas?'on':''}" onclick="finExpView='mes';render()">📅 Por mês</button>
     <button class="chip ${todas?'on':''}" onclick="finExpView='all';render()">🗂️ Todas as datas</button>
   </div>`;
@@ -2349,7 +2359,7 @@ function renderExpenses(){
     const totPrev = DB.expenses.filter(e=>(e.date||'').startsWith(ymPrev)).reduce((s,e)=>s+e.valor,0);
     const totAno = DB.expenses.filter(e=>(e.date||'').startsWith(String(md.getFullYear()))).reduce((s,e)=>s+e.valor,0);
     const delta = totPrev > 0 ? Math.round((totPeriodo - totPrev) / totPrev * 100) : null;
-    h += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+    top += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
       <button class="btn sm gray" onclick="finExpM--;render()">‹</button>
       <b style="flex:1;text-align:center;font-size:15px">${MONTHS[md.getMonth()]} ${md.getFullYear()}</b>
       <button class="btn sm gray" ${finExpM>=0?'disabled style="opacity:.4"':''} onclick="finExpM++;render()">›</button></div>
@@ -2366,7 +2376,7 @@ function renderExpenses(){
       ${cartaoCategorias(byCat, maxCat)}
     </div>`;
   } else {
-    h += `<div class="card" style="margin-bottom:12px">
+    top += `<div class="card" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">Todas as despesas</div>
         <b style="font-size:18px;color:var(--danger)">${fmtBRLFin(totPeriodo)}</b></div>
@@ -2375,16 +2385,17 @@ function renderExpenses(){
     </div>`;
   }
 
-  h += `<div class="chips" style="margin-bottom:10px">
+  top += `<div class="chips" style="margin-bottom:10px">
     <button class="chip ${finExpCat==='all'?'on':''}" onclick="finExpCat='all';render()">Todas</button>
     ${EXP_CATS.map(c=>`<button class="chip ${finExpCat===c?'on':''}" onclick="finExpCat='${c}';render()">${c}</button>`).join('')}
   </div>`;
 
-  if(!lista.length) return h + `<div class="card empty"><div class="big">🧾</div>Nenhuma despesa ${finExpCat!=='all'?'nesta categoria':(todas?'cadastrada':'neste mês')}<br><small>${todas?'Toque em "➕ Despesa" para começar':'Tente "🗂️ Todas as datas" acima, ou toque em "➕ Despesa"'}</small></div>`;
+  if(!lista.length) return { toolbar: top, list: `<div class="card empty"><div class="big">🧾</div>Nenhuma despesa ${finExpCat!=='all'?'nesta categoria':(todas?'cadastrada':'neste mês')}<br><small>${todas?'Toque em "➕ Despesa" para começar':'Tente "🗂️ Todas as datas" acima, ou toque em "➕ Despesa"'}</small></div>` };
 
   // Agrupa por mês quando estiver na visão "Todas as datas"
   const ordenada = [...lista].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   let mesAtual = '';
+  let list = '';
   ordenada.forEach(e => {
     if(todas){
       const emes = (e.date||'').slice(0,7);
@@ -2393,13 +2404,13 @@ function renderExpenses(){
         const [yy,mm] = emes.split('-');
         const rot = mm ? `${MONTHS[parseInt(mm)-1]} ${yy}` : 'Sem data';
         const totDoMes = ordenada.filter(x=>(x.date||'').slice(0,7)===emes).reduce((s,x)=>s+x.valor,0);
-        h += `<div style="display:flex;justify-content:space-between;align-items:baseline;margin:14px 2px 6px">
+        list += `<div style="display:flex;justify-content:space-between;align-items:baseline;margin:14px 2px 6px">
           <b style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em">${rot}</b>
           <b style="font-size:12px;color:var(--danger)">${fmtBRLFin(totDoMes)}</b></div>`;
       }
     }
     const futura = daysUntil(e.date) > 0;
-    h += `<div class="card" style="display:flex;align-items:center;gap:10px">
+    list += `<div class="card" style="display:flex;align-items:center;gap:10px">
       <div style="flex:1;min-width:0">
         <b style="font-size:14px">${esc(e.desc)}</b>
         ${e.obs ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;white-space:pre-wrap">📝 ${esc(e.obs)}</div>` : ''}
@@ -2408,7 +2419,7 @@ function renderExpenses(){
       <button style="background:none;font-size:14px" onclick="openExpenseForm('${e.id}')">✏️</button>
       <button style="background:none;color:var(--muted)" onclick="delExpense('${e.id}')">🗑</button></div>`;
   });
-  return h;
+  return { toolbar: top, list };
 }
 // Barras de categoria — reaproveitado nas duas visões
 // Cores fixas por categoria (consistentes entre sessões)
@@ -4082,7 +4093,8 @@ function toggleMedDone(petId, medId){
 
 // ═══════════ PACIENTES ═══════════
 function renderPetsList(q=''){
-  let h = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+  // "top" = cabeçalho fixo (título, abas, busca, filtros) — só a lista abaixo rola.
+  let top = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
     <h2>Pacientes</h2>
     </div>
     <div class="subtabs">
@@ -4102,7 +4114,7 @@ function renderPetsList(q=''){
     <button class="fab" onclick="${pplView==='tutores'?"openTutorForm()":"openPetForm()"}" title="${pplView==='tutores'?'Novo Tutor':'Novo Paciente'}">+</button>`;
 
   if(pplView === 'tutores'){
-    const tutors = DB.tutors.filter(t =>
+    let tutors = DB.tutors.filter(t =>
       t.name.toLowerCase().includes(q) || (t.cpf||'').includes(q) || (t.phone||'').includes(q) ||
       (t.bairro||'').toLowerCase().includes(q) || (t.cep||'').includes(q) ||
       (t.address||'').toLowerCase().includes(q));
@@ -4116,25 +4128,29 @@ function renderPetsList(q=''){
     });
     const bairros = Object.entries(bairroCount).sort((a,b)=>b[1].n-a[1].n).slice(0,10);
     if(bairros.length >= 2){
-      h += `<div class="chips" style="margin-bottom:12px">
+      top += `<div class="chips" style="margin-bottom:12px">
         <button class="chip ${(!window.tutBairro||window.tutBairro==='all')?'on':''}" onclick="window.tutBairro='all';render()">📍 Todos</button>
         ${bairros.map(([k,v])=>`<button class="chip ${window.tutBairro===k?'on':''}" onclick="window.tutBairro='${k}';render()">${esc(v.label)} (${v.n})</button>`).join('')}
       </div>`;
     }
-    if(!tutors.length) return h + `<div class="card empty"><div class="big">👤</div>
+    let list;
+    if(!tutors.length){
+      list = `<div class="card empty"><div class="big">👤</div>
       <b>Nenhum tutor cadastrado</b><br><small>Cadastre o responsável para vincular animais</small><br><br>
       <button class="btn sm" onclick="openTutorForm()">+ Cadastrar Tutor</button></div>`;
-    tutors.forEach(t => {
-      const count = DB.pets.filter(p => p.tutorId === t.id).length;
-      h += `<div class="card" style="display:flex;align-items:center;gap:13px;cursor:pointer;border-radius:18px" onclick="openTutor('${t.id}')">
+    } else {
+      list = tutors.map(t => {
+        const count = DB.pets.filter(p => p.tutorId === t.id).length;
+        return `<div class="card" style="display:flex;align-items:center;gap:13px;cursor:pointer;border-radius:18px" onclick="openTutor('${t.id}')">
         <div style="width:52px;height:52px;border-radius:50%;background:var(--vacbg);color:var(--vac);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex-shrink:0">${esc((t.name[0]||'?').toUpperCase())}</div>
         <div style="flex:1;min-width:0">
           <div style="font-weight:800;font-size:15px">${esc(t.name)}</div>
           <div style="color:var(--muted);font-size:12px;margin-top:2px">${t.phone?'📞 '+fmtPhone(t.phone):''}${t.bairro?' · 📍 '+esc(t.bairro):''}</div>
           <div style="color:var(--primary);font-size:11px;font-weight:700;margin-top:4px">🐾 ${count} ${count===1?'animal':'animais'}</div></div>
         <div style="color:var(--muted);font-size:16px">›</div></div>`;
-    });
-    return h;
+      }).join('');
+    }
+    return stickyToolbar(top) + list;
   }
 
   let pets = DB.pets.filter(p =>
@@ -4144,14 +4160,17 @@ function renderPetsList(q=''){
   if(petSort === 'az') pets = [...pets].sort((a,b)=>a.name.localeCompare(b.name));
   if(petSort === 'saude') pets = [...pets].sort((a,b)=>healthScore(a)-healthScore(b));
   if(petSort === 'tutor') pets = [...pets].sort((a,b)=>tutorName(a).localeCompare(tutorName(b)));
-  if(!pets.length) return h + `<div class="card empty"><div class="big">🐾</div>
+  let list;
+  if(!pets.length){
+    list = `<div class="card empty"><div class="big">🐾</div>
     <b>Nenhum paciente encontrado</b><br><small>Cadastre o primeiro paciente para começar</small><br><br>
     <button class="btn sm" onclick="openPetForm()">+ Cadastrar Paciente</button></div>`;
-  pets.forEach(p => {
-    const s = healthScore(p), c = petColor(p);
-    const issue = p.vaccines.some(v=>v.status!=='aplicada' && daysUntil(v.due)<0);
-    const tn = tutorName(p);
-    h += `<div class="card" style="display:flex;align-items:center;gap:13px;cursor:pointer;border-radius:18px" onclick="openPet('${p.id}')">
+  } else {
+    list = pets.map(p => {
+      const s = healthScore(p), c = petColor(p);
+      const issue = p.vaccines.some(v=>v.status!=='aplicada' && daysUntil(v.due)<0);
+      const tn = tutorName(p);
+      return `<div class="card" style="display:flex;align-items:center;gap:13px;cursor:pointer;border-radius:18px" onclick="openPet('${p.id}')">
       <div style="width:60px;height:60px;border-radius:50%;background:color-mix(in srgb,${c} 12%,var(--surface));border:3px solid ${c};display:flex;align-items:center;justify-content:center;font-size:27px;flex-shrink:0;overflow:hidden">
         ${p.photo?`<img src="${p.photo}" style="width:100%;height:100%;object-fit:cover">`:petEmoji(p)}</div>
       <div style="flex:1;min-width:0">
@@ -4160,8 +4179,9 @@ function renderPetsList(q=''){
         ${tn?`<div style="color:var(--muted);font-size:11px;margin-bottom:5px">👤 ${esc(tn)}</div>`:''}
         <span class="st ${issue?'bad':'ok'}">${issue?'⚠ Vacina vencida':'✓ Em dia'}</span></div>
       <div style="text-align:center">${ringSVG(s,44,false)}<div style="color:var(--muted);font-size:14px">›</div></div></div>`;
-  });
-  return h;
+    }).join('');
+  }
+  return stickyToolbar(top) + list;
 }
 
 // ═══════════ TUTOR: PERFIL + CRUD ═══════════
@@ -5650,7 +5670,9 @@ function renderCalendar(){
       <div class="dots">${de.slice(0,3).map(()=>`<i class="${hasOD?'od':''}"></i>`).join('')}</div></button>`;
   }
   const sel = calSelDay ? [...(byDay[calSelDay]||[])].sort((a,b)=>(a.done?1:0)-(b.done?1:0)||a.daysLeft-b.daysLeft) : evts.filter(e=>e.daysLeft>=0).slice(0,6);
-  return `<h2 style="margin-bottom:14px">Agenda</h2>
+  // "top" = calendário, botões de ação e o rótulo "Próximos eventos" — fica fixo no topo.
+  // Só a lista de eventos abaixo (map evtRow) rola.
+  const top = `<h2 style="margin-bottom:14px">Agenda</h2>
     <div class="card">
       <div class="cal-head">
         <button onclick="calShift(-1)">‹</button><b>${MONTHS[m]} ${y}</b><button onclick="calShift(1)">›</button></div>
@@ -5668,9 +5690,10 @@ function renderCalendar(){
       <button class="btn" style="flex:1;background:var(--vet)" onclick="openRota(${calSelDay?`'${y}-${String(m+1).padStart(2,'0')}-${String(calSelDay).padStart(2,'0')}'`:'null'})">
         🗺️ Rota do dia</button>
     </div>
-    <div class="sec" style="margin-top:16px"><div class="sec-h">
-      <span>${calSelDay?`Dia ${calSelDay} de ${MONTHS[m]}`:'Próximos eventos'}</span></div>
-      ${sel.length?sel.map(evtRow).join(''):'<div class="card empty">✅ Nenhum evento neste dia</div>'}</div>`;
+    <div class="sec-h" style="margin-top:16px">
+      <span>${calSelDay?`Dia ${calSelDay} de ${MONTHS[m]}`:'Próximos eventos'}</span></div>`;
+  const list = `<div class="sec">${sel.length?sel.map(evtRow).join(''):'<div class="card empty">✅ Nenhum evento neste dia</div>'}</div>`;
+  return stickyToolbar(top) + list;
 }
 
 // ═══════════ ALERTAS ═══════════
@@ -5685,19 +5708,20 @@ function renderAlerts(f){
     return true;
   });
   const od = evts.filter(e=>e.priority==='overdue').length;
-  let h = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+  // "top" = título, destaque de vencidos e filtros — fica fixo. Só a lista de cards abaixo rola.
+  let top = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
     <h2>Alertas</h2>${od?`<span class="st bad" style="padding:5px 10px">🔴 ${od} vencidos</span>`:''}</div>
     <div class="filters">
       ${[['all','Todos'],['overdue','Vencidos'],['today','Hoje'],['upcoming','Próximos']]
         .map(([k,l])=>`<button class="chip ${alertFilter===k?'on':''}"
         onclick="document.getElementById('mainContent').innerHTML=renderAlerts('${k}')">${l}</button>`).join('')}</div>`;
-  if(!filtered.length) return h + `<div class="card empty"><div class="big">✅</div>Nenhum alerta nesta categoria</div>`;
-  filtered.forEach(e => {
+  if(!filtered.length) return stickyToolbar(top) + `<div class="card empty"><div class="big">✅</div>Nenhum alerta nesta categoria</div>`;
+  const list = filtered.map(e => {
     const t = TYPE_CFG[e.type], pc = PRI_CLR[e.priority];
-    const top = e.priority==='overdue' ? `⚠ VENCIDO HÁ ${Math.abs(e.daysLeft)} DIAS`
+    const topLbl = e.priority==='overdue' ? `⚠ VENCIDO HÁ ${Math.abs(e.daysLeft)} DIAS`
       : e.priority==='today' ? '📅 PARA HOJE' : `🔔 FALTAM ${e.daysLeft} DIAS`;
-    h += `<div class="acard">
-      <div class="ah" style="background:color-mix(in srgb,${pc} 10%,var(--surface));color:${pc}">${top}</div>
+    return `<div class="acard">
+      <div class="ah" style="background:color-mix(in srgb,${pc} 10%,var(--surface));color:${pc}">${topLbl}</div>
       <div class="ab">
         <div style="width:42px;height:42px;border-radius:13px;background:${t.bg};display:flex;align-items:center;justify-content:center;font-size:19px">${t.emo}</div>
         <div style="flex:1;min-width:0">
@@ -5710,8 +5734,8 @@ function renderAlerts(f){
         <button class="btn sm" style="background:#25D366;width:100%"
           onclick="openAvisarTutor('${e.petId}','${e.type==='vaccine'?'vacina':e.type==='medication'?'med':'atend'}','${e.id.slice(2)}')">💬 Avisar o tutor pelo WhatsApp</button></div>` : ''}
       </div>`;
-  });
-  return h;
+  }).join('');
+  return stickyToolbar(top) + list;
 }
 
 // ═══════════ AJUSTES + PERFIL PROFISSIONAL ═══════════
@@ -5996,7 +6020,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.75 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.76 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -7130,6 +7154,9 @@ function scrollSheetDown(){
 }
 function closeSheet(){ document.getElementById('modals').innerHTML=''; }
 const val = id => document.getElementById(id)?.value.trim() || '';
+// Envolve o "cabeçalho" de uma aba (título, busca, filtros) num bloco fixo no topo —
+// usado por Pacientes/Financeiro/Agenda/Alertas para que só a lista role.
+function stickyToolbar(html){ return `<div class="sticky-toolbar">${html}</div>`; }
 // Debounce compartilhado das buscas: re-renderiza 200ms após a última tecla
 function debQ(fn){ clearTimeout(window._debQT); window._debQT = setTimeout(fn, 200); }
 
