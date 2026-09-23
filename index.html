@@ -225,9 +225,497 @@ canvas{width:100%!important}
 @media(min-width:600px){.art-screen{padding:24px 0!important}.art-layout{border-radius:24px;box-shadow:0 25px 90px #135a7624;min-height:820px!important}.art-settings .art-layout,.art-delete .art-layout{min-height:720px!important}.art-forgot .art-layout{min-height:820px!important}#splash.art-registration{padding:24px!important}}
 @media(max-width:360px){.art-screen .access-card{padding-left:15px;padding-right:15px}.art-screen .access-card h1{font-size:22px}.art-screen .access-email{font-size:13px}.art-screen .access-card button{font-size:13px}}
 </style>
-<link rel="stylesheet" href="ui-updates.css">
-<link rel="stylesheet" href="access-reference.css">
-<script>const testStorage=(()=>{const raw=window.localStorage,prefix='vfc_test::';const keys=()=>Object.keys(raw).filter(k=>k.startsWith(prefix)).map(k=>k.slice(prefix.length));const api={getItem:k=>raw.getItem(prefix+k),setItem:(k,v)=>raw.setItem(prefix+k,v),removeItem:k=>raw.removeItem(prefix+k),clear:()=>keys().forEach(k=>raw.removeItem(prefix+k)),key:i=>keys()[i]||null};return new Proxy({},{get:(_,k)=>k==='length'?keys().length:api[k],ownKeys:keys,getOwnPropertyDescriptor:()=>({enumerable:true,configurable:true})});})();</script><script src="ui-updates.js"></script>
+<style data-bundled="ui-updates.css">
+/* v9.66 — altura real do visor, sem recortar a arte de acesso. */
+.art-screen{padding:0!important}
+.art-screen .art-layout{min-height:100dvh!important;border-radius:0}
+.art-login .art-layout,.art-existing .art-layout{height:100dvh;display:flex!important;flex-direction:column}
+.art-login .art-header,.art-existing .art-header{flex:1 1 0;min-height:100px;max-height:none;overflow:visible;display:flex;justify-content:center}
+.art-login .art-pets,.art-existing .art-pets{flex:1 1 0;min-height:90px;margin:0;display:flex;justify-content:center}
+.art-screen .art-header svg,.art-screen .art-pets svg{height:100%;width:100%;margin:0;object-fit:contain}
+.art-login .access-card,.art-existing .access-card{flex:0 0 auto;margin:0 auto;padding-top:10px;padding-bottom:12px}
+.art-login .access-email{margin:6px 0 10px}
+.art-small-footer{padding:16px 8px}
+.art-forgot .art-emblem{width:65px;height:65px;margin:4px auto 12px}
+.art-forgot .art-small-brand{height:72px}
+.art-settings .art-layout,.art-delete .art-layout,.art-forgot .art-layout{min-height:100dvh!important}
+#splash.art-registration{min-height:100dvh;justify-content:center!important;padding:10px!important}
+.reg-step-hidden{display:none!important}
+.reg-step-label{text-align:center;color:#376778;font-size:12px;margin:8px 0}
+.register-shell .reg-back{background:transparent!important;color:#176478!important;border:1px solid #9bc9cc!important}
+.scorecard{position:relative;overflow:hidden;isolation:isolate}
+.scorecard .health-watermark{position:absolute;right:-8px;bottom:-20px;width:160px;height:150px;object-fit:contain;opacity:.15;pointer-events:none;z-index:-1}
+.vfc-aviso{position:fixed;inset:0;z-index:10000;padding:20px;display:grid;place-items:center;background:#092d4de0;backdrop-filter:blur(5px);font-family:Arial,sans-serif}
+.vfc-notice-card{width:100%;max-width:410px;max-height:calc(100dvh - 40px);overflow:auto;border-radius:25px;background:#f7fdfd;box-shadow:0 20px 80px #001c3b66;color:#133b57;padding:28px;text-align:center}
+.vfc-notice-brand{font-size:24px;font-weight:800}.vfc-notice-brand span{color:#099d9d}.vfc-notice-tag{font-size:9px;letter-spacing:2px;margin:5px 0 23px;color:#597884}
+.vfc-notice-icon{font-size:34px;line-height:60px;width:65px;margin:auto;border-radius:50%;background:#d8f4ef}
+.vfc-notice-card h2{font-size:23px;margin:16px 0;line-height:1.2}.vfc-notice-body{font-size:14px;line-height:1.65;white-space:pre-line;text-align:left;color:#3f5d6e}
+.vfc-notice-card button{display:block;width:100%;padding:13px;border:0;border-radius:22px;background:linear-gradient(100deg,#12b8a9,#0087a3);color:white;font-size:14px;font-weight:700;margin-top:20px;cursor:pointer}
+.vfc-notice-card .notice-later{background:transparent;color:#376e7d;border:1px solid #a5cbd0;margin-top:9px}
+.vfc-notice-signature{font-size:11px;color:#53818b;margin-top:18px}
+#vfcNoticeBanner{width:calc(100% - 24px);margin:10px 12px;padding:12px 15px;border:1px solid #70b8b6;border-radius:13px;text-align:left;background:#e4f7f2;color:#155969;font:600 13px Arial;cursor:pointer}
+@media(min-width:600px){.art-screen .art-layout{max-width:480px!important;box-shadow:0 20px 80px #18516a20}}
+@media(max-height:700px){.art-settings .access-card,.art-delete .access-card{padding:12px 16px}.art-small-brand{height:54px;padding:4px}.art-small-brand img{height:48px}.art-forgot .access-card{padding:0 18px 10px}.art-forgot .art-emblem{width:48px;height:48px}.art-forgot .art-emblem svg{width:28px;height:28px}.art-screen .access-notice{padding:10px}.art-screen .access-description{margin-bottom:8px}.art-small-footer{padding:10px}}
+/* Teclado e zoom: permite acessar todos os campos em vez de cortar conteúdo. */
+@media(max-height:480px){.art-login .art-header,.art-existing .art-header{min-height:55px}.art-login .art-pets,.art-existing .art-pets{min-height:55px}}
+.art-registration .register-shell.step-security>img{height:42px!important;width:60px!important}
+.art-registration .step-security .registration-title p,.art-registration .step-security>.sub,.art-registration .step-security>div[style*="rgba(45,192,174"],.art-registration .step-security>button[onclick="showLoginExistente()"]{display:none!important}
+.art-registration .step-security>button{margin:8px 0 0!important;line-height:1.2!important}
+.art-registration .step-security .reg-back{display:block;box-shadow:none!important}
+.art-registration .step-security h2{margin:5px 0!important}
+@media(max-height:700px){.art-settings .access-card button{margin-top:8px}.art-settings .access-note{margin:7px 0}.art-settings .access-card .access-notice{padding:8px}.art-settings .art-small-footer{padding:5px}.art-settings .access-card h1{margin:4px 0}}
+.vfc-notice-icon{display:flex;height:65px;align-items:center;justify-content:center}.vfc-notice-icon svg{width:32px;height:32px;color:#079c9e}
+/* Revisão visual 2: uma identidade, fotografias apenas no cadastro e desbloqueio. */
+.art-screen:not(.art-login) .art-layout{display:flex!important;flex-direction:column;align-items:center;gap:12px;height:auto;min-height:100dvh!important;padding:18px 0 12px;background:radial-gradient(ellipse at 0% 0%,#c3eeeb,transparent 55%),linear-gradient(145deg,#effafb,#f6fcfd 70%,#d6eff1);color:#12465c}
+.art-screen:not(.art-login) .art-layout::after{display:none}
+.art-screen:not(.art-login) .art-small-brand{height:76px;width:100%;padding:0;justify-content:center;flex-shrink:0}
+.art-screen:not(.art-login) .art-small-brand img{width:88px;height:76px;object-fit:contain;background:transparent;border-radius:0;mix-blend-mode:multiply}
+.art-screen:not(.art-login) .access-card{width:90%;flex:0 0 auto;margin:0 auto;padding:18px;border-radius:24px;border:1px solid #dbecee;background:#fbffffee;box-shadow:0 12px 30px #235b7310;text-align:center}
+.art-screen:not(.art-login) .art-emblem{width:38px;height:38px;margin:0 auto 8px;box-shadow:none;border:0;background:#d9f4ef;color:#029c9e}
+.art-screen:not(.art-login) .art-emblem svg{width:22px;height:22px}
+.art-screen:not(.art-login) .access-card h1{color:#07465f;font-size:22px;line-height:1.2;margin:5px 0 9px}
+.art-screen:not(.art-login) .access-description{color:#567b88;font-size:12px;line-height:1.5;margin-bottom:14px}
+.art-screen:not(.art-login) .access-notice{padding:12px;border:1px solid #cceae7;border-radius:14px;background:#eaf7f5;color:#2b5d67;font-size:12px;text-align:left;line-height:1.5}
+.art-screen:not(.art-login) .access-notice b{font-size:12px;text-transform:none;letter-spacing:0}
+.art-screen:not(.art-login) .access-notice p{font-size:12px;margin:6px 0 0}
+.art-screen:not(.art-login) .access-note{font-size:12px;line-height:1.5;color:#567480;text-align:left}
+.art-screen:not(.art-login) .access-card button{border-radius:22px;box-shadow:none;font-size:13px;min-height:42px;margin-top:10px}
+.art-screen:not(.art-login) .access-card>button:first-of-type{background:linear-gradient(105deg,#10b9ab,#0096aa);border:0;color:white}
+.art-screen:not(.art-login) .access-card button.secondary{background:transparent;border:1px solid #94c9cf;color:#166579}
+.art-screen:not(.art-login) .access-card button.access-link{border:0;background:transparent;color:#2d7180;min-height:30px;padding:6px}
+.art-screen:not(.art-login) .access-field input,.art-screen:not(.art-login) .access-card>input{border-radius:14px;font-size:14px}
+.art-screen:not(.art-login) .access-card .access-field button{background:none;min-height:34px;margin:0;border:0;padding:0}
+.art-screen:not(.art-login) .art-small-footer{margin-top:auto;color:#427886;padding:12px 4px 0;letter-spacing:2px;font-size:9px}
+.art-screen:not(.art-login) .access-card .danger,.art-screen:not(.art-login) .access-card .danger-button{color:#b63750;border:1px solid #edb9c2;background:#fff1f3}
+.art-screen.art-delete .art-emblem{background:#ffebee;color:#d34760}
+.art-screen.art-delete .access-card button.danger-button{background:#df4863;color:white;border:0}
+/* Confirmação de exclusão por checkbox — mais claro que "digite APAGAR para confirmar".
+   text-transform/font-weight:none porque a regra genérica de <label> do app (maiúsculas,
+   negrito, 11px) foi pensada pra rótulos curtos de campo, não pra uma frase inteira. */
+.art-screen.art-delete .wipe-confirm-check{display:flex;align-items:flex-start;gap:10px;text-align:left;cursor:pointer;padding:12px 14px;margin:2px 0 10px;background:#fff1f3;border:1.5px solid #f3c3cb;border-radius:14px;text-transform:none;font-weight:400;letter-spacing:normal}
+.art-screen.art-delete .wipe-confirm-check input{width:20px;height:20px;min-height:0;flex-shrink:0;margin:2px 0 0;accent-color:#df4863}
+.art-screen.art-delete .wipe-confirm-check span{font-size:13px;line-height:1.45;color:#7a2436;text-transform:none;font-weight:400}
+.art-screen.art-delete .wipe-confirm-check b{font-weight:800}
+.art-screen:not(.art-login) .access-notice.warning{background:#fff4f1;border-color:#f1d8d1;color:#854f50}
+#splash.art-registration{display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start!important;height:100dvh;min-height:100dvh;padding:0!important;background:radial-gradient(ellipse at top left,#c3eeeb,transparent 55%),#edf7f8!important}
+#splash.art-registration.hidden{display:none!important}
+.art-registration .register-shell{width:90%;max-width:432px;margin:12px auto 0;flex:0 0 auto;padding:12px 16px;border-radius:24px;background:#fbffffee;border:1px solid #dbecee;box-shadow:0 12px 30px #235b7310}
+.art-registration .register-shell>img{width:76px!important;height:54px!important;margin-bottom:2px!important}
+.art-registration .step-security>img{width:76px!important;height:54px!important}
+.art-registration .registration-title h1{font-size:22px;margin:4px 0 6px}
+.art-registration .registration-title p,.art-registration .registration-title h2,.art-registration .register-shell>.sub{display:none!important}
+.art-registration .reg-step-label{margin:4px 0 12px;font-size:12px;color:#447586}
+.art-registration .register-shell input,.art-registration .register-shell select{border-radius:12px!important;min-height:38px;padding:9px 11px!important}
+.art-registration .register-shell>button{box-shadow:none!important;border-radius:22px!important;margin-top:10px!important;min-height:40px!important}
+.art-registration .register-shell>button+button{min-height:30px!important;margin-top:6px!important}
+.art-registration .registration-toggle{border-radius:14px!important}
+.art-registration .registration-pets{width:100%;max-width:480px;flex:1 1 0;min-height:100px;line-height:0;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;margin-top:8px}
+.art-registration .registration-pets svg{display:block;width:100%;height:100%;max-height:290px}
+.art-registration .register-shell .eye{transform:none!important;top:4px!important}
+@media(max-height:700px){
+ .art-screen:not(.art-login) .art-layout{padding:8px 0;gap:8px}
+ .art-screen:not(.art-login) .art-small-brand{height:50px}
+ .art-screen:not(.art-login) .art-small-brand img{height:50px;width:64px}
+ .art-screen:not(.art-login) .access-card{padding:12px 16px}
+ .art-screen:not(.art-login) .access-description{margin-bottom:9px}
+ .art-screen:not(.art-login) .access-card button{margin-top:8px}
+ .art-screen:not(.art-login) .art-small-footer{padding-top:4px}
+ .art-registration .register-shell>img,.art-registration .step-security>img{height:40px!important;width:56px!important}
+ .art-registration .register-shell{padding:8px 14px;margin-top:8px}
+ .art-registration .registration-fields{gap:6px!important}
+ .art-registration .reg-step-label{margin-bottom:8px}
+ .art-registration .register-shell>div[style*="rgba(45,192,174"]{margin-top:8px!important;padding:7px 9px!important}
+}
+/* Acesso: arte contínua; formulário real sobre a área do cartão original. */
+.art-screen.art-login.art-integrated{display:flex!important;align-items:center;justify-content:center;height:100dvh;overflow:auto;background:#dff1f3!important}
+.art-login.art-integrated .art-layout{display:block!important;flex:none;width:min(100vw,calc(100dvh * 691 / 1401));max-width:none!important;height:auto;min-height:0!important;aspect-ratio:691/1401;overflow:hidden;box-shadow:none}
+.art-integrated .integrated-background{display:block;width:100%!important;height:100%!important}
+.art-login.art-integrated .access-card{position:absolute;top:36.35%;left:7.5%;width:85%;height:31%;margin:0;padding:2.8% 4.8% 2%;border-radius:clamp(16px,4vw,30px);border:0;background:linear-gradient(140deg,#fbffff,#f0fafa);box-shadow:none;display:flex;flex-direction:column;justify-content:center}
+.art-login.art-integrated .art-emblem{width:28px;height:28px;margin:0 auto 3px;flex-shrink:0}
+.art-login.art-integrated .art-emblem svg{width:17px;height:17px}
+.art-login.art-integrated .access-card h1{font-size:clamp(18px,5vw,24px);margin:3px 0 6px}
+.art-login.art-integrated .access-email{font-size:12px;margin:2px 0 9px}
+.art-login.art-integrated .access-field input{height:40px;padding:9px 38px 9px 14px;font-size:13px}
+.art-login.art-integrated .access-card button{margin-top:9px;min-height:38px;padding:10px 13px;font-size:13px}
+.art-login.art-integrated .access-card .access-field button{margin:0;min-height:30px;width:30px;height:30px;padding:0;top:5px}
+.art-login.art-integrated .access-card .access-link{font-size:11px;margin-top:8px;padding:4px;min-height:24px}
+.art-login.art-integrated .access-error{font-size:11px;margin:3px 0 0}
+.art-login.art-integrated .access-card button span{height:25px;width:25px}
+/* Les mêmes largeurs pour les champs et actions d'inscription. */
+#splash.art-registration .register-shell>button,#splash.art-registration .registration-fields,#splash.art-registration .register-shell>div[style*="rgba(45,192,174"]{width:100%!important;max-width:none!important;box-sizing:border-box;margin-left:auto!important;margin-right:auto!important;align-self:stretch;float:none;transform:none}
+#splash.art-registration .register-shell>button{display:block;text-align:center}
+@media(max-height:700px){
+ .art-screen.art-settings .access-card .access-notice{padding:8px}
+ .art-screen.art-settings .access-description{margin-bottom:6px}
+ .art-screen.art-settings .access-note{font-size:11px;margin:5px 0}
+ .art-screen.art-settings .art-emblem{height:29px;width:29px;margin-bottom:3px}
+ .art-screen.art-settings .access-card h1{margin:2px 0 6px}
+ .art-screen.art-settings .access-card button{margin-top:6px;min-height:36px;padding:9px 13px}
+ .art-screen.art-settings .access-card .access-link{min-height:26px}
+ .art-screen.art-settings .access-email{margin:6px 0}
+ .art-screen.art-settings .access-card label{margin-top:7px}
+ .art-screen.art-settings .access-card>input{padding:10px 14px}
+}
+@media(max-height:660px){.art-login.art-integrated .access-card{height:33%;top:35.6%;padding:2% 4.8%}.art-login.art-integrated .art-emblem{display:none}.art-login.art-integrated .access-card h1{font-size:19px}.art-login.art-integrated .access-card .access-link{margin-top:4px}}
+.art-integrated .integrated-foreground{position:absolute;inset:0;clip-path:inset(65.7% 0 0);pointer-events:none;z-index:3}
+.art-registration .registration-pets{margin-top:0;max-height:270px;mask-image:linear-gradient(to right,transparent,#000 5%,#000 95%,transparent)}
+.art-registration .registration-pets svg{max-height:260px;align-self:flex-end}
+.art-registration .registration-pets svg image{pointer-events:none}
+.art-registration .register-shell{z-index:2}
+@media(max-height:700px){.art-registration .step-security h2{display:none}.art-registration .step-security>img{height:32px!important}.art-registration .step-security .reg-step-label{margin-bottom:8px}.art-registration .step-security .registration-fields{gap:3px!important}}
+.art-registration .registration-pets{max-height:240px;min-height:100px;margin-top:auto;mask-image:linear-gradient(to bottom,transparent,#000 13%,#000 100%)}
+.art-registration .registration-pets svg{overflow:hidden;max-height:240px}
+.art-registration .register-shell{margin-top:auto;margin-bottom:0}
+.art-registration .registration-pets{flex:0 0 clamp(100px,calc(100dvh - 510px),220px);height:clamp(100px,calc(100dvh - 510px),220px);margin-top:0;min-height:100px;max-height:220px}
+/* v9.68: cenário único atrás do cadastro; nenhuma faixa de imagem separada. */
+:root{--vfc-screen:100vh}
+@supports(height:100dvh){:root{--vfc-screen:100dvh}}
+body{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px));overflow-wrap:break-word}
+main,header,nav,.sheet,.card,.row>*{min-width:0}
+input,select,textarea{max-width:100%;min-width:0}
+.modal .sheet{max-height:calc(var(--vfc-screen) - env(safe-area-inset-top,0px) - 12px)}
+.modal .mh h2{min-width:0;overflow-wrap:anywhere}
+.modal .mf{flex-wrap:wrap}
+.modal .mf>button{min-width:0;flex:1 1 120px}
+nav{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav button{min-width:0}
+#splash.art-registration{height:var(--vfc-screen);min-height:0;overflow:auto;display:block!important;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)!important}
+#splash.art-registration.hidden{display:none!important}
+.registration-scene{position:relative;isolation:isolate;width:100%;max-width:480px;min-height:740px;height:calc(var(--vfc-screen) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));margin:auto;display:flex;align-items:center;justify-content:center;padding:115px 0 155px}
+.registration-background{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+#splash.art-registration .register-shell{position:relative;flex:none;width:88%;max-width:none;margin:0!important;padding:14px 16px;background:linear-gradient(140deg,#fbffff,#f0fafa);border:0;border-radius:24px;box-shadow:0 6px 24px #0c526410}
+#splash.art-registration .register-shell input,#splash.art-registration .register-shell select{font-size:16px!important;min-height:40px}
+#splash.art-registration .register-shell>button{min-height:40px!important}
+#splash.art-registration .register-shell>.reg-step-hidden{display:none!important}
+.art-screen{max-height:none;overflow-y:auto}
+.art-screen:not(.art-login) .art-layout{min-height:var(--vfc-screen)!important;padding-top:max(12px,env(safe-area-inset-top,0px));padding-bottom:max(12px,env(safe-area-inset-bottom,0px))}
+.art-screen input{font-size:16px!important}
+.art-screen.art-login.art-integrated{height:var(--vfc-screen);align-items:flex-start;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)!important}
+.art-login.art-integrated .art-layout{width:min(100%,calc(max(640px,var(--vfc-screen)) * 691 / 1401));min-height:640px!important;height:calc(var(--vfc-screen) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));aspect-ratio:auto;position:relative}
+.art-login.art-integrated .integrated-background,.art-login.art-integrated .integrated-foreground{height:100%!important}
+@media(min-width:768px){
+ body{max-width:800px}nav{max-width:800px}.modal .sheet{max-width:640px}
+ main{padding:24px}.art-screen:not(.art-login) .art-layout{max-width:520px!important}
+}
+@media(max-width:359px){main{padding:12px}.topbar{gap:6px}.topbar img{width:32px;height:32px}.scorecard{padding:12px}.registration-scene{min-height:770px}#splash.art-registration .register-shell{width:92%;padding:12px}.art-screen:not(.art-login) .access-card{width:94%}}
+.modal{top:var(--vfc-offset,0px);bottom:auto;height:var(--vfc-screen)}
+#splash.art-registration,.art-screen{top:var(--vfc-offset,0px)}
+/* Reservar espaço maior para os animais sem duplicar a marca sobre a marca do fundo. */
+#splash.art-registration .register-shell>img{display:none!important}
+.registration-scene{padding-top:110px;padding-bottom:180px}
+@media(min-height:640px) and (min-width:360px){.registration-scene{min-height:640px}}
+.registration-pair{display:flex;gap:8px}.registration-pair>input{flex:1;width:0!important}
+.art-registration #regSenhaCampos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}
+.art-registration #regSenhaCampos>input,.art-registration #regSenhaCampos>div:not(.pwwrap){grid-column:1 / -1}
+.art-registration #regSenhaCampos input{margin:0!important}
+.art-registration #regSenhaCampos .pwwrap{margin:0;min-width:0}
+.art-registration #regSenhaCampos .pwwrap input{font-size:14px!important}
+.art-registration .step-security h2{display:none!important}
+.art-registration #regSenhaCampos>div:not(.pwwrap){margin-top:0!important;font-size:10px!important}
+.registration-scene{padding-top:245px;padding-bottom:160px}
+#splash.art-registration .register-shell{padding:12px 14px}
+.art-registration .registration-toggle{padding:7px!important;margin-bottom:6px!important}
+@media(max-height:740px){.registration-scene{padding-top:170px;padding-bottom:95px}}
+.registration-scene{padding-top:190px;padding-bottom:185px}
+.art-registration #regSenhaCampos .pwwrap input{font-size:16px!important}
+@media(max-height:740px){.registration-scene{padding-top:150px;padding-bottom:110px}}
+/* Limita imediatamente a altura após girar; VisualViewport completa o ajuste do teclado. */
+:root{--vfc-screen:min(100vh,var(--vfc-visual-height,100vh))}
+@supports(height:100dvh){:root{--vfc-screen:min(100dvh,var(--vfc-visual-height,100dvh))}}
+/* A imagem original mantém as proporções inclusive nos tablets. */
+.registration-scene{width:min(100%,calc(max(640px,var(--vfc-screen)) * 691 / 1401));max-width:480px}
+/* Cartão compacto: preserva área visível da marca e dos animais. */
+#splash.art-registration .register-shell{padding-top:10px;padding-bottom:10px}
+.art-registration .registration-title h1{margin:0 0 4px}
+.art-registration .reg-step-label{margin:3px 0 7px}
+#splash.art-registration .register-shell>button{margin-top:7px!important}
+#splash.art-registration .register-shell>button+button{min-height:30px!important;margin-top:5px!important}
+.art-registration .register-shell>div[style*="rgba(45,192,174"] div{line-height:1.25}
+.art-registration .registration-toggle{padding:5px 7px!important}
+@media(min-height:741px){.registration-scene{padding-top:170px}}
+
+</style>
+<style data-bundled="access-reference.css">
+/* Arte oficial contínua, com formulários reais em coordenadas proporcionais. */
+#splash.art-registration,.art-screen.art-login.art-integrated{display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start;background:#e7f6f7;overflow:auto}
+#splash.art-registration.hidden{display:none!important}
+/* height:100% (não px calculado via JS/innerHeight): herda a altura real da caixa
+   position:fixed;inset:0 (#splash / .access-screen) que o próprio navegador já resolveu —
+   isso evita o descompasso entre innerHeight e a altura de fato renderizada em telas reais
+   (barra de endereço do celular), que causava corte na arte/caixa da senha. */
+#splash.art-registration .reference-frame,.art-login.art-integrated .reference-frame{position:relative;flex:none;max-width:none;min-height:0!important;height:100%;padding:0!important;margin:auto!important;display:block;overflow:hidden;aspect-ratio:auto}
+.reference-stage{position:absolute;left:0;top:0;transform:scale(var(--ref-scale,1));transform-origin:top left;isolation:isolate}
+#splash.art-registration .reference-stage>img{position:absolute;inset:0;width:864px!important;height:1536px!important;max-width:none!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:none!important;pointer-events:none}
+/* 72.6% ≈ (369+708+38)/1536 — borda do card (1077px) + ~38px de respiro real, pra camada de
+   patinhas/cabeça do cachorro nunca tocar/encostar visualmente no rodapé do card "CRIE SEU ACESSO"
+   (antes era 70% = 1075.2px, ou seja, ANTES do fim do card — por isso parecia sobreposto). */
+.registration-background{z-index:0}.registration-foreground{z-index:3;clip-path:inset(72.6% 0 0)}
+/* 75.5% ≈ (369+752+38)/1536 — mesma lógica acima, mas pra etapa de Segurança (card termina em
+   1121px), garantindo o mesmo respiro real de ~38px antes da arte de patinhas aparecer. */
+.reference-step-security .registration-foreground{clip-path:inset(75.5% 0 0)}
+/* top:369px é a posição exata do card na arte de referência (conferido pixel a pixel na imagem
+   original) — não mexer aqui, senão o card cobre o logo desenhado na própria arte. */
+#splash.art-registration .reference-stage .register-shell{position:absolute;left:60px;top:369px;width:744px!important;height:708px;max-width:none!important;padding:14px 30px 20px!important;margin:0!important;box-sizing:border-box;border:0;border-radius:48px;background:linear-gradient(140deg,#fff,#f4fcfc);box-shadow:none;display:flex;flex-direction:column;gap:0}
+/* Etapa 2 (Segurança) tem um campo a mais que a etapa 1: o conteúdo real (fonte do navegador)
+   precisa de ~20px a mais do que a arte de referência previa, senão o botão "Voltar aos dados
+   pessoais" estoura a borda inferior do card. Aumentamos a altura e empurramos para baixo, em
+   conjunto, o recorte da camada de patinhas/rodapé (.reference-step-security .registration-foreground
+   abaixo) na mesma medida, pra elas continuarem só "por cima" do card, nunca sobre o botão. */
+#splash.art-registration .reference-stage .register-shell.step-security{top:369px;height:752px;padding-top:18px!important}
+#splash.art-registration .reference-stage .registration-title h1{font-size:52px!important;line-height:1.12;margin:0!important;font-weight:750;color:#07314d}
+#splash.art-registration .reference-stage .reg-step-label{font-size:29px;line-height:1.3;margin:6px 0 20px;text-align:center}
+#splash.art-registration .reference-stage .registration-fields{gap:16px!important;margin:0!important}
+#splash.art-registration .reference-stage .registration-pair,#splash.art-registration .reference-stage .registration-person-row{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px!important;margin:0!important}
+#splash.art-registration .reference-stage .reference-field{position:relative;min-width:0;flex:1;margin:0!important}
+.reference-field-icon{position:absolute;left:22px;top:50%;transform:translateY(-50%);width:34px;height:36px;color:#4c6c79;pointer-events:none;z-index:1;display:flex;align-items:center}
+.reference-field-icon svg{width:100%;height:100%}
+#splash.art-registration .reference-stage .register-shell input,#splash.art-registration .reference-stage .register-shell select{display:block;box-sizing:border-box;width:100%!important;height:78px!important;min-height:78px!important;border:2px solid #d4dfe3!important;border-radius:20px!important;font-size:30px!important;line-height:1.2;padding:12px 14px 12px 80px!important;background:#fcfefe!important;margin:0!important;color:#345565!important}
+/* Campo com erro de validação: borda vermelha bem visível + ícone destacado. */
+#splash.art-registration .reference-stage .register-shell input.field-error,#splash.art-registration .reference-stage .register-shell select.field-error{border-color:#e2483c!important;background:#fff5f4!important;box-shadow:0 0 0 4px #e2483c22!important}
+.reference-field.field-error .reference-field-icon{color:#e2483c}
+#splash.art-registration .reference-stage .pwwrap input{padding-left:66px!important;padding-right:54px!important;font-size:27px!important}
+#splash.art-registration .reference-stage .pwwrap .reference-field-icon{left:18px;width:30px}
+#splash.art-registration .reference-stage .pwwrap button{position:absolute;right:12px;top:18px;width:40px;height:40px;min-height:0;padding:0;margin:0;background:transparent;border:0;box-shadow:none;color:#4c6c79}
+#splash.art-registration .reference-stage .pwwrap button svg{width:32px;height:32px}
+#splash.art-registration .reference-stage .reference-trial{display:flex;align-items:center;gap:24px;padding:17px 22px!important;border:2px solid #d1efe8!important;border-radius:22px!important;background:#e4faf5!important;margin:18px 0 0!important;min-height:122px;box-sizing:border-box;font-size:25px!important;line-height:1.15}
+#splash.art-registration .reference-stage .reference-trial>svg{width:48px;height:54px;flex:none;color:#117f76}
+#splash.art-registration .reference-stage .reference-trial b{font-size:29px!important;color:#07314d!important}.reference-trial p{margin:5px 0 0}
+#splash.art-registration .reference-stage .register-shell>button{width:100%!important;min-height:76px!important;height:76px;padding:8px 16px!important;margin:18px 0 0!important;border-radius:40px!important;font-size:31px!important;line-height:1.2!important;font-weight:700;background:linear-gradient(110deg,#11afaa,#00aaa6);color:white!important;box-shadow:0 6px 12px #00a89c15}
+#splash.art-registration .reference-stage .register-shell>button+button{height:40px!important;min-height:40px!important;margin-top:8px!important;background:transparent!important;box-shadow:none!important;color:#087f8a!important;font-size:25px!important;padding:0!important}
+#splash.art-registration .reference-stage .register-shell>button[onclick="showLoginExistente()"]{text-decoration:underline}
+#splash.art-registration .reference-stage .register-shell>.reg-step-hidden,#splash.art-registration .reference-stage .reg-step-hidden{display:none!important}
+/* Aviso de validação: caixa com fundo/borda vermelha, bem mais visível que um texto solto.
+   Aparece/some sozinho via :empty — nenhuma mudança de JS necessária nas chamadas existentes. */
+#splash.art-registration .reference-stage #regErr{display:none;align-items:center;gap:12px;font-size:26px!important;font-weight:800!important;line-height:1.3;margin:16px 0 0!important;min-height:0!important;color:#9c2c22!important;background:#fff0ee;border:2px solid #f3aa9e;border-radius:20px;padding:16px 20px;text-align:left}
+#splash.art-registration .reference-stage #regErr:not(:empty){display:flex}
+#splash.art-registration .reference-stage .registration-toggle{display:flex;align-items:center;gap:22px;height:90px;padding:12px 20px!important;margin:0 0 15px!important;border:2px solid #cceae5;border-radius:22px;box-sizing:border-box;background:#e6f9f5}
+.reference-toggle-icon{width:42px;height:48px;flex:none}.reference-toggle-icon svg{width:100%;height:100%}
+#splash.art-registration .reference-stage .registration-toggle>div>div:first-child{font-size:28px!important;line-height:1.15!important}
+#splash.art-registration .reference-stage .registration-toggle>div>div:last-child{font-size:23px!important;line-height:1.2!important;margin-top:3px}
+#splash.art-registration .reference-stage #regSenhaToggle{width:104px!important;height:56px!important;min-width:104px;border-radius:30px!important;margin-left:auto}
+#splash.art-registration .reference-stage #regSenhaToggle>div{width:44px!important;height:44px!important;top:6px!important;right:6px!important;border-radius:50%!important}
+#splash.art-registration .reference-stage #regSenhaCampos{gap:14px!important}
+#splash.art-registration .reference-stage #regSenhaCampos>.reference-security-note{display:flex;align-items:center;justify-content:center;gap:12px;font-size:22px!important;line-height:1.25;margin:2px 0 0!important;min-height:38px}
+.reference-security-note svg{width:28px;height:32px;flex:none;color:#087f8a}
+#splash.art-registration .reference-stage .step-security>button{margin-top:14px!important}
+#splash.art-registration .reference-stage .step-security>.reg-back{height:62px!important;min-height:62px!important;margin-top:10px!important;border:2px solid #7cb6bb!important;color:#07314d!important;font-size:27px!important;text-decoration:none}
+#splash.art-registration .reference-stage #regSenhaNao{font-size:26px!important;padding:20px!important}
+.art-login.art-integrated .reference-stage .integrated-background,.art-login.art-integrated .reference-stage .integrated-foreground{position:absolute;inset:0;width:691px!important;height:1401px!important;max-width:none}
+.art-login.art-integrated .reference-stage .access-card{position:absolute;left:52px;top:510px;width:587px;height:433px;max-width:none;margin:0;padding:20px 34px;box-sizing:border-box;border:0;border-radius:34px;background:linear-gradient(140deg,#fbffff,#f1fafb);box-shadow:none;z-index:2}
+.art-login.art-integrated .reference-stage .art-emblem{display:flex;width:60px;height:60px;margin:0 auto 8px;padding:13px;box-sizing:border-box}.art-login.art-integrated .reference-stage .art-emblem svg{width:34px;height:34px}
+.art-login.art-integrated .reference-stage .access-card h1{font-size:34px;margin:4px 0 8px;line-height:1.2}
+.art-login.art-integrated .reference-stage .access-email{font-size:23px;margin:0 0 20px;line-height:1.2}
+.art-login.art-integrated .reference-stage .access-field input{height:76px;font-size:24px!important;padding:12px 65px 12px 76px;border-radius:40px;border:2px solid #d5dce3}
+.art-login.art-integrated .reference-stage .access-field button{top:18px;right:20px;width:40px;height:40px;min-height:40px;margin:0;padding:0}
+.art-login.art-integrated .reference-stage .access-field button svg{width:32px;height:32px}
+.art-login.art-integrated .reference-stage .access-card form>button{height:76px;min-height:76px;margin:20px 0 0;padding:12px 28px;font-size:27px;border-radius:40px}
+.art-login.art-integrated .reference-stage .access-card form>button span{width:58px;height:58px;font-size:36px}
+.art-login.art-integrated .reference-stage .access-card .access-link{height:40px;min-height:40px;font-size:20px;margin:16px 0 0;padding:0}
+.art-login.art-integrated .reference-stage .access-error{font-size:18px;line-height:1.2;margin:3px 0 0}
+#splash.art-registration .reference-stage .reference-trial div,#splash.art-registration .reference-stage .reference-trial p{font-size:25px!important;line-height:1.15!important}
+#splash.art-registration .reference-stage #regUser{font-size:26px!important;padding-left:68px!important}
+#splash.art-registration .reference-stage .pwwrap .eye{top:18px!important;height:40px!important;min-height:40px!important}
+
+/* 9.71: cadastro sem fotografias/frases; arte contínua fornecida pelo usuário. */
+#splash.art-registration .reference-frame,.art-login.art-integrated .reference-frame{height:auto;min-height:0!important;margin:auto!important;max-width:none!important;flex:none}
+#splash.art-registration .reference-stage .register-shell,#splash.art-registration .reference-stage .register-shell.step-security{top:374px;height:724px}
+
+/* ══════════════════════════════════════════════════════════════════════
+   9.74 — CADASTRO EM TELA ÚNICA (substitui o antigo sistema de 2 etapas
+   com moldura de referência/arte de fundo). Sem transform:scale atrelado
+   à altura da viewport → nunca "comprime" quando o teclado abre; a tela
+   simplesmente rola (overflow-y:auto), como qualquer formulário comum.
+   O sistema antigo (.art-registration / .reference-frame / etc acima)
+   fica preservado, mas não é mais usado nesta tela — sem risco de
+   interferir aqui, pois tudo abaixo é isolado pela classe .reg-single.
+   ══════════════════════════════════════════════════════════════════════ */
+#splash.reg-single{display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start;height:100dvh;min-height:100dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:28px 16px calc(28px + env(safe-area-inset-bottom));box-sizing:border-box}
+#splash.reg-single.hidden{display:none!important}
+#splash.reg-single .reg-card{width:100%;max-width:430px;margin:auto;background:#fff;border-radius:26px;padding:22px 20px;box-sizing:border-box;box-shadow:0 20px 60px rgba(5,35,55,.28)}
+#splash.reg-single .reg-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+#splash.reg-single .reg-head img{width:46px;height:46px;object-fit:contain;flex:none;border-radius:12px;background:#fff}
+#splash.reg-single .reg-head h1{font-size:21px;font-weight:800;color:#074765;margin:0;line-height:1.2}
+#splash.reg-single .reg-head p{font-size:12px;color:#5c8695;margin:2px 0 0}
+#splash.reg-single .reg-invite{background:#e9faf4;border:1.5px solid #bfeee0;border-radius:14px;padding:11px 14px;margin-bottom:14px}
+#splash.reg-single .reg-invite b{color:#07665b;font-size:13px}
+#splash.reg-single .reg-invite div{color:#3d7c72;font-size:11px;margin-top:2px}
+#splash.reg-single .reg-fields{display:flex;flex-direction:column;gap:10px}
+#splash.reg-single .reg-row{display:flex;gap:10px}
+#splash.reg-single .reg-row>*{flex:1;min-width:0}
+#splash.reg-single input,#splash.reg-single select{width:100%;box-sizing:border-box;padding:13px 14px;border-radius:14px;border:1.5px solid #d7e6ea;background:#fbfeff;font-size:16px;color:#1c4457;font-family:inherit}
+#splash.reg-single input::placeholder{color:#8aa8b3}
+#splash.reg-single input:focus,#splash.reg-single select:focus{outline:none;border-color:#2dc0ae;box-shadow:0 0 0 3px rgba(45,192,174,.18)}
+#splash.reg-single input.field-error,#splash.reg-single select.field-error{border-color:#e2483c;background:#fff5f4;box-shadow:0 0 0 3px rgba(226,72,60,.14)}
+#splash.reg-single .reg-toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#e9faf4;border:1.5px solid #cceae5;border-radius:16px;padding:13px 14px}
+#splash.reg-single .reg-toggle .lbl{font-weight:800;font-size:13px;color:#07314d}
+#splash.reg-single .reg-toggle .sub{font-size:11px;color:#4b7c85;margin-top:2px}
+#splash.reg-single .reg-switch{width:48px;height:27px;border-radius:99px;background:#2DC0AE;cursor:pointer;position:relative;flex-shrink:0;transition:background .2s}
+#splash.reg-single .reg-switch .knob{position:absolute;top:3px;right:3px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:all .2s}
+#splash.reg-single .reg-security-note{display:flex;align-items:center;gap:8px;font-size:11px;color:#4b7c85;margin-top:8px;line-height:1.4}
+#splash.reg-single .pwwrap{position:relative}
+#splash.reg-single .pwwrap input{padding-right:44px}
+#splash.reg-single .pwwrap .eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;min-height:0;padding:0;background:none;border:0;box-shadow:none;color:#4c6c79;display:flex;align-items:center;justify-content:center}
+#splash.reg-single .pwwrap .eye svg{width:20px;height:20px}
+#splash.reg-single .reg-trial{display:flex;align-items:center;gap:12px;background:#e5faf4;border:1.5px solid #d5f1e7;border-radius:14px;padding:12px 14px}
+#splash.reg-single .reg-trial svg{width:26px;height:26px;flex:none;color:#117f76}
+#splash.reg-single .reg-trial b{font-size:13px;color:#07314d;display:block}
+#splash.reg-single .reg-trial p{font-size:11px;color:#3d7c72;margin:3px 0 0;line-height:1.35}
+#splash.reg-single .reg-submit{width:100%;min-height:52px;margin-top:16px;border:0;border-radius:30px;font-size:15px;font-weight:800;color:#fff;background:linear-gradient(110deg,#11afaa,#00aaa6);box-shadow:0 8px 18px rgba(0,168,156,.28);cursor:pointer}
+#splash.reg-single .reg-link{display:block;width:100%;margin-top:10px;background:none;border:0;color:#087f8a;font-size:13px;text-decoration:underline;cursor:pointer;padding:6px}
+#splash.reg-single .reg-err{display:none;align-items:center;gap:10px;font-size:12.5px;font-weight:700;color:#9c2c22;background:#fff0ee;border:1.5px solid #f3aa9e;border-radius:14px;padding:11px 13px;margin-top:12px;text-align:left;line-height:1.3}
+#splash.reg-single .reg-err:not(:empty){display:flex}
+#splash.reg-single .reg-foot{color:rgba(255,255,255,.55);font-size:10px;letter-spacing:.5px;margin-top:16px;text-align:center}
+@media(min-width:480px){#splash.reg-single{padding:40px 24px}}
+@media(max-height:600px){#splash.reg-single{justify-content:flex-start}#splash.reg-single .reg-card{padding:18px 18px}}
+
+</style>
+<script>const testStorage=(()=>{const raw=window.localStorage,prefix='vfc_test::';const keys=()=>Object.keys(raw).filter(k=>k.startsWith(prefix)).map(k=>k.slice(prefix.length));const api={getItem:k=>raw.getItem(prefix+k),setItem:(k,v)=>raw.setItem(prefix+k,v),removeItem:k=>raw.removeItem(prefix+k),clear:()=>keys().forEach(k=>raw.removeItem(prefix+k)),key:i=>keys()[i]||null};return new Proxy({},{get:(_,k)=>k==='length'?keys().length:api[k],ownKeys:keys,getOwnPropertyDescriptor:()=>({enumerable:true,configurable:true})});})();</script><script data-bundled="ui-updates.js">
+/* Referências oficiais recebidas: arte intacta e controles HTML sobrepostos. */
+// Mostra o erro de validação do cadastro diretamente no campo (borda vermelha + foco), em vez de
+// só num texto pequeno lá embaixo. Se o campo estiver na etapa 1 mas a tela atual for a etapa 2
+// (Segurança), volta para a etapa 1 automaticamente antes de focar, pra o campo ficar visível.
+function regFieldErr(fieldId, msg){
+ const err = document.getElementById('regErr');
+ // Tela única (9.74): não há mais etapas — só limpa o destaque de erro anterior e foca o campo.
+ document.querySelectorAll('#splash.reg-single input.field-error,#splash.reg-single select.field-error').forEach(x=>x.classList.remove('field-error'));
+ if(err) err.textContent = msg;
+ const input = fieldId && document.getElementById(fieldId);
+ if(input){
+  input.classList.add('field-error');
+  input.focus();
+  input.scrollIntoView?.({block:'center',behavior:'smooth'});
+ }
+}
+function referenceIcon(name){
+ const paths={person:'<circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 6 0 0 1 16 0v3z"/>',calendar:'<rect x="3" y="5" width="18" height="17" rx="2"/><path d="M7 2v6m10-6v6M3 11h18"/>',gender:'<circle cx="10" cy="10" r="6"/><path d="M10 16v7m-3-3h6m1-14 7-5m-5 0h5v5"/>',document:'<rect x="5" y="2" width="14" height="21" rx="2"/><path d="M8 7h8M8 11h8m-8 4h5"/>',mail:'<rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 6 9 8 9-8"/>',bulb:'<path d="M8 17c0-4-4-4-4-9a8 8 0 0 1 16 0c0 5-4 5-4 9zM8 20h8m-6 3h4"/>',gift:'<rect x="2" y="8" width="20" height="5" rx="1"/><path d="M4 13v10h16V13M12 8v15"/><path d="M12 8C2 8 3 0 7 2c3 1 5 6 5 6s2-5 5-6c4-2 5 6-5 6"/>'};
+ return paths[name]?'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+paths[name]+'</svg>':accessIcon(name);
+}
+function fitReferenceFrames(){
+ const viewport=window.visualViewport;if(viewport&&Math.abs(viewport.scale-1)>.02)return;
+ document.documentElement.style.setProperty('--vfc-visual-height',(viewport?.height||innerHeight)+'px');
+ document.querySelectorAll('.reference-frame').forEach(frame=>{
+  const parent=frame.parentElement,style=getComputedStyle(parent);
+  const width=parent.clientWidth-(parseFloat(style.paddingLeft)||0)-(parseFloat(style.paddingRight)||0);
+  const height=(viewport?.height||innerHeight)-(parseFloat(style.paddingTop)||0)-(parseFloat(style.paddingBottom)||0);
+  const baseW=Number(frame.dataset.artWidth),baseH=Number(frame.dataset.artHeight);
+  const scale=Math.min(width/baseW,Math.max(640,height)/baseH,720/baseW);
+  frame.style.width=(baseW*scale)+'px';frame.style.height=(baseH*scale)+'px';frame.style.setProperty('--ref-scale',String(scale));
+ });
+}
+function setupReferenceFrame(frame,width,height){
+ frame.classList.add('reference-frame');frame.dataset.artWidth=width;frame.dataset.artHeight=height;
+ const stage=document.createElement('div');stage.className='reference-stage';stage.style.width=width+'px';stage.style.height=height+'px';
+ while(frame.firstChild)stage.appendChild(frame.firstChild);frame.appendChild(stage);fitReferenceFrames();
+}
+window.addEventListener('resize',fitReferenceFrames);window.visualViewport?.addEventListener('resize',fitReferenceFrames);
+function setupRegistrationSteps(sp){
+ const shell=sp.querySelector('.register-shell'),fields=sp.querySelector('.registration-fields');
+ const security=sp.querySelector('.registration-security'),heading=security.previousElementSibling;
+ const row=document.createElement('div');row.className='registration-pair';
+ const cpf=sp.querySelector('#regCPF'),user=sp.querySelector('#regUser');cpf.before(row);row.append(cpf,user);
+ sp.querySelector('#regIdade').parentElement.classList.add('registration-person-row');
+ sp.querySelector('#regPass').placeholder='Senha (6+)';sp.querySelector('#regPass2').placeholder='Confirmar';sp.querySelector('#regHint').placeholder='Dica de senha (opcional)';
+ for(const[id,icon]of Object.entries({regNome:'person',regIdade:'calendar',regSexo:'gender',regCPF:'document',regUser:'person',regEmail:'mail',regPass:'lock',regPass2:'lock',regHint:'bulb'})){
+  const input=sp.querySelector('#'+id);let wrap=input.parentElement;
+  if(!wrap.classList.contains('pwwrap')){wrap=document.createElement('div');input.before(wrap);wrap.appendChild(input);}
+  wrap.classList.add('reference-field');if(['regNome','regEmail','regHint'].includes(id))wrap.classList.add('reference-wide');
+  const symbol=document.createElement('span');symbol.className='reference-field-icon';symbol.innerHTML=referenceIcon(icon);wrap.prepend(symbol);
+ }
+ const toggle=sp.querySelector('.registration-toggle');
+ toggle.firstElementChild.firstElementChild.textContent='Proteger com senha?';toggle.insertAdjacentHTML('afterbegin','<span class="reference-toggle-icon">'+referenceIcon('lock')+'</span>');
+ const note=sp.querySelector('#regSenhaCampos').lastElementChild;note.classList.add('reference-security-note');note.innerHTML=referenceIcon('shield')+'<span>Dados criptografados (AES-256) · Guarde bem a senha</span>';
+ const trial=shell.querySelector(':scope>div[style*="rgba(45,192,174"]');trial.classList.add('reference-trial');trial.innerHTML=referenceIcon('gift')+'<div><b>Teste grátis por 30 dias</b><p>Ao criar sua conta, você libera <strong>todas as funções</strong> por 30 dias, sem compromisso.</p></div>';
+ const personal=[...fields.children].filter(x=>x!==security&&x!==heading);
+ const submit=shell.querySelector('button[onclick="doEntryRegister()"]');
+ const step=document.createElement('p');step.className='reg-step-label';shell.querySelector('.registration-title').after(step);
+ const back=document.createElement('button');back.type='button';back.className='reg-back';back.textContent='Voltar aos dados pessoais';submit.after(back);
+ const scene=document.createElement('div');scene.className='registration-scene';
+ scene.innerHTML='<img class="registration-background" src="register-data-art.png" alt="">';
+ sp.appendChild(scene);scene.querySelector('.registration-background').after(shell);setupReferenceFrame(scene,864,1536);
+ function show(n){
+  // Troca de etapa sempre limpa aviso de erro e destaque de campo anteriores — evita mensagem
+  // "fantasma" de uma etapa aparecendo em outra (ex: erro do passo 1 ainda visível após "Voltar").
+  document.getElementById('regErr').textContent='';
+  sp.querySelectorAll('input.field-error,select.field-error').forEach(x=>x.classList.remove('field-error'));
+  shell.classList.toggle('step-security',n===2);scene.classList.toggle('reference-step-security',n===2);
+  for(const img of scene.querySelectorAll('.registration-background,.registration-foreground'))img.src=n===1?'register-data-art.png':'register-security-art.png';
+  personal.forEach(x=>x.classList.toggle('reg-step-hidden',n===2));
+  [security,heading].forEach(x=>x.classList.toggle('reg-step-hidden',n===1));
+  shell.querySelector('.registration-title h2').classList.toggle('reg-step-hidden',n===2);
+  back.classList.toggle('reg-step-hidden',n===1);step.textContent=`Etapa ${n} de 2 · ${n===1?'Seus dados':'Segurança'}`;
+  submit.textContent=n===1?'Continuar →':'Criar acesso e entrar →';
+  submit.onclick=()=>{
+   if(n===1){
+    const missing=['regNome','regIdade','regSexo','regCPF','regUser'].map(id=>document.getElementById(id)).find(x=>!x.value.trim());
+    if(missing){regFieldErr(missing.id,'⚠ Preencha os dados pessoais para continuar');return;}
+    const nomeVal=document.getElementById('regNome').value.trim();
+    // Valida nome completo já na etapa 1 (antes o aviso só aparecia depois, na etapa 2, com o
+    // campo Nome Completo fora de vista — agora o usuário vê e corrige na hora).
+    if(nomeVal.length<3||!nomeVal.includes(' ')){regFieldErr('regNome','⚠ Informe seu nome completo (nome e sobrenome)');return;}
+    show(2);
+   }else doEntryRegister();
+  };
+  fitReferenceFrames();
+ }
+ back.onclick=()=>show(1);show(1);
+}
+window.VFCNotices=(()=>{
+ const storedWeekly=()=>{try{return testStorage.getItem('vfc_notice_weekly')!=='0';}catch{return true;}};
+ let config={weekly:storedWeekly(),announcement:null},busy=false,lastFetch=0;
+ const weeklyText='Estamos aprimorando o VetFlowCare para tornar sua rotina cada vez mais prática.\n\nObrigado pela confiança e por compartilhar suas sugestões. Pedimos desculpas pelos transtornos das últimas atualizações.\n\nComece a semana com um backup completo salvo em um local seguro.';
+ const day=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+ const dateOK=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&!isNaN(Date.parse(s))&&new Date(s+'T12:00:00Z').toISOString().slice(0,10)===s;
+ function validate(c){
+  if(!c||c.version!==1)return null;
+  const out={weekly:c.weekly===true,announcement:null},a=c.announcement;
+  if(a?.enabled===true&&typeof a.id==='string'&&/^[a-zA-Z0-9_-]{1,80}$/.test(a.id)&&dateOK(a.start)&&dateOK(a.end)&&dateOK(a.updateDate)&&a.start<=a.end&&a.updateDate>=a.start&&a.updateDate<=a.end&&typeof a.title==='string'&&a.title.length<=120&&typeof a.body==='string'&&a.body.length<=1400)out.announcement={...a};
+  return out;
+ }
+ function candidate(c,now=new Date()){
+  const today=day(now),a=c?.announcement;
+  if(a&&today>=a.start&&today<=a.end)return {...a,key:'campaign-'+a.id,campaign:true};
+  if(c?.weekly&&now.getDay()===1)return {key:'monday-'+today,title:'Uma nova semana de cuidado',body:weeklyText,campaign:false};
+  return null;
+ }
+ function seen(key){try{return testStorage.getItem('vfc_notice_seen')===key;}catch{return false;}}
+ function dismiss(key){try{testStorage.setItem('vfc_notice_seen',key);}catch{}document.querySelector('.vfc-aviso')?.remove();setTimeout(()=>window.checarNovidades?.(),400);}
+ function show(a){
+  if(!a||document.querySelector('.vfc-aviso'))return;
+  const previous=document.activeElement,ov=document.createElement('div');ov.className='vfc-aviso';
+  ov.innerHTML='<section class="vfc-notice-card" role="dialog" aria-modal="true" aria-labelledby="noticeTitle"><div class="vfc-notice-brand">VetFlow<span>Care</span></div><div class="vfc-notice-tag">ORGANIZA · CONECTA · CUIDA</div><div class="vfc-notice-icon" aria-hidden="true"></div><h2 id="noticeTitle"></h2><p class="vfc-notice-body"></p><button class="notice-primary"></button><button class="notice-later">Entendido</button><div class="vfc-notice-signature">Com carinho, equipe VetFlowCare</div></section>';
+  ov.querySelector('.vfc-notice-icon').innerHTML=a.campaign?'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#079c9e" stroke-width="1.6" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 15v6h16v-6"/></svg>':accessIcon('shield');ov.querySelector('h2').textContent=a.title;ov.querySelector('p').textContent=a.body;
+  const close=()=>{dismiss(a.key);previous?.focus();};
+  const primary=ov.querySelector('.notice-primary');primary.textContent='Abrir opções de backup';primary.onclick=()=>{close();goTab('settings');openBackupHelp();};ov.querySelector('.notice-later').onclick=close;
+  ov.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close();}if(e.key==='Tab'){const buttons=[...ov.querySelectorAll('button')];if(e.shiftKey&&document.activeElement===buttons[0]){e.preventDefault();buttons.at(-1).focus();}else if(!e.shiftKey&&document.activeElement===buttons.at(-1)){e.preventDefault();buttons[0].focus();}}});
+  document.body.append(ov);primary.focus();
+ }
+ function ready(){return !window._LOCKED&&document.getElementById('appHeader')&&!document.getElementById('appHeader').classList.contains('hidden')&&!document.querySelector('.access-screen')&&!document.querySelector('#modalBV')&&!document.getElementById('modals')?.innerHTML.trim()&&!document.getElementById('modals2')?.innerHTML.trim()&&document.visibilityState==='visible';}
+ function check(){
+  if(!ready())return;
+  const a=candidate(config);document.getElementById('vfcNoticeBanner')?.remove();
+  if(a?.campaign){const banner=document.createElement('button');banner.id='vfcNoticeBanner';banner.textContent='💾 '+a.title+' · Ver aviso';banner.onclick=()=>show(a);document.getElementById('appHeader').after(banner);}
+  if(a&&!seen(a.key))show(a);
+ }
+ async function refresh(){
+  if(busy)return;busy=true;const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),4000);
+  try{const r=await fetch('./avisos.json',{cache:'no-store',signal:ctrl.signal});if(!r.ok)throw Error('notice unavailable');const raw=await r.text();if(raw.length>12000)throw Error('notice size');config=validate(JSON.parse(raw));if(config){try{testStorage.setItem('vfc_notice_weekly',config.weekly?'1':'0');}catch{}}}catch{config={weekly:storedWeekly(),announcement:null};}finally{clearTimeout(timer);busy=false;lastFetch=Date.now();check();}
+ }
+ document.addEventListener('DOMContentLoaded',()=>{refresh();setInterval(()=>{if(Date.now()-lastFetch>300000)refresh();else check();},15000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh();});});
+ return {check,refresh,validate,candidate,show};
+})();
+/* VisualViewport mantém formulários e rodapés de diálogos acessíveis com teclado. */
+(function(){
+ function size(){
+  const viewport=window.visualViewport;
+  // O zoom manual deve continuar livre: só acompanha teclado/rotação em escala normal.
+  if(viewport && Math.abs(viewport.scale-1)>.02)return;
+  document.documentElement.style.setProperty('--vfc-visual-height',(viewport?viewport.height:window.innerHeight)+'px');
+  document.documentElement.style.setProperty('--vfc-offset',(viewport?viewport.offsetTop:0)+'px');
+ }
+ window.addEventListener('resize',size);window.visualViewport?.addEventListener('resize',size);window.visualViewport?.addEventListener('scroll',size);size();
+})();
+
+</script>
 </head>
 <body>
 
@@ -325,12 +813,12 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.70';
+const APP_VER = '9.74';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.70',
+  ver: '9.74',
   titulo: 'Novidades da versão 🚀',
   itens: [
     ['💾','Backups com anexos','As exportações agora incluem os documentos dos pacientes e as fichas dos tutores. Confira sempre o arquivo salvo.'],
@@ -517,6 +1005,8 @@ let finPA = {ini:'', fim:'', open:false}; // análise por período (Previsão ×
 let finExpM = 0;
 let finExpCat = 'all';
 let finExpView = 'mes'; // 'mes' = mês selecionado · 'all' = todas as datas
+let finProdRefDate = ''; // data de referência do widget "Produção clínica" (vazio = hoje)
+let _indicatorChooserOpen = false; // "Escolher indicadores exibidos" — expandido/recolhido
 let deferredPrompt = null;
 
 function defaultDB(){
@@ -1005,7 +1495,7 @@ function accessField(id,label,type='password',auto='current-password'){
  return `<label for="${id}">${label}</label><div class="access-field"><input id="${id}" type="${type}" placeholder="${label}" autocomplete="${auto}" ${type==='password'?'minlength="6"':''}>${type==='password'?`<button type="button" aria-label="Mostrar senha" onclick="togglePw('${id}',this)">◉</button>`:''}</div>`;
 }
 function accessIcon(name){
- const paths={lock:'<rect x="6" y="10" width="12" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',key:'<circle cx="8" cy="8" r="5"/><path d="m12 12 9 9m-5-5 3-3m-1 5 3-3"/>',trash:'<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/>',shield:'<path d="M12 2 3 6v6c0 6 9 10 9 10s9-4 9-10V6z"/><path d="m8 12 3 3 5-6"/>',eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12"/><circle cx="12" cy="12" r="3"/>',arrow:'<path d="M4 12h16m-6-6 6 6-6 6"/>'};
+ const paths={lock:'<rect x="6" y="10" width="12" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',key:'<circle cx="8" cy="8" r="5"/><path d="m12 12 9 9m-5-5 3-3m-1 5 3-3"/>',trash:'<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/>',shield:'<path d="M12 2 3 6v6c0 6 9 10 9 10s9-4 9-10V6z"/><path d="m8 12 3 3 5-6"/>',eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12"/><circle cx="12" cy="12" r="3"/>',eyeoff:'<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-6 0-10-7-10-7a18.6 18.6 0 0 1 4.22-5.06M9.9 4.24A9.12 9.12 0 0 1 12 4c6 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/>',pencil:'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',arrow:'<path d="M4 12h16m-6-6 6 6-6 6"/>'};
  return `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths[name]||paths.lock}</svg>`;
 }
 function accessArt(part){
@@ -1241,6 +1731,10 @@ async function doRemovePass(){openRemovePass();}
 
 // ═══ FINANCEIRO ═══
 function fmtBRL(v){ return 'R$ ' + (v||0).toFixed(2).replace('.', ','); }
+// Igual a fmtBRL, mas respeita a preferência de privacidade da aba Financeiro (botão do olho):
+// usada só nas telas de EXIBIÇÃO do Financeiro — nunca em formulários de edição nem em PDFs.
+function fmtBRLFin(v){ return DB.settings.finHideValues ? 'R$ ••••' : fmtBRL(v); }
+function toggleFinValues(){ DB.settings.finHideValues = !DB.settings.finHideValues; save(); render(); }
 // Máscara de moeda para inputs: formata "R$ 1.234,56" enquanto digita.
 // O valor numérico real fica guardado em data-valor (em reais).
 function maskMoeda(el){
@@ -1334,8 +1828,14 @@ function renderFinance(){
     .sort((a,b)=>(b.paidAt||'').localeCompare(a.paidAt||''));
   const totRecebido = recebidos.reduce((s,r)=>s+r.valor,0);
 
+  // ═══ Privacidade: botão do olho — mostra/oculta todo R$ nesta aba (não altera os dados) ═══
+  const valoresOcultos = !!DB.settings.finHideValues;
+  let h = `<button class="btn sm" style="width:100%;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;background:${valoresOcultos?'var(--primary)':'var(--card,#fff)'};color:${valoresOcultos?'#fff':'var(--primary)'};border:1.5px solid var(--primary)"
+    onclick="toggleFinValues()" aria-pressed="${valoresOcultos}">
+    <span style="width:18px;height:18px;display:inline-flex">${accessIcon(valoresOcultos?'eye':'eyeoff')}</span>
+    ${valoresOcultos?'Mostrar valores':'Ocultar valores'}</button>`;
   // ═══ Cabeçalho + navegação em 2 linhas ═══
-  let h = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+  h += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
     <button class="btn sm gray" onclick="goTab(currentTab||'home')">‹</button>
     <h2 style="flex:1">💰 Financeiro</h2>
     ${finView==='rec'||finView==='atrasado'?`<button class="btn sm" onclick="openChargeForm()">➕ Cobrança</button>`:''}
@@ -1377,8 +1877,8 @@ function renderFinance(){
           <div style="font-size:12px;font-weight:700;margin-top:4px;color:${pago?'var(--success)':late?'var(--danger)':d===0?'var(--warning)':'var(--muted)'}">${dueLbl}</div>
           ${r.meioPag ? `<div style="font-size:11px;color:var(--muted);margin-top:3px">${MEIOS_PAG[r.meioPag]?.emo||''} ${MEIOS_PAG[r.meioPag]?.label||''}${taxaDoMeio(r.meioPag)>0?` · taxa ${taxaDoMeio(r.meioPag)}%`:''}</div>`:''}</div>
         <div style="text-align:right;white-space:nowrap">
-          <b style="font-size:16px;color:${pago?'var(--success)':'var(--text)'}">${fmtBRL(r.valor)}</b>
-          ${r.meioPag && taxaDoMeio(r.meioPag)>0 ? `<div style="font-size:11px;color:var(--vac);font-weight:700;margin-top:1px">líq. ${fmtBRL(liquidoDe(r.valor, r.meioPag))}</div>`:''}
+          <b style="font-size:16px;color:${pago?'var(--success)':'var(--text)'}">${fmtBRLFin(r.valor)}</b>
+          ${r.meioPag && taxaDoMeio(r.meioPag)>0 ? `<div style="font-size:11px;color:var(--vac);font-weight:700;margin-top:1px">líq. ${fmtBRLFin(liquidoDe(r.valor, r.meioPag))}</div>`:''}
         </div></div>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         ${pago
@@ -1399,7 +1899,7 @@ function renderFinance(){
     const lista = aplicaBusca(recebidos);
     h += `<div class="card" style="margin-bottom:12px;background:rgba(45,179,122,.08);border-color:var(--success);text-align:center">
       <div style="font-size:10px;font-weight:700;color:var(--success);text-transform:uppercase">Total recebido · ${MONTHS[new Date().getMonth()]}</div>
-      <div style="font-size:26px;font-weight:900;color:var(--success);margin-top:2px">${fmtBRL(totRecebido)}</div>
+      <div style="font-size:26px;font-weight:900;color:var(--success);margin-top:2px">${fmtBRLFin(totRecebido)}</div>
       <div style="font-size:11px;color:var(--muted)">${recebidos.length} ${recebidos.length===1?'recebimento':'recebimentos'}</div></div>`;
     h += lista.length ? lista.map(cardRecebivel).join('')
       : `<div class="card empty"><div class="big">💸</div>Nenhum recebimento neste mês ainda</div>`;
@@ -1413,7 +1913,7 @@ function renderFinance(){
     const lista = aplicaBusca(lateArr).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
     h += `<div class="card" style="margin-bottom:12px;text-align:center;${lateArr.length?'background:rgba(224,82,82,.08);border-color:var(--danger)':''}">
       <div style="font-size:10px;font-weight:700;color:var(--danger);text-transform:uppercase">🔴 Total atrasado</div>
-      <div style="font-size:26px;font-weight:900;margin-top:2px;color:${lateArr.length?'var(--danger)':'var(--muted)'}">${fmtBRL(lateTot)}</div>
+      <div style="font-size:26px;font-weight:900;margin-top:2px;color:${lateArr.length?'var(--danger)':'var(--muted)'}">${fmtBRLFin(lateTot)}</div>
       <div style="font-size:11px;color:var(--muted)">${lateArr.length} ${lateArr.length===1?'item vencido':'itens vencidos'}</div></div>`;
     h += lista.length ? lista.map(cardRecebivel).join('')
       : `<div class="card empty"><div class="big">🎉</div>Nenhuma cobrança atrasada!</div>`;
@@ -1426,8 +1926,8 @@ function renderFinance(){
   // Resumo
   h += `<div class="card" style="margin-bottom:12px;text-align:center;background:rgba(240,165,0,.08);border-color:var(--warning)">
     <div style="font-size:10px;font-weight:700;color:var(--warning);text-transform:uppercase">🟡 Total a receber</div>
-    <div style="font-size:26px;font-weight:900;color:var(--warning);margin-top:2px">${fmtBRL(tot)}</div>
-    <div style="font-size:11px;color:var(--muted)">${naoAtrasados.length} ${naoAtrasados.length===1?'item':'itens'}${lateArr.length?` · +${fmtBRL(lateTot)} atrasado`:''}</div></div>`;
+    <div style="font-size:26px;font-weight:900;color:var(--warning);margin-top:2px">${fmtBRLFin(tot)}</div>
+    <div style="font-size:11px;color:var(--muted)">${naoAtrasados.length} ${naoAtrasados.length===1?'item':'itens'}${lateArr.length?` · +${fmtBRLFin(lateTot)} atrasado`:''}</div></div>`;
 
   // 1) Aviso de vencimentos em até 3 dias (PRIORIDADE no topo)
   DB.settings.payRem = DB.settings.payRem !== false;
@@ -1437,7 +1937,7 @@ function renderFinance(){
       <b style="font-size:13px">🔔 ${lembrar.length} ${lembrar.length===1?'cobrança vence':'cobranças vencem'} em até 3 dias</b>
       <div style="font-size:11px;color:var(--muted);margin:2px 0 8px">Toque em 💬 para enviar o lembrete pelo WhatsApp${isPro()?'':' (recurso Pro)'}</div>
       ${lembrar.slice(0,6).map(r=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;border-top:1px solid var(--border)">
-        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.emo} ${esc(r.petName)} · ${fmtBRL(r.valor)} · ${fmtDate(r.due)}</span>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.emo} ${esc(r.petName)} · ${fmtBRLFin(r.valor)} · ${fmtDate(r.due)}</span>
         <button class="btn sm" style="background:#25D366" onclick="cobrarWhats('${r.kind}','${r.id}')">💬</button></div>`).join('')}
       <label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0;cursor:pointer">
         <input type="checkbox" checked onchange="DB.settings.payRem=this.checked;save();render()" style="accent-color:var(--primary)"> Avisar sobre vencimentos próximos</label>
@@ -1843,19 +2343,19 @@ function renderExpenses(){
     <div class="card" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">Total de despesas</div>
-        <b style="font-size:18px;color:var(--danger)">${fmtBRL(totPeriodo)}</b></div>
+        <b style="font-size:18px;color:var(--danger)">${fmtBRLFin(totPeriodo)}</b></div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:5px">
         <span>${delta === null ? 'Sem despesas no mês anterior' :
           delta > 0 ? `<b style="color:var(--danger)">↑ ${delta}%</b> vs mês anterior` :
           delta < 0 ? `<b style="color:var(--success)">↓ ${Math.abs(delta)}%</b> vs mês anterior` : '= igual ao mês anterior'}</span>
-        <span>Ano ${md.getFullYear()}: <b style="color:var(--text)">${fmtBRL(totAno)}</b></span></div>
+        <span>Ano ${md.getFullYear()}: <b style="color:var(--text)">${fmtBRLFin(totAno)}</b></span></div>
       ${cartaoCategorias(byCat, maxCat)}
     </div>`;
   } else {
     h += `<div class="card" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">Todas as despesas</div>
-        <b style="font-size:18px;color:var(--danger)">${fmtBRL(totPeriodo)}</b></div>
+        <b style="font-size:18px;color:var(--danger)">${fmtBRLFin(totPeriodo)}</b></div>
       <div style="font-size:11px;color:var(--muted);margin-top:5px">${base.length} lançamento${base.length===1?'':'s'} no total, de todas as datas</div>
       ${cartaoCategorias(byCat, maxCat)}
     </div>`;
@@ -1881,7 +2381,7 @@ function renderExpenses(){
         const totDoMes = ordenada.filter(x=>(x.date||'').slice(0,7)===emes).reduce((s,x)=>s+x.valor,0);
         h += `<div style="display:flex;justify-content:space-between;align-items:baseline;margin:14px 2px 6px">
           <b style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em">${rot}</b>
-          <b style="font-size:12px;color:var(--danger)">${fmtBRL(totDoMes)}</b></div>`;
+          <b style="font-size:12px;color:var(--danger)">${fmtBRLFin(totDoMes)}</b></div>`;
       }
     }
     const futura = daysUntil(e.date) > 0;
@@ -1890,7 +2390,7 @@ function renderExpenses(){
         <b style="font-size:14px">${esc(e.desc)}</b>
         ${e.obs ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;white-space:pre-wrap">📝 ${esc(e.obs)}</div>` : ''}
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${esc(e.cat||'Outros')} · ${fmtDate(e.date)}${futura?' <span style="color:var(--vac);font-weight:700">· futura</span>':''}</div></div>
-      <b style="color:var(--danger);white-space:nowrap">- ${fmtBRL(e.valor)}</b>
+      <b style="color:var(--danger);white-space:nowrap">- ${fmtBRLFin(e.valor)}</b>
       <button style="background:none;font-size:14px" onclick="openExpenseForm('${e.id}')">✏️</button>
       <button style="background:none;color:var(--muted)" onclick="delExpense('${e.id}')">🗑</button></div>`;
   });
@@ -1939,7 +2439,7 @@ function cartaoCategorias(byCat, maxCat){
           <span style="width:10px;height:10px;border-radius:3px;background:${corCategoria(c,i)};flex-shrink:0"></span>
           <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c)}</span>
           <b style="flex-shrink:0">${pct}%</b>
-          <span style="color:var(--muted);flex-shrink:0;min-width:60px;text-align:right">${fmtBRL(v)}</span>
+          <span style="color:var(--muted);flex-shrink:0;min-width:60px;text-align:right">${fmtBRLFin(v)}</span>
         </div>`;
       }).join('')}
     </div></div>`;
@@ -2039,6 +2539,163 @@ function fluxoRows(){
     return {label:b.label, receb, prev, desp, saldo:receb-desp, ym};
   }).filter((r,i) => r.receb || r.prev || r.desp || i < 3);
 }
+
+// ══════════════════════════════════════════════════════════════════════
+// PRODUÇÃO CLÍNICA — indicadores (pedido da Linda, 9.74)
+// Semana/mês/ano · Atendimentos e avulsos × Doses aplicadas · plantões
+// renomeáveis (ícone fixo) · vacinas somadas por nome × separadas ·
+// indicadores que o veterinário escolhe exibir · nada disso altera os
+// registros originais — só como eles aparecem aqui.
+// ══════════════════════════════════════════════════════════════════════
+function normIndicatorKey(s){
+  return String(s||'').trim().toUpperCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/^VACINA\s+/,'')
+    .replace(/\s+/g,' ');
+}
+function indicatorIcon(rawKey){
+  const s = String(rawKey||'').toLowerCase();
+  // Vacinas usam o prefixo "VAC::" (nome já normalizado, sem o texto "vacina") — checa o prefixo
+  // diretamente para garantir a seringa fixa em toda dose aplicada, unificada ou não.
+  if(/^vac::/.test(s)) return '💉';
+  if(/plant[aã]o/.test(s)) return '🌙';
+  if(/vacin/.test(s)) return '💉';
+  if(/retorno/.test(s)) return '🔄';
+  if(/consulta/.test(s)) return '🩺';
+  if(/exame/.test(s)) return '🔬';
+  if(/cirurgia/.test(s)) return '🏥';
+  if(/emergen/.test(s)) return '🚨';
+  if(/banho/.test(s)) return '🛁';
+  if(/produto/.test(s)) return '📦';
+  if(/medicamento/.test(s)) return '💊';
+  if(/orienta|telefone/.test(s)) return '📞';
+  return '📌';
+}
+function finProdRange(period, refISO){
+  const ref = new Date((refISO || todayISO()) + 'T12:00:00');
+  let start, end;
+  if(period === 'semana'){
+    const day = ref.getDay(); // 0=domingo
+    const seg = new Date(ref); seg.setDate(ref.getDate() + (day===0 ? -6 : 1-day));
+    start = seg; end = new Date(seg); end.setDate(seg.getDate()+6);
+  } else if(period === 'ano'){
+    start = new Date(ref.getFullYear(),0,1); end = new Date(ref.getFullYear(),11,31);
+  } else { // mes
+    start = new Date(ref.getFullYear(), ref.getMonth(), 1);
+    end = new Date(ref.getFullYear(), ref.getMonth()+1, 0);
+  }
+  const toISO = d => d.toISOString().slice(0,10);
+  return {start: toISO(start), end: toISO(end)};
+}
+function computeProdIndicators(){
+  const period = DB.settings.finProdPeriod || 'mes';
+  const {start, end} = finProdRange(period, finProdRefDate || todayISO());
+  const inRange = d => !!d && d >= start && d <= end;
+  const mode = DB.settings.finProdMode || 'atend'; // 'atend' | 'doses'
+  const unify = !!DB.settings.finUnifyVaccines;
+  const items = {}; // rawKey -> {rawKey, baseLabel, count}
+  const bump = (rawKey, baseLabel) => {
+    if(!items[rawKey]) items[rawKey] = {rawKey, baseLabel, count:0};
+    items[rawKey].count++;
+  };
+  if(mode === 'atend'){
+    DB.pets.forEach(p => (p.appointments||[]).forEach(a => {
+      if(inRange(a.date)) bump('AT::' + (a.title||'Outros'), a.title||'Outros');
+    }));
+    (DB.charges||[]).forEach(c => {
+      if(inRange(c.date || c.due)){
+        const cat = (c.desc||'').split('·')[0].split('(')[0].trim() || 'Avulso';
+        bump('CH::' + cat, cat);
+      }
+    });
+  } else { // doses aplicadas — só doses REALMENTE aplicadas, nunca programadas
+    DB.pets.forEach(p => (p.vaccines||[]).forEach(v => {
+      if(v.status === 'aplicada' && inRange(v.applied)){
+        if(unify) bump('VAC::__ALL__', 'Todas as doses aplicadas');
+        else bump('VAC::' + normIndicatorKey(v.name), (v.name||'Vacina').trim());
+      }
+    }));
+  }
+  const hidden = new Set(DB.settings.finIndicatorsHidden || []);
+  const labels = DB.settings.finIndicatorLabels || {};
+  const list = Object.values(items).map(it => ({
+    rawKey: it.rawKey,
+    label: labels[it.rawKey] || it.baseLabel,
+    icon: indicatorIcon(it.rawKey),
+    count: it.count,
+    hidden: hidden.has(it.rawKey),
+    renomeavel: /plant[aã]o/i.test(it.rawKey)
+  })).sort((a,b) => b.count - a.count);
+  return {list, start, end, period, mode, unify};
+}
+function renderProdIndicators(){
+  const {list, start, end, period, mode, unify} = computeProdIndicators();
+  const visible = list.filter(x => !x.hidden);
+  const maxN = Math.max(1, ...visible.map(x => x.count));
+  const perLbl = {semana:'Semana', mes:'Mês', ano:'Ano'};
+  let h = `<div class="card" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">🩺 Produção clínica</div>
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">Quantidade</div>
+    </div>
+    <div class="chips" style="margin-bottom:6px">
+      ${['semana','mes','ano'].map(k=>`<button class="chip ${period===k?'on':''}" onclick="DB.settings.finProdPeriod='${k}';save();refreshFin()">${perLbl[k]}</button>`).join('')}
+      <input type="date" value="${esc(finProdRefDate||todayISO())}" style="margin-left:auto;font-size:12px;padding:5px 7px;border-radius:8px;border:1px solid var(--border);background:var(--card,#fff);color:var(--text)" onchange="finProdRefDate=this.value;refreshFin()">
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">${fmtDate(start)} a ${fmtDate(end)}</div>
+    <div class="chips" style="margin-bottom:8px">
+      <button class="chip ${mode==='atend'?'on':''}" onclick="DB.settings.finProdMode='atend';save();refreshFin()">Atendimentos e avulsos</button>
+      <button class="chip ${mode==='doses'?'on':''}" onclick="DB.settings.finProdMode='doses';save();refreshFin()">Doses aplicadas</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.4">${mode==='atend'
+      ? 'Conta atendimentos e cobranças avulsas. "Vacinação" é um tipo de registro, não o total de doses aplicadas.'
+      : 'Conta apenas doses aplicadas registradas na ficha dos pacientes. Doses programadas não entram.'}</div>
+    ${mode==='doses' ? `<label style="display:flex;align-items:center;gap:8px;font-size:12.5px;margin-bottom:10px;cursor:pointer">
+      <input type="checkbox" ${unify?'checked':''} onchange="DB.settings.finUnifyVaccines=this.checked;save();refreshFin()" style="accent-color:var(--primary)"> Unificar vacinas em um indicador</label>` : ''}
+    <button class="chip" style="margin-bottom:8px" onclick="toggleIndicatorChooser()">${_indicatorChooserOpen?'▲':'▶'} Escolher indicadores exibidos</button>
+    ${_indicatorChooserOpen ? (list.length ? `<div class="chips" style="margin-bottom:10px">
+      ${list.map(it=>`<button class="chip ${it.hidden?'':'on'}" onclick="toggleIndicatorVisible('${escJS(it.rawKey)}')">${it.icon} ${esc(it.label)}</button>`).join('')}
+    </div>` : `<div style="font-size:12px;color:var(--muted);margin-bottom:10px">Nenhum indicador neste período ainda.</div>`) : ''}
+    ${visible.length ? visible.map(it => `
+      <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+        <span style="width:30px;height:30px;border-radius:50%;background:var(--vacbg);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">${it.icon}</span>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+            <b style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(it.label)}</b>
+            <span style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+              ${it.renomeavel?`<button style="background:none;padding:2px;color:var(--muted)" title="Renomear" aria-label="Renomear indicador" onclick="renameIndicator('${escJS(it.rawKey)}','${escJS(it.label)}')">${accessIcon('pencil')}</button>`:''}
+              <b style="font-size:13px">${it.count}</b>
+            </span>
+          </div>
+          <div style="height:8px;background:var(--bg);border-radius:5px;margin-top:4px;overflow:hidden">
+            <div style="height:100%;width:${Math.max(6,Math.round(it.count/maxN*100))}%;background:var(--primary);border-radius:5px"></div>
+          </div>
+        </div>
+      </div>`).join('') : `<div style="font-size:12px;color:var(--muted);text-align:center;padding:14px 0">Nenhum registro neste período</div>`}
+  </div>`;
+  return h;
+}
+function toggleIndicatorChooser(){ _indicatorChooserOpen = !_indicatorChooserOpen; refreshFin(); }
+function toggleIndicatorVisible(rawKey){
+  const hid = new Set(DB.settings.finIndicatorsHidden || []);
+  if(hid.has(rawKey)) hid.delete(rawKey); else hid.add(rawKey);
+  DB.settings.finIndicatorsHidden = [...hid]; save(); refreshFin();
+}
+function renameIndicator(rawKey, currentLabel){
+  showSheet('✏️ Renomear indicador', `
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">O ícone e os registros originais não mudam — só o nome exibido aqui.</div>
+    <label>Nome exibido</label><input id="fIndicName" value="${esc(currentLabel)}" maxlength="60">`,
+    `<button class="btn gray" onclick="closeSheet()">Cancelar</button>
+     <button class="btn" onclick="saveIndicatorName('${escJS(rawKey)}')">💾 Salvar</button>`);
+}
+function saveIndicatorName(rawKey){
+  const name = val('fIndicName').trim();
+  DB.settings.finIndicatorLabels = DB.settings.finIndicatorLabels || {};
+  if(name) DB.settings.finIndicatorLabels[rawKey] = name;
+  else delete DB.settings.finIndicatorLabels[rawKey];
+  save(); closeSheet(); refreshFin(); toast('✏️ Indicador renomeado!');
+}
+
 function renderFluxo(){
   if(!isPro()) return `<div class="card" style="cursor:pointer" onclick="openProModal('O fluxo financeiro é um recurso Pro.')">
     <div style="font-size:14px">🔒 <b>Fluxo Financeiro</b></div>
@@ -2088,30 +2745,30 @@ function renderFluxo(){
     <div style="display:flex;gap:8px;margin-bottom:12px">
       <div style="flex:1;text-align:center;padding:10px 4px;background:rgba(45,179,122,.10);border-radius:12px">
         <div style="font-size:9px;font-weight:800;color:var(--success);text-transform:uppercase;letter-spacing:.3px">✓ Recebido</div>
-        <div style="font-size:16px;font-weight:900;color:var(--success);margin-top:3px">${fmtBRL(tR)}</div></div>
+        <div style="font-size:16px;font-weight:900;color:var(--success);margin-top:3px">${fmtBRLFin(tR)}</div></div>
       <div style="flex:1;text-align:center;padding:10px 4px;background:rgba(78,142,172,.10);border-radius:12px">
         <div style="font-size:9px;font-weight:800;color:var(--vac);text-transform:uppercase;letter-spacing:.3px">📅 A receber</div>
-        <div style="font-size:16px;font-weight:900;color:var(--vac);margin-top:3px">${fmtBRL(tP)}</div></div>
+        <div style="font-size:16px;font-weight:900;color:var(--vac);margin-top:3px">${fmtBRLFin(tP)}</div></div>
       <div style="flex:1;text-align:center;padding:10px 4px;background:rgba(224,82,82,.10);border-radius:12px">
         <div style="font-size:9px;font-weight:800;color:var(--danger);text-transform:uppercase;letter-spacing:.3px">🧾 Despesas</div>
-        <div style="font-size:16px;font-weight:900;color:var(--danger);margin-top:3px">${fmtBRL(tD)}</div></div>
+        <div style="font-size:16px;font-weight:900;color:var(--danger);margin-top:3px">${fmtBRLFin(tD)}</div></div>
     </div>
     <!-- Saldo em destaque -->
     <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:${tS>=0?'rgba(45,179,122,.12)':'rgba(224,82,82,.12)'};border-radius:12px">
       <span style="font-size:13px;font-weight:700;color:var(--text)">${tS>=0?'💰 Saldo do período':'⚠️ PREJUÍZO no período'}</span>
-      <b style="font-size:20px;color:${tS>=0?'var(--success)':'var(--danger)'}">${fmtBRL(tS)}</b>
+      <b style="font-size:20px;color:${tS>=0?'var(--success)':'var(--danger)'}">${fmtBRLFin(tS)}</b>
     </div>
     ${deltaPct !== null ? `<div style="text-align:center;margin-top:8px;font-size:12px">
       ${deltaPct > 0 ? `<span style="color:var(--success);font-weight:700">📈 Este mês ↑ ${deltaPct}%</span>` :
         deltaPct < 0 ? `<span style="color:var(--danger);font-weight:700">📉 Este mês ↓ ${Math.abs(deltaPct)}%</span>` :
         `<span style="color:var(--muted);font-weight:700">= igual ao mês passado</span>`}
-      <span style="color:var(--muted)"> vs. mês passado (${fmtBRL(recebAnterior)})</span></div>` : ''}
+      <span style="color:var(--muted)"> vs. mês passado (${fmtBRLFin(recebAnterior)})</span></div>` : ''}
     <!-- KPIs secundários -->
     <div style="display:flex;gap:14px;margin-top:12px;padding-top:11px;border-top:1px solid var(--border)">
       <div style="flex:1;text-align:center"><div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase">Taxa recebim.</div>
         <b style="font-size:16px;color:${taxa>=80?'var(--success)':taxa>=50?'var(--warning)':'var(--danger)'}">${taxa}%</b></div>
       <div style="flex:1;text-align:center;border-left:1px solid var(--border);border-right:1px solid var(--border)"><div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase">Ticket médio</div>
-        <b style="font-size:16px">${fmtBRL(ticket)}</b></div>
+        <b style="font-size:16px">${fmtBRLFin(ticket)}</b></div>
       <div style="flex:1;text-align:center"><div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase">Atendim.</div>
         <b style="font-size:16px">${prodTot}</b></div>
     </div>
@@ -2129,32 +2786,19 @@ function renderFluxo(){
     h += `<div class="card" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">🎯 Meta do mês (${MONTHS[_now.getMonth()]})</span>
-        <b style="font-size:13px;color:${bateu?'var(--success)':'var(--text)'}">${fmtBRL(recebMes)} / ${fmtBRL(meta)}</b></div>
+        <b style="font-size:13px;color:${bateu?'var(--success)':'var(--text)'}">${fmtBRLFin(recebMes)} / ${fmtBRLFin(meta)}</b></div>
       <div style="height:20px;background:var(--bg);border-radius:10px;overflow:hidden;position:relative">
         <div style="height:100%;width:${Math.min(100,pctMeta)}%;background:${bateu?'var(--success)':'var(--primary)'};border-radius:10px;transition:width .4s;display:flex;align-items:center;justify-content:flex-end;padding-right:8px">
           ${pctMeta>=15?`<b style="font-size:11px;color:#fff">${pctMeta}%</b>`:''}</div>
         ${pctMeta<15?`<b style="font-size:11px;color:var(--muted);position:absolute;left:8px;top:50%;transform:translateY(-50%)">${pctMeta}%</b>`:''}
       </div>
       <div style="font-size:12px;text-align:center;margin-top:8px;color:${bateu?'var(--success)':'var(--muted)'};font-weight:${bateu?'700':'400'}">
-        ${bateu ? '🎉 Meta batida! Parabéns!' : `Faltam ${fmtBRL(falta)} para bater a meta`}</div>
+        ${bateu ? '🎉 Meta batida! Parabéns!' : `Faltam ${fmtBRLFin(falta)} para bater a meta`}</div>
     </div>`;
   }
 
-  // ═══ PRODUÇÃO CLÍNICA — barras maiores e alinhadas ═══
-  if(prodTot){
-    const TIPO_EMO = {'Consulta':'🩺','Retorno':'🔄','Vacinação':'💉','Exame':'🔬','Cirurgia':'🏥','Emergência':'🚨','Orientações via Telefone':'📞','Plantão':'🌙','Banho e tosa':'🛁','Produto':'📦','Vacina':'💉','Medicamento':'💊'};
-    const maxT = Math.max(...Object.values(prodCount));
-    h += `<div class="card" style="margin-bottom:12px">
-      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:10px">🩺 Produção clínica do período</div>
-      ${Object.entries(prodCount).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`
-        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
-          <span style="font-size:12px;min-width:100px;font-weight:600">${TIPO_EMO[t]||'📌'} ${esc(t)}</span>
-          <div style="flex:1;height:18px;background:var(--bg);border-radius:9px;position:relative;overflow:hidden">
-            <div style="height:100%;width:${Math.max(12,Math.round(n/maxT*100))}%;background:var(--primary);border-radius:9px;display:flex;align-items:center;justify-content:flex-end;padding-right:7px">
-              <b style="font-size:11px;color:#fff">${n}</b></div>
-          </div></div>`).join('')}
-    </div>`;
-  }
+  // ═══ PRODUÇÃO CLÍNICA — indicadores escolhíveis, plantões renomeáveis e vacinas somadas ═══
+  h += renderProdIndicators();
 
   // ═══ RECEBIDO POR FORMA DE PAGAMENTO ═══
   const porMeio = {};
@@ -2177,10 +2821,10 @@ function renderFluxo(){
           <span style="font-size:12px;min-width:120px;font-weight:600">${MEIOS_PAG[m]?.emo||'💰'} ${MEIOS_PAG[m]?.label||m}</span>
           <div style="flex:1;height:18px;background:var(--bg);border-radius:9px;position:relative;overflow:hidden">
             <div style="height:100%;width:${Math.max(14,Math.round(v/maxM*100))}%;background:var(--success);border-radius:9px;display:flex;align-items:center;justify-content:flex-end;padding-right:7px">
-              <b style="font-size:10.5px;color:#fff;white-space:nowrap">${fmtBRL(v)}</b></div>
+              <b style="font-size:10.5px;color:#fff;white-space:nowrap">${fmtBRLFin(v)}</b></div>
           </div></div>`).join('')}
       <div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:12px">
-        <b style="color:var(--muted)">Total recebido</b><b style="color:var(--success)">${fmtBRL(meioTot)}</b></div>
+        <b style="color:var(--muted)">Total recebido</b><b style="color:var(--success)">${fmtBRLFin(meioTot)}</b></div>
     </div>`;
   }
   const maxV = Math.max(1, ...rows.map(r=>Math.max(r.receb, r.desp, r.prev)));
@@ -2193,13 +2837,13 @@ function renderFluxo(){
       <div style="font-size:12px;font-weight:700;margin-bottom:5px">${r.label}</div>
       <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
         <div style="flex:1;height:16px;background:var(--bg);border-radius:8px;overflow:hidden"><div style="height:100%;width:${Math.max(2,Math.round(r.receb/maxV*100))}%;background:var(--success);border-radius:8px"></div></div>
-        <span style="font-size:11px;font-weight:700;color:var(--success);min-width:76px;text-align:right">${fmtBRL(r.receb)}</span></div>
+        <span style="font-size:11px;font-weight:700;color:var(--success);min-width:76px;text-align:right">${fmtBRLFin(r.receb)}</span></div>
       ${r.prev?`<div style="display:flex;align-items:center;gap:6px;margin-top:3px">
         <div style="flex:1;height:16px;background:var(--bg);border-radius:8px;overflow:hidden"><div style="height:100%;width:${Math.max(2,Math.round(r.prev/maxV*100))}%;background:var(--vac);border-radius:8px;opacity:.75"></div></div>
-        <span style="font-size:11px;font-weight:700;color:var(--vac);min-width:76px;text-align:right">${fmtBRL(r.prev)}</span></div>`:''}
+        <span style="font-size:11px;font-weight:700;color:var(--vac);min-width:76px;text-align:right">${fmtBRLFin(r.prev)}</span></div>`:''}
       ${r.desp?`<div style="display:flex;align-items:center;gap:6px;margin-top:3px">
         <div style="flex:1;height:16px;background:var(--bg);border-radius:8px;overflow:hidden"><div style="height:100%;width:${Math.max(2,Math.round(r.desp/maxV*100))}%;background:var(--danger);border-radius:8px;opacity:.8"></div></div>
-        <span style="font-size:11px;font-weight:700;color:var(--danger);min-width:76px;text-align:right">${fmtBRL(r.desp)}</span></div>`:''}
+        <span style="font-size:11px;font-weight:700;color:var(--danger);min-width:76px;text-align:right">${fmtBRLFin(r.desp)}</span></div>`:''}
     </div>`).join('')}
     ${chartRows.length > LIM ? `<div style="text-align:center;margin-top:12px">
       <button class="chip" onclick="window._fluxoVerMais=${!window._fluxoVerMais};render()">${window._fluxoVerMais?'▲ Ver menos':'▼ Ver todos os '+chartRows.length+' períodos'}</button></div>`:''}
@@ -2225,16 +2869,17 @@ function renderFluxo(){
           <b style="font-size:14px">${r.label}</b>
           ${tag?`<span style="font-size:8.5px;font-weight:800;padding:2px 7px;border-radius:20px;background:${tagColor==='var(--muted)'?'var(--bg)':'rgba(45,192,174,.12)'};color:${tagColor};text-transform:uppercase;letter-spacing:.3px">${tag}</span>`:''}
         </div>
-        <b style="color:${r.saldo>=0?'var(--success)':'var(--danger)'};font-size:15px">${r.saldo>=0?'':'⚠️ '}${fmtBRL(r.saldo)}</b></div>
+        <b style="color:${r.saldo>=0?'var(--success)':'var(--danger)'};font-size:15px">${r.saldo>=0?'':'⚠️ '}${fmtBRLFin(r.saldo)}</b></div>
       <div style="display:flex;gap:6px;margin-top:8px;font-size:11px;flex-wrap:wrap">
-        <span class="st ok">✓ Recebido ${fmtBRL(r.receb)}</span>
-        ${r.prev?`<span class="st prog">📅 A receber ${fmtBRL(r.prev)}</span>`:''}
-        ${r.desp?`<span class="st bad">🧾 Despesas ${fmtBRL(r.desp)}</span>`:''}
+        <span class="st ok">✓ Recebido ${fmtBRLFin(r.receb)}</span>
+        ${r.prev?`<span class="st prog">📅 A receber ${fmtBRLFin(r.prev)}</span>`:''}
+        ${r.desp?`<span class="st bad">🧾 Despesas ${fmtBRLFin(r.desp)}</span>`:''}
       </div></div>`;
   });
   return h;
 }
 function printFluxo(){
+  if(DB.settings.finHideValues){ toast('👁 Mostre os valores (botão do olho) antes de exportar o PDF'); return; }
   const perLbl = {m:'Mensal',t:'Trimestral',s:'Semestral',a:'Anual'}[finPeriod];
   const rows = fluxoRows().map(r =>
     `<tr><td style="padding:7px;border-bottom:1px solid #ddd">${r.label}</td>
@@ -5337,7 +5982,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.70 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.74 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -7753,7 +8398,7 @@ function toggleRegSenha(){
   const novoOn = !on;
   tog.dataset.on = novoOn ? 'true' : 'false';
   tog.setAttribute('aria-checked',String(novoOn));
-  tog.style.background = novoOn ? '#2DC0AE' : 'rgba(255,255,255,.2)';
+  tog.style.background = novoOn ? '#2DC0AE' : '#c7d9de';
   knob.style.right = novoOn ? '3px' : '';
   knob.style.left  = novoOn ? '' : '3px';
   campos.style.display = novoOn ? '' : 'none';
@@ -7764,27 +8409,31 @@ function showEntryRegister(){
   document.getElementById('mainNav').classList.add('hidden');
   const sp = document.getElementById('splash');
   sp.classList.remove('hidden');
+  sp.classList.add('reg-single');
   const needInvite = BETA_GATE && !testStorage.getItem('vfc_invite');
-  sp.innerHTML = `
-    <img src="logo.jpg" alt="VetFlowCare" onerror="this.style.display='none'">
-    <div class="wm"><span class="v">Vet</span><span class="f">Flow</span></div>
-    <div class="care">Care</div>
-    <div class="tag">ORGANIZA · CONECTA · CUIDA</div>
-    ${needInvite ? `
-    <div style="background:rgba(255,255,255,.13);border:1.5px solid rgba(255,255,255,.28);border-radius:14px;padding:11px 14px;margin:16px 0 4px;max-width:340px;width:100%;box-sizing:border-box">
-      <div style="color:#fff;font-weight:800;font-size:14px">🎟️ Parabéns! Você foi selecionado(a)</div>
-      <div style="color:rgba(255,255,255,.72);font-size:11.5px;margin-top:3px">para a fase Beta do VetFlowCare. Digite seu convite:</div>
+  // Tela única (9.74): dados pessoais e senha juntos, sem fotos de animais — a arte com
+  // cão e gato fica só na tela de "Já tenho cadastro" (login). Layout simples em fluxo normal
+  // (sem transform:scale atrelado à viewport), por isso nunca "comprime" com o teclado aberto.
+  sp.innerHTML = `<div class="reg-card">
+    <div class="reg-head">
+      <img src="logo.jpg" alt="VetFlowCare" onerror="this.style.display='none'">
+      <div>
+        <h1>Crie seu acesso</h1>
+        <p>Organize sua rotina veterinária</p>
+      </div>
     </div>
-    <input id="regInvite" placeholder="VFC-XXXX-0000" autocapitalize="characters" maxlength="13" oninput="maskCode(this)"
-      style="width:100%;max-width:340px;box-sizing:border-box;text-align:center;font-size:16px;font-weight:800;letter-spacing:2px;padding:13px;border-radius:13px;border:none;margin-top:8px">` : ''}
-    <div style="color:rgba(255,255,255,.85);font-weight:800;font-size:15px;margin:${needInvite?'14px':'18px'} 0 6px">👤 Crie sua conta</div>
-    <div style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:9px">
-      <input id="regNome" type="text" placeholder="Nome completo" autocomplete="name"
-        style="width:100%;box-sizing:border-box;padding:13px;border-radius:13px;border:none;font-size:16px">
-      <div style="display:flex;gap:9px">
-        <input id="regIdade" type="number" min="18" max="120" placeholder="Idade" inputmode="numeric"
-          style="width:90px;box-sizing:border-box;padding:13px;border-radius:13px;border:none;font-size:16px">
-        <select id="regSexo" style="flex:1;box-sizing:border-box;padding:13px;border-radius:13px;border:none;font-size:16px;color:#555">
+    ${needInvite ? `
+    <div class="reg-invite">
+      <b>🎟️ Parabéns! Você foi selecionado(a)</b>
+      <div>para a fase Beta do VetFlowCare. Digite seu convite:</div>
+      <input id="regInvite" placeholder="VFC-XXXX-0000" autocapitalize="characters" maxlength="13" oninput="maskCode(this)"
+        style="width:100%;box-sizing:border-box;text-align:center;font-size:16px;font-weight:800;letter-spacing:2px;padding:13px;border-radius:13px;border:1.5px solid #bfeee0;margin-top:8px">
+    </div>` : ''}
+    <div class="reg-fields">
+      <input id="regNome" type="text" placeholder="Nome completo" autocomplete="name">
+      <div class="reg-row">
+        <input id="regIdade" type="number" min="18" max="120" placeholder="Idade" inputmode="numeric">
+        <select id="regSexo">
           <option value="">Sexo</option>
           <option value="Feminino">Feminino</option>
           <option value="Masculino">Masculino</option>
@@ -7792,69 +8441,49 @@ function showEntryRegister(){
           <option value="Prefiro não informar">Prefiro não informar</option>
         </select>
       </div>
-      <input id="regCPF" type="text" placeholder="CPF" inputmode="numeric" maxlength="14" oninput="maskCPF(this)"
-        style="width:100%;box-sizing:border-box;padding:13px;border-radius:13px;border:none;font-size:16px">
-      <input id="regUser" type="text" placeholder="Nome de usuário" autocapitalize="none" autocomplete="username"
-        style="width:100%;box-sizing:border-box;padding:13px;border-radius:13px;border:none;font-size:16px">
-      <!-- TOGGLE SENHA -->
-      <div style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);border-radius:14px;padding:14px;max-width:340px;width:100%;box-sizing:border-box;margin-top:2px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
-          <div>
-            <div style="color:#fff;font-weight:800;font-size:13px">🔐 Proteger com senha?</div>
-            <div style="color:rgba(255,255,255,.5);font-size:11px;margin-top:2px">Recomendado — criptografa seus dados</div>
-          </div>
-          <div id="regSenhaToggle" onclick="toggleRegSenha()"
-            style="width:50px;height:28px;border-radius:99px;background:#2DC0AE;cursor:pointer;position:relative;flex-shrink:0;box-shadow:0 2px 10px rgba(45,192,174,.4);transition:background .2s">
-            <div id="regSenhaKnob" style="position:absolute;right:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:all .2s"></div>
-          </div>
+      <div class="reg-row">
+        <input id="regCPF" type="text" placeholder="CPF" inputmode="numeric" maxlength="14" oninput="maskCPF(this)">
+        <input id="regUser" type="text" placeholder="Nome de usuário" autocapitalize="none" autocomplete="username">
+      </div>
+      <div class="reg-toggle">
+        <div>
+          <div class="lbl">🔐 Proteger com senha?</div>
+          <div class="sub">Recomendado — criptografa seus dados</div>
         </div>
-        <div id="regSenhaCampos">
-          <input id="regEmail" type="email" placeholder="Seu e-mail" autocomplete="email"
-            style="width:100%;box-sizing:border-box;padding:13px;border-radius:13px;border:none;font-size:16px;margin-bottom:6px">
-          <div class="pwwrap"><input id="regPass" type="password" placeholder="Crie uma senha (mín. 6)" autocomplete="new-password"
-            style="padding:13px;border-radius:13px;border:none;font-size:16px">
-            <button type="button" class="eye" onclick="togglePw('regPass',this)">👁</button></div>
-          <div class="pwwrap"><input id="regPass2" type="password" placeholder="Confirme a senha" autocomplete="new-password"
-            style="padding:13px;border-radius:13px;border:none;font-size:16px">
-            <button type="button" class="eye" onclick="togglePw('regPass2',this)">👁</button></div>
-          <input id="regHint" type="text" placeholder="🔑 Dica de senha (opcional — ex: nome do meu pet)" maxlength="80" autocomplete="off"
-            style="width:100%;box-sizing:border-box;padding:13px;border-radius:13px;border:none;font-size:14px;color:#aaa;margin-top:6px">
-          <div style="color:rgba(255,255,255,.45);font-size:11px;margin-top:8px;line-height:1.5">
-            🔐 Dados criptografados (AES-256) · ⚠️ Guarde bem a senha</div>
-        </div>
-        <div id="regSenhaNao" style="display:none;color:rgba(255,255,255,.5);font-size:11px;line-height:1.5">
-          ✅ Ok! Você pode ativar a senha quando quiser em <b style="color:rgba(255,255,255,.7)">Ajustes → 🔐 Segurança</b>
+        <div id="regSenhaToggle" class="reg-switch" onclick="toggleRegSenha()">
+          <div id="regSenhaKnob" class="knob"></div>
         </div>
       </div>
+      <div id="regSenhaCampos" style="display:flex;flex-direction:column;gap:10px">
+        <input id="regEmail" type="email" placeholder="Seu e-mail" autocomplete="email">
+        <div class="reg-row">
+          <div class="pwwrap"><input id="regPass" type="password" placeholder="Senha (6+)" autocomplete="new-password">
+            <button type="button" class="eye" onclick="togglePw('regPass',this)">👁</button></div>
+          <div class="pwwrap"><input id="regPass2" type="password" placeholder="Confirmar" autocomplete="new-password">
+            <button type="button" class="eye" onclick="togglePw('regPass2',this)">👁</button></div>
+        </div>
+        <input id="regHint" type="text" placeholder="Dica de senha (opcional)" maxlength="80" autocomplete="off">
+        <div class="reg-security-note">🔐 Dados criptografados (AES-256) · Guarde bem a senha</div>
+      </div>
+      <div id="regSenhaNao" style="display:none;color:#4b7c85;font-size:11px;line-height:1.5">
+        ✅ Ok! Você pode ativar a senha quando quiser em <b style="color:#07314d">Ajustes → 🔐 Segurança</b>
+      </div>
     </div>
-    <div style="background:rgba(45,192,174,.18);border:1.5px solid rgba(45,192,174,.5);border-radius:12px;padding:10px 13px;margin-top:12px;max-width:340px;width:100%;box-sizing:border-box">
-      <div style="color:#fff;font-weight:800;font-size:13px">🎁 Teste grátis por 30 dias</div>
-      <div style="color:rgba(255,255,255,.75);font-size:11px;margin-top:2px">Ao criar sua conta, você libera <b>todas as funções</b> por 30 dias, sem compromisso.</div>
+    <div class="reg-trial">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="20" height="5" rx="1"/><path d="M4 13v10h16V13M12 8v15"/><path d="M12 8C2 8 3 0 7 2c3 1 5 6 5 6s2-5 5-6c4-2 5 6-5 6"/></svg>
+      <div>
+        <b>Teste grátis por 30 dias</b>
+        <p>Todas as funções para organizar seus atendimentos.</p>
+      </div>
     </div>
-    <button onclick="doEntryRegister()" style="margin-top:14px">✓ Criar acesso e entrar</button>
-    <button onclick="showLoginExistente()" style="margin-top:6px;background:none;border:none;color:rgba(255,255,255,.5);font-size:13px;text-decoration:underline;cursor:pointer;display:block;width:100%;text-align:center">Já tenho cadastro — entrar</button>
-    <div id="regErr" style="color:#c0392b;font-size:14px;font-weight:700;min-height:18px;margin-top:8px"></div>
-    <div class="sub" style="margin-top:14px">B&G Systems · Gestão veterinária completa</div>`;
-  sp.classList.add('access-register');
-  const content=sp.innerHTML;
-  sp.innerHTML='<div class="register-shell">'+content+'</div>';
-  sp.querySelectorAll('.wm,.care,.tag').forEach(x=>x.remove());
-  const logo=sp.querySelector('img');logo.style.cssText='width:180px;height:auto;object-fit:contain;border-radius:0;background:white;padding:0;margin:0 auto 16px;display:block;box-shadow:none;filter:none';
+    <button class="reg-submit" onclick="doEntryRegister()">Criar acesso e entrar →</button>
+    <button class="reg-link" onclick="showLoginExistente()">Já tenho cadastro — entrar</button>
+    <div id="regErr" class="reg-err"></div>
+  </div>
+  <div class="reg-foot">B&G Systems · Gestão veterinária completa</div>`;
   sp.querySelectorAll('input,select').forEach(x=>{x.setAttribute('aria-label',x.placeholder||'Sexo');});
-
-  sp.classList.add('art-registration');
-  const shell=sp.querySelector('.register-shell');
-  const heading=document.createElement('div');heading.className='registration-title';heading.innerHTML='<h1>Crie seu acesso</h1><p>Organize sua rotina veterinária em um só lugar.</p><h2>DADOS PESSOAIS</h2>';
-  logo.after(heading);
-  Array.from(shell.children).filter(x=>x.tagName==='DIV'&&x.textContent.trim()==='👤 Crie sua conta').forEach(x=>x.remove());
-  document.getElementById('regNome').parentElement.classList.add('registration-fields');
-  const security=document.getElementById('regSenhaToggle').parentElement.parentElement;security.classList.add('registration-security');
-  const sub=document.createElement('h2');sub.textContent='SEGURANÇA DO ACESSO';security.before(sub);
-  const toggleRow=document.getElementById('regSenhaToggle').parentElement;toggleRow.classList.add('registration-toggle');
   sp.querySelectorAll('.eye').forEach(b=>{b.innerHTML=accessIcon('eye');b.setAttribute('aria-label','Mostrar senha');});
-  setupRegistrationSteps(sp);
   const toggle=document.getElementById('regSenhaToggle');toggle.setAttribute('role','switch');toggle.tabIndex=0;toggle.setAttribute('aria-label','Proteger com senha');toggle.setAttribute('aria-checked','true');toggle.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();toggleRegSenha();}};
-
 }
 function irRestaurarBkp(){ goTab('settings'); document.getElementById('bannerBkp')?.remove(); }
 function fecharBannerBkp(){ document.getElementById('bannerBkp')?.remove(); }
@@ -7899,8 +8528,7 @@ async function doEntryRegister(){
   const user  = (document.getElementById('regUser').value||'').trim();
   const email = (document.getElementById('regEmail').value||'').trim();
   // ── validações ──
-  // regFieldErr (ui-updates.js) destaca o campo com borda vermelha e foca nele; se o campo for
-  // da etapa 1 mas a tela estiver na etapa 2, ele volta pra etapa 1 sozinho antes de focar.
+  // regFieldErr destaca o campo com borda vermelha, mostra o aviso e foca nele (tela única).
   if(nome.length < 3 || !nome.includes(' ')){ regFieldErr('regNome','⚠ Informe seu nome completo (nome e sobrenome)'); return; }
   const idadeN = parseInt(idade);
   if(!idadeN || idadeN < 18 || idadeN > 120){ regFieldErr('regIdade','⚠ Informe uma idade válida (18+)'); return; }
