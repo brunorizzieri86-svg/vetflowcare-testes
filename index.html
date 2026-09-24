@@ -45,21 +45,23 @@ h2{font-size:20px;font-weight:900;letter-spacing:-.3px}
 #splash .tag{color:rgba(255,255,255,.55);font-size:11px;letter-spacing:2.5px;font-weight:600;margin-top:12px}
 #splash button{margin-top:40px;width:100%;max-width:320px;background:#2DC0AE;color:#fff;padding:16px;border-radius:26px;font-size:16px;font-weight:800;box-shadow:0 8px 32px rgba(45,192,174,.5)}
 #splash .sub{color:rgba(255,255,255,.4);font-size:11px;margin-top:12px}
-/* v9.77 tentou corrigir o "pulo"/jank do scroll relatado pelo Bruno promovendo header/.sticky-toolbar
-   a camadas de GPU próprias (translateZ(0)+will-change:transform). Revertido na v9.78: (1) o Bruno
-   confirmou que o jank continua idêntico mesmo com essa mudança — não resolveu o problema real; e
-   (2) essa promoção tem um efeito colateral sério, encontrado nesta rodada: um elemento
-   position:fixed (o botão "+" flutuante de Pacientes, .fab) que fica DENTRO de um ancestral com
-   transform/will-change deixa de se posicionar em relação à tela inteira e passa a se posicionar em
-   relação a esse ancestral — foi exatamente isso que jogou o botão "+" em cima da barra de busca em
-   vez de flutuar no canto inferior (ver JANK-001/FAB-001 na bancada). Como a promoção de camada não
-   trouxe benefício comprovado e ainda quebrou esse botão, ela foi removida; a causa raiz do jank em
-   si segue sob investigação (precisa de mais dados do aparelho do Bruno — ver bancada). */
-header{background:linear-gradient(145deg,var(--dark) 0%,#1a3060 60%,rgba(45,192,174,.75) 100%);padding:16px 16px 20px;color:#fff;border-radius:0 0 24px 24px;position:sticky;top:0;z-index:30}
-/* Barra de ferramentas fixa dentro das abas (Pacientes/Financeiro/Agenda/Alertas): título, busca e
-   filtros ficam parados no topo — só a lista abaixo rola. As margens negativas compensam o padding
-   de 16px do <main>, para o fundo cobrir a largura toda sem deixar o conteúdo da lista "vazar" nas bordas. */
-.sticky-toolbar{position:sticky;top:0;z-index:20;background:var(--bg);margin:-16px -16px 12px -16px;padding:16px 16px 10px 16px}
+/* JANK-001 — v9.76 introduziu cabeçalhos/toolbars fixos (position:sticky) nas 5 telas principais.
+   v9.77 tentou corrigir o "pulo"/jank do scroll relatado pelo Bruno promovendo header/.sticky-toolbar
+   a camadas de GPU próprias (translateZ(0)+will-change:transform) — não resolveu (Bruno confirmou que
+   o jank continuava idêntico) e ainda causou um bug real (FAB-001), revertido na v9.78. v9.79 tentou
+   uma segunda causa (listener global de visualViewport) — também sem confirmação de que resolveu.
+   v9.80: o Bruno decidiu, por conta própria, reverter a fixação dos cabeçalhos por completo ("pode
+   voltar a função de como era mesmo, sem deixar fixo os cabeçalhos que mudamos... melhor deixar como
+   estava antes sem deixar nada fixo") — mais simples e definitivo do que seguir caçando a causa do
+   "amortecimento": sem nada fixo, não há mais cabeçalho pra "pular" durante a rolagem. header e
+   .sticky-toolbar voltam a rolar normalmente junto com o resto da tela (position:sticky removido). A
+   estrutura de toolbar/lista separadas (stickyToolbar()) foi mantida como está — é só HTML/JS de
+   organização do conteúdo, não afeta esta reversão — só o comportamento visual de fixação muda. */
+header{background:linear-gradient(145deg,var(--dark) 0%,#1a3060 60%,rgba(45,192,174,.75) 100%);padding:16px 16px 20px;color:#fff;border-radius:0 0 24px 24px}
+/* Toolbar de cada aba (Pacientes/Financeiro/Agenda/Alertas): título, busca e filtros — rola junto com
+   o resto da tela (não é mais fixo, ver nota acima). As margens negativas compensam o padding de 16px
+   do <main>, para o fundo cobrir a largura toda sem deixar o conteúdo da lista "vazar" nas bordas. */
+.sticky-toolbar{background:var(--bg);margin:-16px -16px 12px -16px;padding:16px 16px 10px 16px}
 .topbar{display:flex;align-items:center;gap:10px}
 .topbar img{width:40px;height:40px;border-radius:10px;background:#fff;padding:3px;object-fit:contain}
 .topbar .wm{font-weight:900;font-size:19px;letter-spacing:-.4px}
@@ -866,12 +868,12 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.80';
+const APP_VER = '9.81';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.80',
+  ver: '9.81',
   titulo: 'Novidades da versão 🚀',
   itens: [
     ['💾','Backups com anexos','As exportações agora incluem os documentos dos pacientes e as fichas dos tutores. Confira sempre o arquivo salvo.'],
@@ -1423,6 +1425,7 @@ const PRI_CLR = {overdue:'var(--danger)', today:'var(--warning)', high:'var(--ac
 const PROTOCOLS = {
   anual:     {label:'Vacinação anual',                      days:365},
   primo:     {label:'Primovacinação (2 doses · 21 dias)',   days:21},
+  primo30:   {label:'Primovacinação (2 doses · 30 dias)',   days:30},
   d30:       {label:'A cada 30 dias',                       days:30},
   librela:   {label:'Protocolo Librela (a cada 45 dias)',   days:45},
   cytopoint: {label:'Protocolo Cytopoint (a cada 60 dias)', days:60},
@@ -4151,7 +4154,6 @@ function renderPetsList(q=''){
       const i=document.querySelector('#mainContent input');i.focus();i.setSelectionRange(i.value.length,i.value.length)})" value="${esc(q)}">
     ${pplView==='animais'?`<div class="chips" style="margin-bottom:12px">
       <button class="chip ${petSort==='az'?'on':''}" onclick="petSort='az';render()">A-Z</button>
-      <button class="chip ${petSort==='saude'?'on':''}" onclick="petSort='saude';render()">❤️ Saúde</button>
       <button class="chip ${petSort==='tutor'?'on':''}" onclick="petSort='tutor';render()">👤 Tutor</button>
       <button class="chip ${petSpec==='Cão'?'on':''}" onclick="petSpec=petSpec==='Cão'?'all':'Cão';render()">🐕 Cães</button>
       <button class="chip ${petSpec==='Gato'?'on':''}" onclick="petSpec=petSpec==='Gato'?'all':'Gato';render()">🐈 Gatos</button>
@@ -4221,14 +4223,22 @@ function renderPetsList(q=''){
       const s = healthScore(p), c = petColor(p);
       const issue = p.vaccines.some(v=>v.status!=='aplicada' && daysUntil(v.due)<0);
       const tn = tutorName(p);
-      return `<div class="card" style="display:flex;align-items:center;gap:13px;cursor:pointer;border-radius:18px" onclick="openPet('${p.id}')">
+      // Pedido do Bruno: paciente com óbito registrado (p.deceased) some com o status "Em dia"/
+      // "Vacina vencida" e mostra "Falecido" + a data (se preenchida) no lugar; o card inteiro fica
+      // num tom cinza claro (filter:grayscale desliga a cor de tudo — avatar, anel de saúde, selo —
+      // de uma vez só, sem precisar mudar cada cor manualmente). Continua clicável normalmente:
+      // abre a ficha completa do paciente (onclick="openPet" intacto).
+      const statusHTML = p.deceased
+        ? '🕊️ Falecido' + (p.deceased.date ? ' · ' + fmtDate(p.deceased.date) : '')
+        : (issue ? '⚠ Vacina vencida' : '✓ Em dia');
+      return `<div class="card" style="display:flex;align-items:center;gap:13px;cursor:pointer;border-radius:18px${p.deceased?';filter:grayscale(1);opacity:.6':''}" onclick="openPet('${p.id}')">
       <div style="width:60px;height:60px;border-radius:50%;background:color-mix(in srgb,${c} 12%,var(--surface));border:3px solid ${c};display:flex;align-items:center;justify-content:center;font-size:27px;flex-shrink:0;overflow:hidden">
         ${p.photo?`<img src="${p.photo}" style="width:100%;height:100%;object-fit:cover">`:petEmoji(p)}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:800;font-size:16px">${esc(p.name)}</div>
         <div style="color:var(--muted);font-size:12px;margin:2px 0 4px">${esc(p.species)} · ${esc(p.breed||'SRD')} · ${calcAge(p.birth)}</div>
         ${tn?`<div style="color:var(--muted);font-size:11px;margin-bottom:5px">👤 ${esc(tn)}</div>`:''}
-        <span class="st ${issue?'bad':'ok'}">${issue?'⚠ Vacina vencida':'✓ Em dia'}</span></div>
+        <span class="st ${p.deceased?'prog':(issue?'bad':'ok')}">${statusHTML}</span></div>
       <div style="text-align:center">${ringSVG(s,44,false)}<div style="color:var(--muted);font-size:14px">›</div></div></div>`;
     }).join('');
   }
@@ -6071,7 +6081,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.80 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.81 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -7425,8 +7435,8 @@ function saveApplyVaccine(petId, vid){
   if(!v) return;
   const dt = val('fAVDate') || todayISO();
   v.status = 'aplicada'; v.applied = dt; v.due = dt; v.lot = val('fAVLot');
-  // Primovacinação: após a 2ª dose, o reforço passa a ser anual
-  const nextProt = v.protocol === 'primo' ? 'anual' : v.protocol;
+  // Primovacinação (21 ou 30 dias): após a 2ª dose, o reforço passa a ser anual
+  const nextProt = (v.protocol === 'primo' || v.protocol === 'primo30') ? 'anual' : v.protocol;
   const days = protocolDaysFor(nextProt, v.customDays);
   if(days > 0){
     pet.vaccines.push({id:uid(), name:v.name, protocol:nextProt, ...(nextProt==='manual'?{customDays:v.customDays}:{}), applied:null,
