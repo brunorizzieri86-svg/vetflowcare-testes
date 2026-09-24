@@ -630,10 +630,24 @@ function fitReferenceFrames(){
  // nas 5 telas principais do app (onde nenhum .reference-frame existe).
  if(!document.querySelector('.reference-frame')) return;
  document.documentElement.style.setProperty('--vfc-visual-height',(viewport?.height||innerHeight)+'px');
+ // SQUEEZE-001 (v9.82): Bruno relatou que, ao tocar no campo de senha da tela de "Entrar", a
+ // tela inteira "espremia" — sobravam faixas cinzas nas laterais enquanto o teclado estava
+ // aberto. Causa: a escala do cartão (abaixo) usava viewport.height (a altura VISÍVEL real,
+ // que o teclado reduz bastante) com um piso de 640px. Quando o teclado derrubava a altura
+ // visível pra menos de 640px, o termo de altura "travava" em 640/baseH — um valor MENOR que o
+ // termo de largura — e o Math.min() escolhia a escala de altura pra tudo. Como a escala é
+ // aplicada igual nos dois eixos, isso encolhia também a LARGURA do cartão, mesmo a largura da
+ // tela não tendo mudado nada (só o teclado reduziu a altura). Corrigido usando innerHeight (a
+ // altura do viewport de LAYOUT) em vez de viewport.height só pra essa conta de escala —
+ // innerHeight não é afetado pelo teclado neste app (é por isso que o app já usa visualViewport
+ // à parte, especificamente para o que DEVE reagir ao teclado, como o --vfc-offset abaixo). Com
+ // isso, o tamanho do cartão fica igual com ou sem teclado — a tela no máximo rola um pouco pra
+ // cima (os containers já têm overflow:auto) pra mostrar o campo de senha, nunca mais "esprime".
+ const scaleHeightRef=window.innerHeight||viewport?.height||600;
  document.querySelectorAll('.reference-frame').forEach(frame=>{
   const parent=frame.parentElement,style=getComputedStyle(parent);
   const width=parent.clientWidth-(parseFloat(style.paddingLeft)||0)-(parseFloat(style.paddingRight)||0);
-  const height=(viewport?.height||innerHeight)-(parseFloat(style.paddingTop)||0)-(parseFloat(style.paddingBottom)||0);
+  const height=scaleHeightRef-(parseFloat(style.paddingTop)||0)-(parseFloat(style.paddingBottom)||0);
   const baseW=Number(frame.dataset.artWidth),baseH=Number(frame.dataset.artHeight);
   const scale=Math.min(width/baseW,Math.max(640,height)/baseH,720/baseW);
   frame.style.width=(baseW*scale)+'px';frame.style.height=(baseH*scale)+'px';frame.style.setProperty('--ref-scale',String(scale));
@@ -3244,12 +3258,12 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.82';
+const APP_VER = '9.83';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.82',
+  ver: '9.83',
   titulo: 'Novidades da versão 🚀',
   itens: [
     ['🕊️','Falecidos vão para o final da lista','Na lista de Pacientes, quem tem óbito registrado agora sempre aparece por último — não importa se a ordenação é por nome, tutor ou saúde. Assim os pacientes ativos ficam sempre em primeiro.'],
@@ -8483,7 +8497,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.82 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.83 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
