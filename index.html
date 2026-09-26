@@ -659,57 +659,7 @@ function setupReferenceFrame(frame,width,height){
  while(frame.firstChild)stage.appendChild(frame.firstChild);frame.appendChild(stage);fitReferenceFrames();
 }
 window.addEventListener('resize',fitReferenceFrames);window.visualViewport?.addEventListener('resize',fitReferenceFrames);
-function setupRegistrationSteps(sp){
- const shell=sp.querySelector('.register-shell'),fields=sp.querySelector('.registration-fields');
- const security=sp.querySelector('.registration-security'),heading=security.previousElementSibling;
- const row=document.createElement('div');row.className='registration-pair';
- const cpf=sp.querySelector('#regCPF'),user=sp.querySelector('#regUser');cpf.before(row);row.append(cpf,user);
- sp.querySelector('#regIdade').parentElement.classList.add('registration-person-row');
- sp.querySelector('#regPass').placeholder='Senha (6+)';sp.querySelector('#regPass2').placeholder='Confirmar';sp.querySelector('#regHint').placeholder='Dica de senha (opcional)';
- for(const[id,icon]of Object.entries({regNome:'person',regIdade:'calendar',regSexo:'gender',regCPF:'document',regUser:'person',regEmail:'mail',regPass:'lock',regPass2:'lock',regHint:'bulb'})){
-  const input=sp.querySelector('#'+id);let wrap=input.parentElement;
-  if(!wrap.classList.contains('pwwrap')){wrap=document.createElement('div');input.before(wrap);wrap.appendChild(input);}
-  wrap.classList.add('reference-field');if(['regNome','regEmail','regHint'].includes(id))wrap.classList.add('reference-wide');
-  const symbol=document.createElement('span');symbol.className='reference-field-icon';symbol.innerHTML=referenceIcon(icon);wrap.prepend(symbol);
- }
- const toggle=sp.querySelector('.registration-toggle');
- toggle.firstElementChild.firstElementChild.textContent='Proteger com senha?';toggle.insertAdjacentHTML('afterbegin','<span class="reference-toggle-icon">'+referenceIcon('lock')+'</span>');
- const note=sp.querySelector('#regSenhaCampos').lastElementChild;note.classList.add('reference-security-note');note.innerHTML=referenceIcon('shield')+'<span>Dados criptografados (AES-256) · Guarde bem a senha</span>';
- const trial=shell.querySelector(':scope>div[style*="rgba(45,192,174"]');trial.classList.add('reference-trial');trial.innerHTML=referenceIcon('gift')+'<div><b>Teste grátis por 30 dias</b><p>Ao criar sua conta, você libera <strong>todas as funções</strong> por 30 dias, sem compromisso.</p></div>';
- const personal=[...fields.children].filter(x=>x!==security&&x!==heading);
- const submit=shell.querySelector('button[onclick="doEntryRegister()"]');
- const step=document.createElement('p');step.className='reg-step-label';shell.querySelector('.registration-title').after(step);
- const back=document.createElement('button');back.type='button';back.className='reg-back';back.textContent='Voltar aos dados pessoais';submit.after(back);
- const scene=document.createElement('div');scene.className='registration-scene';
- scene.innerHTML='<img class="registration-background" src="register-data-art.png" alt="">';
- sp.appendChild(scene);scene.querySelector('.registration-background').after(shell);setupReferenceFrame(scene,864,1536);
- function show(n){
-  // Troca de etapa sempre limpa aviso de erro e destaque de campo anteriores — evita mensagem
-  // "fantasma" de uma etapa aparecendo em outra (ex: erro do passo 1 ainda visível após "Voltar").
-  document.getElementById('regErr').textContent='';
-  sp.querySelectorAll('input.field-error,select.field-error').forEach(x=>x.classList.remove('field-error'));
-  shell.classList.toggle('step-security',n===2);scene.classList.toggle('reference-step-security',n===2);
-  for(const img of scene.querySelectorAll('.registration-background,.registration-foreground'))img.src=n===1?'register-data-art.png':'register-security-art.png';
-  personal.forEach(x=>x.classList.toggle('reg-step-hidden',n===2));
-  [security,heading].forEach(x=>x.classList.toggle('reg-step-hidden',n===1));
-  shell.querySelector('.registration-title h2').classList.toggle('reg-step-hidden',n===2);
-  back.classList.toggle('reg-step-hidden',n===1);step.textContent=`Etapa ${n} de 2 · ${n===1?'Seus dados':'Segurança'}`;
-  submit.textContent=n===1?'Continuar →':'Criar acesso e entrar →';
-  submit.onclick=()=>{
-   if(n===1){
-    const missing=['regNome','regIdade','regSexo','regCPF','regUser'].map(id=>document.getElementById(id)).find(x=>!x.value.trim());
-    if(missing){regFieldErr(missing.id,'⚠ Preencha os dados pessoais para continuar');return;}
-    const nomeVal=document.getElementById('regNome').value.trim();
-    // Valida nome completo já na etapa 1 (antes o aviso só aparecia depois, na etapa 2, com o
-    // campo Nome Completo fora de vista — agora o usuário vê e corrige na hora).
-    if(nomeVal.length<3||!nomeVal.includes(' ')){regFieldErr('regNome','⚠ Informe seu nome completo (nome e sobrenome)');return;}
-    show(2);
-   }else doEntryRegister();
-  };
-  fitReferenceFrames();
- }
- back.onclick=()=>show(1);show(1);
-}
+// Cadastro antigo em duas etapas removido: não tinha chamadas e referenciava imagens ausentes.
 window.VFCNotices=(()=>{
  const storedWeekly=()=>{try{return testStorage.getItem('vfc_notice_weekly')!=='0';}catch{return true;}};
  let config={weekly:storedWeekly(),announcement:null},busy=false,lastFetch=0;
@@ -3161,7 +3111,8 @@ buffer/index.js:
    *)
 */
 </script>
-</head>
+<style>.voice-tools{margin:12px 0;padding:14px;border:1px solid #b9dedb;border-radius:14px;background:#f3fbfa;color:var(--text);max-width:100%;overflow-wrap:anywhere}.voice-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.voice-tools .btn{min-height:42px;white-space:normal;flex:none}.voice-actions>span{font-size:12px;flex:1;min-width:130px;line-height:1.5}.voice-tools label{font-size:12px;letter-spacing:0;text-transform:none}.voice-tools select,.voice-tools textarea{max-width:100%;box-sizing:border-box}.voice-tools summary{padding:12px 0;font-size:13px;font-weight:700;cursor:pointer}.voice-live{border-left:3px solid #008d8b;padding:10px;background:white;font-size:14px}.voice-help,.voice-review p{font-size:12px;line-height:1.6;color:var(--muted);margin:10px 0 0}.voice-review{margin-top:12px;border-top:1px solid #c5dfdd;padding-top:12px}.voice-review h4{margin:0 0 8px;font-size:16px}.voice-review h5{font-size:13px;margin:14px 0 6px}.voice-review ul{padding-left:20px;font-size:14px;line-height:1.7}.voice-review textarea{font-size:16px;line-height:1.5}.voice-tools [hidden]{display:none!important}.voice-review-actions{margin-top:10px}.voice-tools button:disabled{opacity:.55}textarea[readonly]{background:#f3f8f8} @media(max-width:360px){.voice-tools{padding:10px}.voice-review-actions>.btn{font-size:12px;padding:8px}}
+</style></head>
 <body>
 
 <div id="splash">
@@ -3258,12 +3209,12 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.83';
+const APP_VER = '9.84';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.83',
+  ver: '9.84',
   titulo: 'Novidades da versão 🚀',
   itens: [
     ['🕊️','Falecidos vão para o final da lista','Na lista de Pacientes, quem tem óbito registrado agora sempre aparece por último — não importa se a ordenação é por nome, tutor ou saúde. Assim os pacientes ativos ficam sempre em primeiro.'],
@@ -7072,6 +7023,7 @@ function openNotaCarteirinha(petId){
      <button class="btn" onclick="salvarNotaCarteirinha('${petId}')">💾 Salvar</button>`);
 }
 function salvarNotaCarteirinha(petId){
+  if(!voiceSaveAllowed())return;
   const pet = DB.pets.find(p=>p.id===petId);
   pet.notaCarteirinha = val('fNotaCart');
   save(); closeSheet(); render(); toast('📝 Anotação salva!');
@@ -8497,7 +8449,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.83 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.84 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -9458,246 +9410,51 @@ function salvarKm(iso){
 // Usa o reconhecimento de voz do próprio aparelho (Web Speech API) — sem
 // servidor e sem mensalidade de API. O texto ditado é organizado sozinho
 // nas seções do prontuário, por palavras-chave, aqui mesmo no celular.
-function voiceOK(){
-  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+// Ditado 9.84: finais indexados por sessão; provisórios nunca entram no prontuário automaticamente.
+let vfcVoice = null, vfcVoiceSeq = 0;
+const voiceNotes = new WeakMap();
+function voiceOK(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
+function voiceNote(id){const el=document.getElementById(id);if(!el)return null;if(!voiceNotes.has(el))voiceNotes.set(el,{source:'',undo:null,report:'',applied:false,segments:[]});return voiceNotes.get(el);}
+function voiceBind(id,meta,context){const el=document.getElementById(id);if(!el)return;const d=voiceNote(id);if(meta){d.source=meta.source||'';d.report=meta.report||'';d.applied=!!meta.applied;d.segments=Array.isArray(meta.segments)?meta.segments:[];}d.context=context||{};}
+function micBtn(id,structured){return `<section class="voice-tools" id="voice_${id}" aria-label="Ditado e revisão"><div class="voice-actions"><button type="button" id="mic_${id}" class="btn sm outline" onclick="toggleDitado('${id}',${structured?1:0})">🎙️ Ditar</button><span id="micst_${id}" role="status" aria-live="polite">Pronto para ditar</span></div><p class="voice-live" id="miclive_${id}" aria-label="Fala provisória" hidden></p><div id="micpending_${id}" hidden><label>Trecho provisório — confira antes de incluir</label><textarea id="micpendingtext_${id}" rows="2"></textarea><button type="button" class="btn sm outline" onclick="voiceUsePending('${id}')">Incluir trecho revisado</button><button type="button" class="btn sm gray" onclick="voiceDiscardPending('${id}')">Descartar trecho</button></div>${structured?`<label for="voiceSpeaker_${id}">Identificar a próxima fala (manual)</label><select id="voiceSpeaker_${id}"><option value="">Sem identificação</option><option>Tutor</option><option>Veterinário</option></select><details><summary>Marcar seção do prontuário</summary><div class="voice-actions">${['Queixa principal','Anamnese','Exame físico','Hipótese diagnóstica','Conduta','Retorno','Observações'].map(x=>`<button type="button" class="btn sm outline" onclick="voiceMark('${id}','${x}')">${x}</button>`).join('')}</div></details><div class="voice-actions voice-review-actions"><button type="button" class="btn sm outline" onclick="voiceReview('${id}','points')">🔎 Pontos-chave</button><button type="button" class="btn sm outline" onclick="voiceReview('${id}','questions')">❓ Perguntas</button><button type="button" class="btn sm outline" onclick="voiceReview('${id}','report')">📋 Gerar relatório</button><button type="button" class="btn sm gray" onclick="voiceOriginal('${id}')">Ver original</button><button type="button" class="btn sm gray" onclick="voiceUndo('${id}')">↶ Desfazer aplicação</button></div><div id="voiceReview_${id}" class="voice-review" hidden></div>`:''}<p class="voice-help">O navegador pode processar áudio em serviço externo e exigir internet. Combine o uso com os participantes. O app não guarda o áudio. Revise nomes, negações, doses e unidades; salve o atendimento para guardar o texto.</p></section>`;}
+function voiceStatus(id,text){const e=document.getElementById('micst_'+id);if(e)e.textContent=text;}
+function voiceBusy(){return !!vfcVoice;}
+function voiceIdleRequired(){if(!voiceBusy())return true;pararDitado();toast('Aguarde o ditado encerrar e toque novamente.');return false;}
+function toggleDitado(id,structured){if(vfcVoice){pararDitado();return;}if(!voiceOK()){voiceStatus(id,'Ditado indisponível neste navegador. Use o microfone do teclado ou digite.');return;}if(!window.isSecureContext){voiceStatus(id,'Abra o app por HTTPS para usar o microfone.');return;}if(!testStorage.getItem('vfc_voice_notice_984')){window._micSeguir=()=>{testStorage.setItem('vfc_voice_notice_984','1');comecarDitado(id,structured);};vfcConfirm({icon:'🎙️',title:'Ditado da conversa',msg:'O reconhecimento de voz pode enviar áudio ao serviço do navegador. O VetFlowCare não armazena o áudio. Avise os participantes e confirme que concordam antes de iniciar.',note:'O texto exige revisão. Não há identificação automática de quem está falando.',noLabel:'Agora não',yesLabel:'Concordo, iniciar',yes:'window._micSeguir && window._micSeguir()'});return;}comecarDitado(id,structured);}
+function comecarDitado(id,structured){if(vfcVoice)return;const field=document.getElementById(id);if(!field||!voiceOK())return;if(!document.getElementById('micpending_'+id)?.hidden){voiceStatus(id,'Revise ou descarte o trecho provisório antes de continuar.');return;}const d=voiceNote(id);if(d.applied){voiceStatus(id,'O relatório já foi aplicado. Use Desfazer aplicação antes de ampliar a transcrição.');return;}const role=document.getElementById('voiceSpeaker_'+id)?.value||'';const s={id,field,structured,role,base:field.value,slots:new Map(),interim:'',want:true,accept:true,restarts:0,empty:0,start:Date.now(),token:++vfcVoiceSeq,oldReadOnly:field.readOnly};vfcVoice=s;field.readOnly=true;const selector=document.getElementById('voiceSpeaker_'+id);if(selector)selector.disabled=true;voiceButton(s,'⏸ Pausar');voiceStatus(id,'Conectando ao microfone…');voiceStartSession(s);}
+function voiceButton(s,text){const e=document.getElementById('mic_'+s.id);if(e){e.textContent=text;e.setAttribute('aria-pressed',String(!!s.want));}}
+function voiceText(s){const confirmed=[...s.slots.entries()].sort((a,b)=>a[0]-b[0]).map(x=>x[1]).filter(Boolean).join(' ').trim();return s.base+(confirmed?(s.base.trim()?'\n':'')+(s.role?s.role+': ':'')+confirmed:'');}
+function voiceStartSession(s){if(vfcVoice!==s||!s.want||!s.field.isConnected)return voiceFinish(s);const SR=window.SpeechRecognition||window.webkitSpeechRecognition;const r=new SR();s.rec=r;const token=++s.token;s.slots=new Map();s.interim='';s.hadFinal=false;r.lang='pt-BR';r.continuous=true;r.interimResults=true;r.maxAlternatives=1;const valid=()=>vfcVoice===s&&s.token===token&&s.field.isConnected;
+ s.startTimer=setTimeout(()=>{if(valid()){s.message='O serviço de voz não iniciou. Tente novamente ou use o teclado.';s.want=false;try{r.abort();}catch(e){}voiceFinish(s);}},8000);
+ r.onstart=()=>{if(!valid())return;clearTimeout(s.startTimer);voiceStatus(s.id,'🔴 Ouvindo. Texto provisório aparece abaixo; só o confirmado entra no campo.');};
+ r.onresult=e=>{if(!valid()||!s.accept)return;clearTimeout(s.startTimer);const pending=[];for(let i=0;i<e.results.length;i++){const result=e.results[i],text=(result[0]?.transcript||'').trim();if(result.isFinal){s.slots.set(i,text);s.hadFinal=true;}else pending.push(text);}s.interim=pending.filter(Boolean).join(' ');s.field.value=voiceText(s);s.field.scrollTop=s.field.scrollHeight;const live=document.getElementById('miclive_'+s.id);if(live){live.hidden=!s.interim;live.textContent='Provisório: '+s.interim;}voiceNote(s.id).source=s.field.value;};
+ r.onerror=e=>{if(!valid())return;const messages={'not-allowed':'Microfone bloqueado. Permita o microfone nos ajustes do site e tente novamente.','service-not-allowed':'O navegador bloqueou o serviço de reconhecimento. Use o microfone do teclado.','audio-capture':'Microfone indisponível ou em uso por outro aplicativo.','network':'Falha de conexão com o serviço de voz. O texto confirmado foi preservado.','language-not-supported':'Português não disponível neste serviço. Use o microfone do teclado.','no-speech':'Nenhuma fala detectada. Toque em Ditar para tentar novamente.','aborted':'Ditado interrompido. O texto confirmado foi preservado.'};s.message=messages[e.error]||'Não foi possível continuar o ditado. O texto confirmado foi preservado.';s.want=false;voiceStatus(s.id,s.message);clearTimeout(s.startTimer);s.stopTimer=setTimeout(()=>voiceFinish(s),1500);};
+ r.onend=()=>{if(!valid())return;clearTimeout(s.startTimer);clearTimeout(s.stopTimer);s.base=s.field.value;s.slots.clear();s.empty=s.hadFinal?0:s.empty+1;voiceDetach(r);if(s.want&&!s.interim&&s.empty<3&&s.restarts<40&&Date.now()-s.start<15*60*1000){s.restarts++;voiceStatus(s.id,'Reconectando após a pausa do serviço…');s.restartTimer=setTimeout(()=>voiceStartSession(s),450);return;}if(s.want)s.message=s.interim?'Pausado: há um trecho provisório para revisar.':'Pausado pelo serviço. Toque em Ditar para continuar.';voiceFinish(s);};
+ try{r.start();}catch(e){s.message='Não foi possível iniciar o microfone. Tente novamente.';s.want=false;voiceFinish(s);}
 }
-function micBtn(campoId, estruturar){
-  return `<button type="button" id="mic_${campoId}" class="btn sm outline"
-    style="border-color:var(--rx);color:var(--rx);margin-top:6px"
-    onclick="toggleDitado('${campoId}',${estruturar?1:0})">🎙️ Ditar</button>
-    <span id="micst_${campoId}" style="font-size:11px;color:var(--muted);margin-left:8px"></span>`;
-}
-const SECOES_PRONT = [
-  {k:'QUEIXA PRINCIPAL', rx:/\b(queixa principal|queixa|motivo da consulta)\b/i},
-  {k:'ANAMNESE',         rx:/\b(anamnese|hist[óo]rico|relato do tutor)\b/i},
-  {k:'EXAME FÍSICO',     rx:/\b(exame f[íi]sico|ao exame|exame cl[íi]nico)\b/i},
-  {k:'DIAGNÓSTICO',      rx:/\b(diagn[óo]stico|suspeita|hip[óo]tese diagn[óo]stica)\b/i},
-  {k:'CONDUTA',          rx:/\b(conduta|tratamento|prescri[çc][ãa]o|prescrevo|orienta[çc][õo]es)\b/i},
-  {k:'OBSERVAÇÕES',      rx:/\b(observa[çc][õo]es|observa[çc][ãa]o)\b/i}
-];
-function estruturarPront(txt){
-  if(!txt || !txt.trim()) return '';
-  const t = ' ' + txt.trim().replace(/\s+/g, ' ');
-  const marcas = [];
-  SECOES_PRONT.forEach(s => {
-    const m = s.rx.exec(t);
-    if(m) marcas.push({k:s.k, pos:m.index, len:m[0].length});
-  });
-  if(!marcas.length) return txt.trim();
-  marcas.sort((a,b) => a.pos - b.pos);
-  let out = '';
-  const antes = t.slice(0, marcas[0].pos).trim();
-  if(antes) out += antes + '\n\n';
-  marcas.forEach((mk, i) => {
-    const fim = i + 1 < marcas.length ? marcas[i+1].pos : t.length;
-    let corpo = t.slice(mk.pos + mk.len, fim).trim()
-      .replace(/^[:\-–,\s]+/, '')
-      .replace(/\s+([.,;])/g, '$1');
-    if(corpo){
-      corpo = corpo.charAt(0).toUpperCase() + corpo.slice(1);
-      if(!/[.!?]$/.test(corpo)) corpo += '.';
-      out += mk.k + ':\n' + corpo + '\n\n';
-    }
-  });
-  return out.trim();
-}
-let _rec = null, _recCampo = null, _recBase = '', _recOrig = '', _recFinais = [],
-    _recAtivo = false, _recEstrut = 0, _recReinicios = 0, _recT0 = 0, _recSessao = 0;
-
-// Rede de segurança: colapsa trechos repetidos em sequência. Serve de última
-// linha de defesa caso o navegador reenvie fala já transcrita.
-// Só age em trechos com 6+ caracteres — "sim sim" e "não não" são preservados.
-function tirarRepeticoes(txt){
-  if(!txt) return '';
-  const p = txt.trim().split(/\s+/);
-  const MAXN = Math.min(12, Math.floor(p.length / 2));
-  for(let n = MAXN; n >= 1; n--){
-    for(let i = 0; i + 2*n <= p.length; i++){
-      const a = p.slice(i, i+n).join(' ').toLowerCase();
-      const b = p.slice(i+n, i+2*n).join(' ').toLowerCase();
-      if(a === b && a.replace(/\s/g,'').length >= 6){ p.splice(i+n, n); i--; }
-    }
-  }
-  return p.join(' ');
-}
-
-function toggleDitado(campoId, estruturar){
-  if(_rec && _recCampo === campoId){ _recAtivo = false; pararDitado(estruturar); return; }
-  if(_rec){ _recAtivo = false; pararDitado(0); }
-  const campo = document.getElementById(campoId);
-  if(!campo) return;
-  if(!voiceOK()){
-    vfcConfirm({icon:'🎙️', title:'Ditado por voz',
-      msg:'Este navegador não tem reconhecimento de voz próprio.<br><br><b>Mas dá para ditar do mesmo jeito:</b> toque no campo de texto e use o <b>ícone de microfone do teclado do celular</b> — funciona em qualquer aparelho.',
-      note:'💡 No Android pelo Chrome, o ditado embutido do app funciona direto.', noteColor:'var(--vac)',
-      single:1, yesLabel:'Entendi', yesBg:'var(--primary)', yes:''});
-    return;
-  }
-  // Na primeira vez, explica ANTES o pedido de microfone do navegador.
-  // A caixa do navegador é do sistema e não pode ser personalizada (ela mostra
-  // o endereço do site por segurança) — mas assim o vet já sabe o que esperar.
-  if(!testStorage.getItem('vfc_mic_ok')){
-    prepararMicrofone(campoId, estruturar);
-    return;
-  }
-  comecarDitado(campoId, estruturar);
-}
-// Explicação amigável antes da permissão do sistema
-function prepararMicrofone(campoId, estruturar){
-  const seguir = function(){
-    testStorage.setItem('vfc_mic_ok', '1');
-    comecarDitado(campoId, estruturar ? 1 : 0);
-  };
-  window._micSeguir = seguir;
-  vfcConfirm({icon:'🎙️', title:'Vamos ativar o ditado',
-    msg:`Para escrever falando, o navegador vai pedir <b>uma única vez</b> permissão para usar o microfone.<br><br>Quando a caixa aparecer, toque em <b>"Permitir ao acessar o site"</b> — assim ele não pergunta mais.`,
-    note:'🔒 O áudio serve só para virar texto neste aparelho. Nada é gravado nem guardado pelo VetFlowCare.',
-    noteColor:'var(--vac)',
-    noLabel:'Agora não', yesLabel:'🎙️ Ativar microfone', yesBg:'var(--rx)',
-    yes:'window._micSeguir && window._micSeguir()'});
-}
-function comecarDitado(campoId, estruturar){
-  const campo = document.getElementById(campoId);
-  if(!campo) return;
-  _recCampo  = campoId;
-  _recBase   = campo.value ? campo.value.replace(/\s+$/, '') + '\n' : '';
-  _recOrig   = _recBase;
-  _recFinais = [];
-  _recAtivo  = true;
-  _recEstrut = estruturar ? 1 : 0;
-  _recReinicios = 0;
-  _recT0 = Date.now();
-  iniciarRec();
-}
-
-function iniciarRec(){
-  const campoId = _recCampo;
-  const campo = document.getElementById(campoId);
-  const st  = document.getElementById('micst_' + campoId);
-  const btn = document.getElementById('mic_' + campoId);
-  if(!campo){ _recAtivo = false; return; }
-
-  // Cada sessão tem um número. Eventos que chegam atrasados de uma sessão
-  // encerrada são IGNORADOS — era essa corrida que duplicava a fala.
-  const token = ++_recSessao;
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const rec = new SR();
-  _rec = rec;
-  rec.lang = 'pt-BR';
-  rec.continuous = true;
-  rec.interimResults = true;
-
-  rec.onstart = function(){
-    if(token !== _recSessao) return;
-    if(btn){ btn.textContent = '⏹️ Parar'; btn.style.background = 'var(--danger)';
-      btn.style.color = '#fff'; btn.style.borderColor = 'var(--danger)'; }
-    if(st){ st.textContent = '🔴 Ouvindo… pode falar'; st.style.color = 'var(--danger)'; }
-  };
-
-  rec.onresult = function(ev){
-    if(token !== _recSessao) return;          // sessão morta: descarta
-    let parcial = '';
-    for(let i = ev.resultIndex; i < ev.results.length; i++){
-      const r = ev.results[i];
-      if(r.isFinal) _recFinais[i] = (r[0].transcript || '').trim();
-      else parcial += r[0].transcript;
-    }
-    const fin = _recFinais.filter(Boolean).join(' ');
-    parcial = parcial.trim();
-    campo.value = _recBase + fin + (parcial ? (fin ? ' ' : '') + parcial : '');
-    campo.scrollTop = campo.scrollHeight;
-  };
-
-  rec.onerror = function(ev){
-    if(token !== _recSessao) return;
-    if(ev.error === 'not-allowed' || ev.error === 'service-not-allowed'){
-      if(st){ st.textContent = '⚠ Microfone bloqueado'; st.style.color = 'var(--warning)'; }
-      _recAtivo = false;
-      testStorage.removeItem('vfc_mic_ok');
-      const ios = /iphone|ipad|ipod/i.test(navigator.userAgent||'');
-      setTimeout(function(){
-        vfcConfirm({icon:'🔇', title:'Microfone bloqueado',
-          msg: ios
-            ? 'O acesso ao microfone foi negado.<br><br><b>Para liberar no iPhone:</b><br>1. Toque em <b>aA</b> na barra de endereço<br>2. Escolha <b>Ajustes do site</b><br>3. Marque <b>Microfone → Permitir</b>'
-            : 'O acesso ao microfone foi negado.<br><br><b>Para liberar no Android:</b><br>1. Toque no <b>🔒 cadeado</b> ao lado do endereço<br>2. Escolha <b>Permissões</b><br>3. Ative o <b>Microfone</b>',
-          note:'💡 Enquanto isso, o microfone do teclado do celular funciona normalmente no campo de texto.',
-          noteColor:'var(--vac)', single:1, yesLabel:'Entendi', yesBg:'var(--primary)', yes:''});
-      }, 400);
-    } else if(ev.error === 'network'){
-      if(st){ st.textContent = '⚠ O ditado precisa de internet — use o microfone do teclado'; st.style.color = 'var(--warning)'; }
-      _recAtivo = false;
-    } else if(ev.error !== 'no-speech' && ev.error !== 'aborted'){
-      if(st){ st.textContent = '⚠ Não deu para ouvir (' + ev.error + ')'; st.style.color = 'var(--warning)'; }
-      _recAtivo = false;
-    }
-  };
-
-  // O Chrome encerra sozinho após silêncio. Se o usuário não mandou parar,
-  // consolidamos o que veio (sem repetições) e abrimos uma sessão nova.
-  rec.onend = function(){
-    if(token !== _recSessao) return;
-    if(_recAtivo && _recReinicios < 60 && (Date.now() - _recT0) < 15*60*1000){
-      _recReinicios++;
-      rec.onresult = rec.onend = rec.onerror = rec.onstart = null;   // desliga o antigo
-      const limpo = tirarRepeticoes(campo.value.replace(/\s+$/, ''));
-      campo.value = limpo;
-      _recBase = limpo ? limpo + ' ' : '';
-      _recFinais = [];
-      if(st){ st.textContent = '🔴 Ouvindo… pode falar'; st.style.color = 'var(--danger)'; }
-      setTimeout(function(){ if(_recAtivo && token === _recSessao) iniciarRec(); }, 120);
-      return;
-    }
-    pararDitado(_recEstrut);
-  };
-
-  try{ rec.start(); }
-  catch(e){
-    // "already started" é comum ao reiniciar rápido: tenta de novo em instantes
-    if(_recAtivo && _recReinicios < 60){ setTimeout(function(){ if(_recAtivo) iniciarRec(); }, 350); return; }
-    if(st) st.textContent = '⚠ Não foi possível iniciar';
-    _rec = null; _recAtivo = false;
-  }
-}
-
-function pararDitado(estruturar){
-  const campoId = _recCampo;
-  _recAtivo = false;
-  _recSessao++;                                  // invalida tudo que estiver pendente
-  if(_rec){
-    try{ _rec.onresult = _rec.onend = _rec.onerror = _rec.onstart = null; _rec.stop(); }catch(e){}
-  }
-  _rec = null; _recCampo = null;
-  if(!campoId) return;
-  const campo = document.getElementById(campoId);
-  const btn = document.getElementById('mic_' + campoId);
-  const st  = document.getElementById('micst_' + campoId);
-  if(btn){
-    btn.textContent = '🎙️ Ditar';
-    btn.style.background = 'transparent';
-    btn.style.color = 'var(--rx)';
-    btn.style.borderColor = 'var(--rx)';
-  }
-  if(campo){
-    const jaTinha = _recOrig;
-    let ditado = campo.value.startsWith(jaTinha) ? campo.value.slice(jaTinha.length) : campo.value;
-    ditado = tirarRepeticoes(ditado);            // limpeza final
-    if(ditado.trim()){
-      const org = estruturar ? estruturarPront(ditado) : ditado.trim();
-      const sep = jaTinha.trim() ? jaTinha.replace(/\s+$/, '') + '\n\n' : '';
-      campo.value = (sep + org).trim();
-      if(st && estruturar && org !== ditado.trim()){
-        st.textContent = '✨ Texto organizado em seções'; st.style.color = 'var(--success)';
-        _recBase = ''; _recOrig = '';
-        return;
-      }
-    }
-  }
-  _recBase = ''; _recOrig = '';
-  if(st && st.textContent.indexOf('⚠') !== 0) st.textContent = '';
-}
+function voiceDetach(r){if(r)r.onstart=r.onresult=r.onerror=r.onend=null;}
+function voiceFinish(s){if(vfcVoice!==s)return;clearTimeout(s.startTimer);clearTimeout(s.stopTimer);clearTimeout(s.restartTimer);voiceDetach(s.rec);try{s.rec?.abort();}catch(e){}if(s.interim&&s.field.isConnected){const box=document.getElementById('micpending_'+s.id),input=document.getElementById('micpendingtext_'+s.id);if(box&&input){input.value=(s.role?s.role+': ':'')+s.interim;box.hidden=false;}}s.field.readOnly=s.oldReadOnly;const selector=document.getElementById('voiceSpeaker_'+s.id);if(selector)selector.disabled=false;const live=document.getElementById('miclive_'+s.id);if(live){live.hidden=true;live.textContent='';}s.want=false;voiceButton(s,'🎙️ Ditar / continuar');voiceStatus(s.id,s.message||'Pausado. Texto confirmado preservado. Revise e salve o atendimento.');vfcVoice=null;}
+function pararDitado(){const s=vfcVoice;if(!s)return;s.want=false;clearTimeout(s.restartTimer);voiceButton(s,'Finalizando…');voiceStatus(s.id,'Finalizando o último trecho…');try{s.rec?.stop();}catch(e){voiceFinish(s);return;}s.stopTimer=setTimeout(()=>voiceFinish(s),1800);}
+function voiceCancel(){const s=vfcVoice;if(!s)return;s.want=false;s.accept=false;s.interim='';voiceFinish(s);}
+function voiceUsePending(id){if(!voiceIdleRequired())return;const el=document.getElementById(id),p=document.getElementById('micpendingtext_'+id);if(!el||!p)return;if(p.value.trim())el.value+=(el.value.trim()?'\n':'')+p.value.trim();voiceNote(id).source=el.value;voiceDiscardPending(id);}
+function voiceDiscardPending(id){const box=document.getElementById('micpending_'+id);if(box)box.hidden=true;const p=document.getElementById('micpendingtext_'+id);if(p)p.value='';}
+function voiceMark(id,title){if(!voiceIdleRequired())return;const el=document.getElementById(id);if(!el)return;if(voiceNote(id).applied){toast('Desfaça a aplicação para editar a transcrição.');return;}el.value+=(el.value.trim()?'\n\n':'')+title+':\n';el.focus();}
+function voiceSource(id){const el=document.getElementById(id),d=voiceNote(id);return d?.applied?d.source:el?.value||'';}
+function voiceParts(text){const headings=['Queixa principal','Anamnese','Exame físico','Diagnóstico','Hipótese diagnóstica','Conduta','Retorno','Observações'];const sections=Object.fromEntries(['Relato não categorizado',...headings].map(x=>[x,[]]));let current='Relato não categorizado';const re=/(^|\n|[.!?]\s+)(queixa principal|anamnese|exame f[íi]sico|hip[óo]tese diagn[óo]stica|diagn[óo]stico|conduta|retorno|observa[çc][õo]es)\s*[:–-]\s*/gi;let last=0,m;const norm=x=>x.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();while(m=re.exec(text)){const before=text.slice(last,m.index)+m[1];if(before.trim())sections[current].push(before.trim());current=headings.find(h=>norm(h)===norm(m[2]))||'Relato não categorizado';last=re.lastIndex;}if(text.slice(last).trim())sections[current].push(text.slice(last).trim());return sections;}
+function voiceExtract(text){const chunks=text.replace(/([.!?])\s+(?=[A-ZÁÉÍÓÚÂÊÔÃÕÇ])/g,'$1\n').split(/\n+/).map(x=>x.trim()).filter(x=>x&&!/^(queixa principal|anamnese|exame físico|diagnóstico|hipótese diagnóstica|conduta|retorno|observações):$/i.test(x));const patterns=[['Sintomas e evolução',/v[oô]mit|diarre|dor\b|febre|tosse|coceira|apetite|come|beb|urina|fezes|sangue|desde|dias|seman/i],['Histórico e cuidados',/vacina|medicamento|alerg|cirurg|castra|verm[ií]f|antecedente/i],['Conduta e acompanhamento',/conduta|solicito|prescrevo|orient|retorn|reavali|exame/i],['Medidas e quantidades',/\d\s*(?:mg|ml|kg|g\b|gotas|horas|dias|°|graus)/i]];return {terms:[...new Set((text.match(/\b(?:apetite|diarreia|febre|dor|tosse|medicamento|vacina|retorno|exame|alergia)|v[oô]mito/gi)||[]).map(x=>x.toLocaleLowerCase('pt-BR')))],points:chunks.slice(0,8),questions:chunks.filter(x=>x.includes('?')),groups:patterns.map(([label,rx])=>({label,items:chunks.filter(x=>rx.test(x))})).filter(g=>g.items.length)};}
+function voiceReportText(id,text){const d=voiceNote(id),c=d.context||{},parts=voiceParts(text),x=voiceExtract(text);return ['RELATÓRIO DO ATENDIMENTO — RASCUNHO PARA REVISÃO',c.patient?'Paciente: '+c.patient:'Paciente: conferir identificação',c.tutor?'Tutor: '+c.tutor:'Tutor: não informado','Data: '+(document.getElementById('fPDate')?.value||c.date||todayISO()),'','TRECHOS PARA REVISÃO (cópia literal; não são conclusões clínicas)',...x.points.map(t=>'• '+t),'',...Object.entries(parts).flatMap(([title,items])=>[title.toUpperCase(),items.length?items.join('\n'):'Não registrado explicitamente.','']),'PERGUNTAS REGISTRADAS',x.questions.length?x.questions.join('\n'):'Nenhuma pergunta com ponto de interrogação identificada.','', 'TRANSCRIÇÃO INTEGRAL PRESERVADA',text,'','Revisar com o veterinário: nomes, falantes, negações, doses, unidades e condutas. Este rascunho não gera diagnóstico nem receita automaticamente.'].join('\n');}
+function voiceReview(id,mode){if(!voiceSaveAllowed())return;const text=voiceSource(id).trim(),box=document.getElementById('voiceReview_'+id);if(!text){toast('Dite ou digite o relato primeiro.');return;}const d=voiceNote(id);d.reviewSource=text;const x=voiceExtract(text);box.hidden=false;const list=items=>items.length?'<ul>'+items.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul>':'<p>Nenhum trecho identificado.</p>';if(mode==='report'){const report=voiceReportText(id,text);box.innerHTML=`<h4>Relatório editável</h4><p>Confira o rascunho. O texto integral será preservado separadamente ao aplicar e salvar.</p><textarea id="voiceReport_${id}" rows="14" aria-label="Relatório para revisão">${esc(report)}</textarea><button type="button" class="btn" onclick="voiceApply('${id}')">Aplicar ao prontuário</button>`;}else if(mode==='questions'){box.innerHTML='<h4>Perguntas registradas</h4><p>Trechos com “?”. O app não adivinha perguntas sem pontuação nem atribui respostas a um falante.</p>'+list(x.questions);}else{box.innerHTML='<h4>Pontos-chave e referências</h4><p>Trechos literais por palavras-chave, mantendo negações. Esta seleção não substitui a leitura integral.</p>'+ (x.terms.length?'<p><b>Termos encontrados (confira o contexto):</b> '+x.terms.map(esc).join(' · ')+'</p>':'')+x.groups.map(g=>'<h5>'+esc(g.label)+'</h5>'+list(g.items)).join('')+(x.groups.length?'':'<h5>Primeiros trechos do relato</h5>'+list(x.points));}box.scrollIntoView({block:'nearest',behavior:'smooth'});}
+function voiceApply(id){if(!voiceIdleRequired())return;const d=voiceNote(id),el=document.getElementById(id),report=document.getElementById('voiceReport_'+id);if(!report?.value.trim())return;if(voiceSource(id).trim()!==d.reviewSource){voiceStatus(id,'O texto mudou. Gere novamente o relatório antes de aplicar.');return;}d.undo={value:el.value,source:d.source,applied:d.applied,report:d.report};d.source=d.reviewSource;d.report=report.value;d.applied=true;el.value=d.report;voiceStatus(id,'Relatório aplicado. Original preservado; salve o atendimento.');}
+function voiceUndo(id){if(!voiceIdleRequired())return;const d=voiceNote(id),el=document.getElementById(id);if(!d.undo&&d.applied)d.undo={value:d.source,source:d.source,applied:false,report:''};if(!d.undo){toast('Não há aplicação para desfazer nesta abertura.');return;}el.value=d.undo.value;Object.assign(d,{source:d.undo.source,applied:d.undo.applied,report:d.undo.report,undo:null});voiceStatus(id,'Texto anterior restaurado.');}
+function voiceOriginal(id){if(!voiceIdleRequired())return;const text=voiceSource(id),box=document.getElementById('voiceReview_'+id);box.hidden=false;box.innerHTML='<h4>Transcrição original</h4><textarea rows="10" readonly aria-label="Transcrição original">'+esc(text)+'</textarea>';}
+function voiceMetadata(id){const el=document.getElementById(id),d=voiceNote(id);if(!el||!d)return null;return {version:1,source:d.applied?d.source:el.value,report:d.applied?el.value:'',applied:d.applied,reviewed:false};}
+function voiceSaveAllowed(){if(!voiceIdleRequired())return false;const pending=[...document.querySelectorAll('[id^="micpending_"]')].some(e=>!e.hidden);if(pending){toast('Revise ou descarte o trecho provisório antes de salvar.');return false;}return true;}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&vfcVoice){vfcVoice.message='Ditado pausado ao sair da tela. Toque em Ditar para continuar.';pararDitado();}});
+document.addEventListener('DOMContentLoaded',()=>new MutationObserver(()=>{if(vfcVoice&&!vfcVoice.field.isConnected)voiceCancel();}).observe(document.body,{childList:true,subtree:true}));
 
 // ═══════════ FORMULÁRIOS ═══════════
 function showSheet(title, bodyHTML, footHTML){
+  voiceCancel();
   document.getElementById('modals').innerHTML = `
   <div class="modal" onclick="if(event.target===this)closeSheet()">
     <div class="sheet" role="dialog" aria-modal="true" aria-label="${String(title).replace(/<[^>]*>/g,'')}">
@@ -9721,7 +9478,7 @@ function scrollSheetDown(){
   const mb = document.querySelector('.modal .mb');
   if(mb) mb.scrollBy({ top: mb.clientHeight * 0.7, behavior: 'smooth' });
 }
-function closeSheet(){ document.getElementById('modals').innerHTML=''; }
+function closeSheet(){ voiceCancel(); document.getElementById('modals').innerHTML=''; }
 const val = id => document.getElementById(id)?.value.trim() || '';
 // Envolve o "cabeçalho" de uma aba (título, busca, filtros) num bloco fixo no topo —
 // usado por Pacientes/Financeiro/Agenda/Alertas para que só a lista role.
@@ -10102,13 +9859,14 @@ function openApptForm(petId, editId){
     <label>📋 Prontuário (anamnese, diagnóstico, conduta)</label>
     <textarea id="fPRecord" rows="6" placeholder="Queixa principal:&#10;Anamnese:&#10;Exame físico:&#10;Diagnóstico:&#10;Conduta:">${esc(eA?.record||'')}</textarea>
     ${micBtn('fPRecord', 1)}
-    <div style="font-size:11px;color:var(--muted);margin-top:4px">💡 Fale naturalmente: "queixa principal… anamnese… exame físico… diagnóstico… conduta…". Ao parar, o texto se organiza em seções sozinho.</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px">💡 Faça pausas curtas. Use os botões para marcar seções e gere o relatório depois de revisar a conversa.</div>
     ${eA ? '' : `<label>📅 Agendamento de retorno (opcional)</label>
     <input id="fPRetorno" type="date">`}
     <div style="background:var(--vetbg);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--vet);margin-top:12px">
       Se informar a data, um atendimento "Retorno" será criado automaticamente na linha do tempo e na agenda.</div>`,
     `<button class="btn gray" onclick="closeSheet()">Cancelar</button>
      <button class="btn" onclick="saveAppt('${petId}')">💾 Salvar</button>`);
+  voiceBind('fPRecord',eA?.recordReview,{patient:DB.pets.find(p=>p.id===petId)?.name,tutor:tutorName(DB.pets.find(p=>p.id===petId)),date:eA?.date});
   setTimeout(recalcServTotal, 50); // calcula o total já ao abrir (útil na edição)
 }
 function servItemRow(i, desc='', valor=''){
@@ -10166,7 +9924,7 @@ function collectApptDesp(dateISO, petName){
   });
   return {list: out, bad};
 }
-function recalcServTotal(){
+function recalcServTotal(){ if(!document.getElementById('fPValor'))return;
   let subtotal = 0;
   document.querySelectorAll('#fPItens .sVal').forEach(el => { subtotal += moedaVal(el); });
   // desconto em %
@@ -10302,6 +10060,7 @@ function recalcParcelas(){
     : `Total: ${fmtBRL(total)} · Parcelado: ${fmtBRL(soma)} · <b>Restante: ${fmtBRL(resto)}</b>`;
 }
 function saveAppt(petId, force){
+  if(!voiceSaveAllowed())return;
   const title = val('fPTitle');
   let date = val('fPDate');
   // Data digitada tem prioridade (DD/MM/AAAA → ISO)
@@ -10364,7 +10123,7 @@ function saveAppt(petId, force){
     if(a){
       const rec = val('fPRecord');
       Object.assign(a, {title, resumo:val('fPResumo'), date, time:val('fPTime')||'10:00',
-        clinic:val('fPClinic'), valor, record: rec, desconto: desconto||null,
+        clinic:val('fPClinic'), valor, record: rec, recordReview:voiceMetadata('fPRecord'), desconto: desconto||null,
         meioPag: valor > 0 ? (meioPag||'pix') : null,
         done: date < todayISO() ? 1 : (rec ? (a.done||1) : 0),
         itens: itens.length ? itens : null});
@@ -10385,7 +10144,7 @@ function saveAppt(petId, force){
   const despesas = dc.list;
   pet.appointments.push({
     id:uid(), title, resumo:val('fPResumo'), date, time:val('fPTime')||'10:00',
-    clinic:val('fPClinic'), record:val('fPRecord'),
+    clinic:val('fPClinic'), record:val('fPRecord'), recordReview:voiceMetadata('fPRecord'),
     valor, payStatus, payDue, paidAt, meioPag: valor > 0 ? (meioPag||'pix') : null,
     desconto: desconto||null,
     done: date < todayISO() ? 1 : 0,
@@ -10425,6 +10184,7 @@ function openPhoneForm(petId, editId){
      <button class="btn" onclick="savePhone('${petId}','${editId||''}')">💾 Salvar</button>`);
 }
 function savePhone(petId, editId){
+  if(!voiceSaveAllowed())return;
   const d = parseBRDate(val('fTelDate'));
   if(!d){ toast('⚠ Data inválida — use DD/MM/AAAA'); return; }
   const obs = val('fTelObs');
@@ -10451,13 +10211,15 @@ function openRecordForm(petId, apptId){
     <label>Registro clínico</label>
     <textarea id="fRecord" rows="10" placeholder="Queixa principal:&#10;Anamnese:&#10;Exame físico:&#10;Diagnóstico:&#10;Conduta / Tratamento:&#10;Observações:">${esc(a.record||'')}</textarea>
     ${micBtn('fRecord', 1)}
-    <div style="font-size:11px;color:var(--muted);margin-top:4px">💡 Dite falando os nomes das seções — o app separa e formata para você.</div>`,
+    <div style="font-size:11px;color:var(--muted);margin-top:4px">💡 Marque as seções e revise o relatório antes de salvar.</div>`,
     `<button class="btn gray" onclick="closeSheet()">Cancelar</button>
      <button class="btn" onclick="saveRecord('${petId}','${apptId}')">💾 Salvar Prontuário</button>`);
+  voiceBind('fRecord',a.recordReview,{patient:DB.pets.find(p=>p.id===petId)?.name,tutor:tutorName(DB.pets.find(p=>p.id===petId)),date:a.date});
 }
 function saveRecord(petId, apptId){
+  if(!voiceSaveAllowed())return;
   const a = DB.pets.find(p=>p.id===petId).appointments.find(x=>x.id===apptId);
-  a.record = val('fRecord'); a.resumo = val('fResumo');
+  a.recordReview=voiceMetadata('fRecord'); a.record = val('fRecord'); a.resumo = val('fResumo');
   save(); closeSheet(); render(); toast('📋 Prontuário salvo!');
 }
 
@@ -10492,6 +10254,7 @@ function openRxForm(petId, rxId){
      <button class="btn rx" onclick="saveRx('${petId}','${rxId||''}')">💾 Salvar</button>`);
 }
 function saveRx(petId, rxId){
+  if(!voiceSaveAllowed())return;
   const content = val('fRxContent');
   if(!content){ toast('⚠ Escreva a prescrição'); return; }
   if(document.getElementById('fRxType').value === 'controle' && !isPro()){

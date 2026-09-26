@@ -1,0 +1,15 @@
+VetFlowCare 9.84 — TESTES
+
+Base: ZIP 9.83 fornecido; ditado e revisão do prontuário atualizados.
+
+Extraia e envie TODOS os arquivos desta pasta à raiz do respectivo site.
+Mantenha o endereço de produção existente para preservar o acesso ao banco local dos clientes.
+Publique TESTES em site/origem separado do site dos clientes; não coloque ambas as versões na mesma raiz.
+Faça backup dos dados antes de atualizar. Os ZIPs não contêm seus dados de pacientes.
+A versão de TESTES mantém armazenamento e cache separados e a faixa amarela.
+A versão CLIENTES usa as chaves e o banco de produção e não mostra a faixa amarela.
+
+O ditado requer navegador compatível, HTTPS e, em muitos casos, internet.
+A bateria de voz usa eventos simulados: teste o microfone real no celular antes de liberar aos clientes.
+Revise nomes, negações, doses e unidades. O relatório é rascunho editável e preserva a transcrição original.
+Esta revisão não armazena áudio e não gera diagnóstico ou receita automaticamente.
