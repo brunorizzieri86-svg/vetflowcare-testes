@@ -3209,12 +3209,12 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.84';
+const APP_VER = '9.85';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.84',
+  ver: '9.85',
   titulo: 'Novidades da versão 🚀',
   itens: [
     ['🕊️','Falecidos vão para o final da lista','Na lista de Pacientes, quem tem óbito registrado agora sempre aparece por último — não importa se a ordenação é por nome, tutor ou saúde. Assim os pacientes ativos ficam sempre em primeiro.'],
@@ -8449,7 +8449,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.84 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.85 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -9415,15 +9415,67 @@ let vfcVoice = null, vfcVoiceSeq = 0;
 const voiceNotes = new WeakMap();
 function voiceOK(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
 function voiceNote(id){const el=document.getElementById(id);if(!el)return null;if(!voiceNotes.has(el))voiceNotes.set(el,{source:'',undo:null,report:'',applied:false,segments:[]});return voiceNotes.get(el);}
+// 9.85: anti-repetição — o motor de voz do navegador, ao reiniciar (continuous:true
+// não é realmente contínuo em vários navegadores), às vezes re-transcreve o final do
+// trecho anterior. Essas funções detectam a sobreposição por PALAVRAS (não caracteres,
+// para nunca cortar no meio de uma palavra) e removem o texto duplicado antes de somar.
+function voiceNormWord(w){return (w||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');}
+function voiceWords(t){return (t||'').trim().split(/\s+/).filter(Boolean);}
+function voiceTrimOverlap(base,text){
+  const baseWords=voiceWords(base),textWords=voiceWords(text);
+  if(!baseWords.length||!textWords.length)return text;
+  const maxOverlap=Math.min(baseWords.length,textWords.length,12);
+  for(let n=maxOverlap;n>=2;n--){
+    const tail=baseWords.slice(-n).map(voiceNormWord).join(' ');
+    const head=textWords.slice(0,n).map(voiceNormWord).join(' ');
+    if(tail&&tail===head)return textWords.slice(n).join(' ');
+  }
+  return text;
+}
+function voiceSubseqRatio(aWords,bWords){
+  // fração das palavras de aWords encontrada em bWords, na mesma ordem (permite
+  // palavras extras/inseridas no meio) — detecta quando o motor reemite uma versão
+  // revisada do MESMO trecho (não é conteúdo novo, é o mesmo trecho retranscrito).
+  if(!aWords.length)return 0;
+  let ai=0;
+  for(let bi=0;bi<bWords.length&&ai<aWords.length;bi++){if(bWords[bi]===aWords[ai])ai++;}
+  return ai/aWords.length;
+}
+function voiceMergeChunks(chunks){
+  const out=[];
+  for(const c of chunks){
+    if(!c)continue;
+    const cWords=voiceWords(c).map(voiceNormWord).filter(Boolean);
+    if(!cWords.length)continue;
+    const prev=out[out.length-1];
+    if(prev){
+      const prevWords=voiceWords(prev).map(voiceNormWord).filter(Boolean);
+      const ratio=voiceSubseqRatio(prevWords,cWords);
+      if(ratio>=0.7&&prevWords.length>=2){
+        // o trecho novo é essencialmente uma reemissão/revisão do trecho anterior —
+        // substitui em vez de somar (evita duplicar o mesmo relato duas vezes)
+        out[out.length-1]=c;
+        continue;
+      }
+      const trimmed=voiceTrimOverlap(prev,c);
+      if(trimmed.trim()!==c.trim()){
+        if(trimmed.trim())out.push(trimmed);
+        continue;
+      }
+    }
+    out.push(c);
+  }
+  return out.join(' ');
+}
 function voiceBind(id,meta,context){const el=document.getElementById(id);if(!el)return;const d=voiceNote(id);if(meta){d.source=meta.source||'';d.report=meta.report||'';d.applied=!!meta.applied;d.segments=Array.isArray(meta.segments)?meta.segments:[];}d.context=context||{};}
-function micBtn(id,structured){return `<section class="voice-tools" id="voice_${id}" aria-label="Ditado e revisão"><div class="voice-actions"><button type="button" id="mic_${id}" class="btn sm outline" onclick="toggleDitado('${id}',${structured?1:0})">🎙️ Ditar</button><span id="micst_${id}" role="status" aria-live="polite">Pronto para ditar</span></div><p class="voice-live" id="miclive_${id}" aria-label="Fala provisória" hidden></p><div id="micpending_${id}" hidden><label>Trecho provisório — confira antes de incluir</label><textarea id="micpendingtext_${id}" rows="2"></textarea><button type="button" class="btn sm outline" onclick="voiceUsePending('${id}')">Incluir trecho revisado</button><button type="button" class="btn sm gray" onclick="voiceDiscardPending('${id}')">Descartar trecho</button></div>${structured?`<label for="voiceSpeaker_${id}">Identificar a próxima fala (manual)</label><select id="voiceSpeaker_${id}"><option value="">Sem identificação</option><option>Tutor</option><option>Veterinário</option></select><details><summary>Marcar seção do prontuário</summary><div class="voice-actions">${['Queixa principal','Anamnese','Exame físico','Hipótese diagnóstica','Conduta','Retorno','Observações'].map(x=>`<button type="button" class="btn sm outline" onclick="voiceMark('${id}','${x}')">${x}</button>`).join('')}</div></details><div class="voice-actions voice-review-actions"><button type="button" class="btn sm outline" onclick="voiceReview('${id}','points')">🔎 Pontos-chave</button><button type="button" class="btn sm outline" onclick="voiceReview('${id}','questions')">❓ Perguntas</button><button type="button" class="btn sm outline" onclick="voiceReview('${id}','report')">📋 Gerar relatório</button><button type="button" class="btn sm gray" onclick="voiceOriginal('${id}')">Ver original</button><button type="button" class="btn sm gray" onclick="voiceUndo('${id}')">↶ Desfazer aplicação</button></div><div id="voiceReview_${id}" class="voice-review" hidden></div>`:''}<p class="voice-help">O navegador pode processar áudio em serviço externo e exigir internet. Combine o uso com os participantes. O app não guarda o áudio. Revise nomes, negações, doses e unidades; salve o atendimento para guardar o texto.</p></section>`;}
+function micBtn(id,structured){return `<section class="voice-tools" id="voice_${id}" aria-label="Ditado e revisão"><div class="voice-actions"><button type="button" id="mic_${id}" class="btn sm outline" onclick="toggleDitado('${id}',${structured?1:0})">🎙️ Ditar</button><button type="button" id="voiceEngineBtn_${id}" class="btn sm gray" onclick="toggleVoiceEngine('${id}')" title="Trocar o motor de reconhecimento de voz (experimental)">${voiceEngineLabel()}</button><span id="micst_${id}" role="status" aria-live="polite">Pronto para ditar</span></div><p class="voice-live" id="miclive_${id}" aria-label="Fala provisória" hidden></p><div id="micpending_${id}" hidden><label>Trecho provisório — confira antes de incluir</label><textarea id="micpendingtext_${id}" rows="2"></textarea><button type="button" class="btn sm outline" onclick="voiceUsePending('${id}')">Incluir trecho revisado</button><button type="button" class="btn sm gray" onclick="voiceDiscardPending('${id}')">Descartar trecho</button></div>${structured?`<label for="voiceSpeaker_${id}">Identificar a próxima fala (manual)</label><select id="voiceSpeaker_${id}"><option value="">Sem identificação</option><option>Tutor</option><option>Veterinário</option></select><details><summary>Marcar seção do prontuário</summary><div class="voice-actions">${['Queixa principal','Anamnese','Exame físico','Hipótese diagnóstica','Conduta','Retorno','Observações'].map(x=>`<button type="button" class="btn sm outline" onclick="voiceMark('${id}','${x}')">${x}</button>`).join('')}</div></details><div class="voice-actions voice-review-actions"><button type="button" class="btn sm outline" onclick="voiceReview('${id}','points')">🔎 Pontos-chave</button><button type="button" class="btn sm outline" onclick="voiceReview('${id}','questions')">❓ Perguntas</button><button type="button" class="btn sm outline" onclick="voiceReview('${id}','report')">📋 Gerar relatório</button><button type="button" class="btn sm gray" onclick="voiceOriginal('${id}')">Ver original</button><button type="button" class="btn sm gray" onclick="voiceUndo('${id}')">↶ Desfazer aplicação</button></div><div id="voiceReview_${id}" class="voice-review" hidden></div>`:''}<p class="voice-help">O navegador pode processar áudio em serviço externo e exigir internet. Combine o uso com os participantes. O app não guarda o áudio. Revise nomes, negações, doses e unidades; salve o atendimento para guardar o texto.</p></section>`;}
 function voiceStatus(id,text){const e=document.getElementById('micst_'+id);if(e)e.textContent=text;}
-function voiceBusy(){return !!vfcVoice;}
-function voiceIdleRequired(){if(!voiceBusy())return true;pararDitado();toast('Aguarde o ditado encerrar e toque novamente.');return false;}
-function toggleDitado(id,structured){if(vfcVoice){pararDitado();return;}if(!voiceOK()){voiceStatus(id,'Ditado indisponível neste navegador. Use o microfone do teclado ou digite.');return;}if(!window.isSecureContext){voiceStatus(id,'Abra o app por HTTPS para usar o microfone.');return;}if(!testStorage.getItem('vfc_voice_notice_984')){window._micSeguir=()=>{testStorage.setItem('vfc_voice_notice_984','1');comecarDitado(id,structured);};vfcConfirm({icon:'🎙️',title:'Ditado da conversa',msg:'O reconhecimento de voz pode enviar áudio ao serviço do navegador. O VetFlowCare não armazena o áudio. Avise os participantes e confirme que concordam antes de iniciar.',note:'O texto exige revisão. Não há identificação automática de quem está falando.',noLabel:'Agora não',yesLabel:'Concordo, iniciar',yes:'window._micSeguir && window._micSeguir()'});return;}comecarDitado(id,structured);}
+function voiceBusy(){return !!vfcVoice||!!vfcIaSession;}
+function voiceIdleRequired(){if(!voiceBusy())return true;if(vfcVoice)pararDitado();else if(vfcIaSession)pararDitadoIA();toast('Aguarde o ditado encerrar e toque novamente.');return false;}
+function toggleDitado(id,structured){if(voiceEngine()==='ia'){toggleDitadoIA(id,structured);return;}if(vfcVoice){pararDitado();return;}if(!voiceOK()){voiceStatus(id,'Ditado indisponível neste navegador. Use o microfone do teclado ou digite.');return;}if(!window.isSecureContext){voiceStatus(id,'Abra o app por HTTPS para usar o microfone.');return;}if(!testStorage.getItem('vfc_voice_notice_984')){window._micSeguir=()=>{testStorage.setItem('vfc_voice_notice_984','1');comecarDitado(id,structured);};vfcConfirm({icon:'🎙️',title:'Ditado da conversa',msg:'O reconhecimento de voz pode enviar áudio ao serviço do navegador. O VetFlowCare não armazena o áudio. Avise os participantes e confirme que concordam antes de iniciar.',note:'O texto exige revisão. Não há identificação automática de quem está falando.',noLabel:'Agora não',yesLabel:'Concordo, iniciar',yes:'window._micSeguir && window._micSeguir()'});return;}comecarDitado(id,structured);}
 function comecarDitado(id,structured){if(vfcVoice)return;const field=document.getElementById(id);if(!field||!voiceOK())return;if(!document.getElementById('micpending_'+id)?.hidden){voiceStatus(id,'Revise ou descarte o trecho provisório antes de continuar.');return;}const d=voiceNote(id);if(d.applied){voiceStatus(id,'O relatório já foi aplicado. Use Desfazer aplicação antes de ampliar a transcrição.');return;}const role=document.getElementById('voiceSpeaker_'+id)?.value||'';const s={id,field,structured,role,base:field.value,slots:new Map(),interim:'',want:true,accept:true,restarts:0,empty:0,start:Date.now(),token:++vfcVoiceSeq,oldReadOnly:field.readOnly};vfcVoice=s;field.readOnly=true;const selector=document.getElementById('voiceSpeaker_'+id);if(selector)selector.disabled=true;voiceButton(s,'⏸ Pausar');voiceStatus(id,'Conectando ao microfone…');voiceStartSession(s);}
 function voiceButton(s,text){const e=document.getElementById('mic_'+s.id);if(e){e.textContent=text;e.setAttribute('aria-pressed',String(!!s.want));}}
-function voiceText(s){const confirmed=[...s.slots.entries()].sort((a,b)=>a[0]-b[0]).map(x=>x[1]).filter(Boolean).join(' ').trim();return s.base+(confirmed?(s.base.trim()?'\n':'')+(s.role?s.role+': ':'')+confirmed:'');}
+function voiceText(s){const chunks=[...s.slots.entries()].sort((a,b)=>a[0]-b[0]).map(x=>x[1]).filter(Boolean);const merged=voiceMergeChunks(chunks);const confirmed=merged?voiceTrimOverlap(s.base,merged).trim():'';return s.base+(confirmed?(s.base.trim()?'\n':'')+(s.role?s.role+': ':'')+confirmed:'');}
 function voiceStartSession(s){if(vfcVoice!==s||!s.want||!s.field.isConnected)return voiceFinish(s);const SR=window.SpeechRecognition||window.webkitSpeechRecognition;const r=new SR();s.rec=r;const token=++s.token;s.slots=new Map();s.interim='';s.hadFinal=false;r.lang='pt-BR';r.continuous=true;r.interimResults=true;r.maxAlternatives=1;const valid=()=>vfcVoice===s&&s.token===token&&s.field.isConnected;
  s.startTimer=setTimeout(()=>{if(valid()){s.message='O serviço de voz não iniciou. Tente novamente ou use o teclado.';s.want=false;try{r.abort();}catch(e){}voiceFinish(s);}},8000);
  r.onstart=()=>{if(!valid())return;clearTimeout(s.startTimer);voiceStatus(s.id,'🔴 Ouvindo. Texto provisório aparece abaixo; só o confirmado entra no campo.');};
@@ -9449,12 +9501,31 @@ function voiceUndo(id){if(!voiceIdleRequired())return;const d=voiceNote(id),el=d
 function voiceOriginal(id){if(!voiceIdleRequired())return;const text=voiceSource(id),box=document.getElementById('voiceReview_'+id);box.hidden=false;box.innerHTML='<h4>Transcrição original</h4><textarea rows="10" readonly aria-label="Transcrição original">'+esc(text)+'</textarea>';}
 function voiceMetadata(id){const el=document.getElementById(id),d=voiceNote(id);if(!el||!d)return null;return {version:1,source:d.applied?d.source:el.value,report:d.applied?el.value:'',applied:d.applied,reviewed:false};}
 function voiceSaveAllowed(){if(!voiceIdleRequired())return false;const pending=[...document.querySelectorAll('[id^="micpending_"]')].some(e=>!e.hidden);if(pending){toast('Revise ou descarte o trecho provisório antes de salvar.');return false;}return true;}
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&vfcVoice){vfcVoice.message='Ditado pausado ao sair da tela. Toque em Ditar para continuar.';pararDitado();}});
-document.addEventListener('DOMContentLoaded',()=>new MutationObserver(()=>{if(vfcVoice&&!vfcVoice.field.isConnected)voiceCancel();}).observe(document.body,{childList:true,subtree:true}));
+// ── 9.85: motor de IA (beta) — experimental, desligado por padrão. Usa uma
+// biblioteca de código aberto (Whisper, via transformers.js) rodando 100% no
+// navegador — não é o Claude, não é o mesmo motor do "Ditar" padrão (Web
+// Speech API). Ao contrário do padrão (que ouve em tempo real), este grava o
+// áudio inteiro e só transcreve depois de parar — sem texto provisório ao
+// vivo. Nunca carregado/baixado a menos que o usuário troque o motor.
+let vfcIaSession=null,vfcIaPipelinePromise=null;
+function voiceEngine(){return testStorage.getItem('vfc_voice_engine')||'web';}
+function voiceEngineLabel(){return voiceEngine()==='ia'?'🧪 Motor: IA (beta)':'🧪 Motor: Padrão';}
+function toggleVoiceEngine(id){if(voiceBusy()){toast('Aguarde o ditado atual terminar para trocar de motor.');return;}const next=voiceEngine()==='ia'?'web':'ia';testStorage.setItem('vfc_voice_engine',next);const btn=document.getElementById('voiceEngineBtn_'+id);if(btn)btn.textContent=voiceEngineLabel();if(next==='ia'&&!testStorage.getItem('vfc_voice_ia_notice')){testStorage.setItem('vfc_voice_ia_notice','1');vfcConfirm({icon:'🧪',title:'Motor de IA (beta)',msg:'Este motor experimental usa uma biblioteca de código aberto (Whisper) — não é o Claude, e é diferente do motor "Padrão". Na primeira vez baixa um arquivo de ~40-70MB (precisa de internet); depois funciona offline. Grava tudo primeiro e só transcreve depois de você tocar em Parar — sem texto aparecendo ao vivo.',note:'Ainda pode errar palavras — sempre revise antes de incluir.',single:true,yesLabel:'Entendi'});}}
+function voiceOKIA(){return !!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&typeof MediaRecorder!=='undefined';}
+async function loadIaPipeline(id){if(!vfcIaPipelinePromise){voiceStatus(id,'Carregando biblioteca de IA…');vfcIaPipelinePromise=import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.0').then(({pipeline})=>pipeline('automatic-speech-recognition','onnx-community/whisper-tiny',{progress_callback:(p)=>{if(p&&p.status==='progress'&&p.total){voiceStatus(id,`Baixando modelo de IA… ${Math.round((p.loaded/p.total)*100)}%`);}}}));}return vfcIaPipelinePromise;}
+async function blobToFloat32Mono16k(blob){const arrayBuffer=await blob.arrayBuffer();const AudioCtx=window.AudioContext||window.webkitAudioContext;const tempCtx=new AudioCtx();const decoded=await tempCtx.decodeAudioData(arrayBuffer);try{tempCtx.close();}catch(e){}const targetRate=16000;const offlineCtx=new OfflineAudioContext(1,Math.ceil(decoded.duration*targetRate)+1,targetRate);const source=offlineCtx.createBufferSource();source.buffer=decoded;source.connect(offlineCtx.destination);source.start(0);const rendered=await offlineCtx.startRendering();return rendered.getChannelData(0);}
+function toggleDitadoIA(id,structured){if(vfcIaSession){pararDitadoIA();return;}if(!voiceOKIA()){voiceStatus(id,'Gravação indisponível neste navegador. Use o motor Padrão ou o teclado.');return;}if(!window.isSecureContext){voiceStatus(id,'Abra o app por HTTPS para usar o microfone.');return;}comecarDitadoIA(id,structured);}
+async function comecarDitadoIA(id,structured){const field=document.getElementById(id);if(!field)return;if(!document.getElementById('micpending_'+id)?.hidden){voiceStatus(id,'Revise ou descarte o trecho provisório antes de continuar.');return;}const d=voiceNote(id);if(d.applied){voiceStatus(id,'O relatório já foi aplicado. Use Desfazer aplicação antes de ampliar a transcrição.');return;}try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});const chunks=[];const mr=new MediaRecorder(stream);vfcIaSession={id,field,structured,stream,mediaRecorder:mr,chunks};mr.ondataavailable=e=>chunks.push(e.data);mr.onstop=()=>finishDitadoIA();mr.start();voiceButton({id},'⏹ Parar (IA)');voiceStatus(id,'🔴 Gravando (motor de IA)… toque novamente para parar.');}catch(err){voiceStatus(id,'Não consegui acessar o microfone: '+(err&&err.message?err.message:'permissão negada.'));}}
+function pararDitadoIA(){const s=vfcIaSession;if(!s)return;try{s.mediaRecorder.stop();}catch(e){}voiceStatus(s.id,'Processando áudio…');}
+function voiceCancelIA(){const s=vfcIaSession;if(!s)return;vfcIaSession=null;try{s.mediaRecorder.onstop=null;s.mediaRecorder.stop();}catch(e){}try{s.stream.getTracks().forEach(t=>t.stop());}catch(e){}voiceButton({id:s.id},'🎙️ Ditar');}
+async function finishDitadoIA(){const s=vfcIaSession;if(!s)return;s.stream.getTracks().forEach(t=>t.stop());voiceButton({id:s.id},'🎙️ Ditar');const blob=new Blob(s.chunks,{type:'audio/webm'});vfcIaSession=null;if(!blob.size){voiceStatus(s.id,'Nenhum áudio capturado.');return;}try{voiceStatus(s.id,'Carregando motor de IA (pode demorar na 1ª vez)…');const transcriber=await loadIaPipeline(s.id);voiceStatus(s.id,'Transcrevendo com IA…');const audio=await blobToFloat32Mono16k(blob);const result=await transcriber(audio,{language:'portuguese',task:'transcribe'});const texto=(result&&result.text?result.text:'').trim();if(!texto){voiceStatus(s.id,'Não entendi nenhuma fala. Tente de novo.');return;}const box=document.getElementById('micpending_'+s.id),input=document.getElementById('micpendingtext_'+s.id);if(box&&input){input.value=texto;box.hidden=false;}voiceStatus(s.id,'✅ Transcrito. Revise o trecho abaixo antes de incluir.');}catch(err){voiceStatus(s.id,'Erro no motor de IA: '+(err&&err.message?err.message:err)+' — tente o motor Padrão.');}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){if(vfcVoice){vfcVoice.message='Ditado pausado ao sair da tela. Toque em Ditar para continuar.';pararDitado();}if(vfcIaSession){pararDitadoIA();}}});
+document.addEventListener('DOMContentLoaded',()=>new MutationObserver(()=>{if(vfcVoice&&!vfcVoice.field.isConnected)voiceCancel();if(vfcIaSession&&!vfcIaSession.field.isConnected)voiceCancelIA();}).observe(document.body,{childList:true,subtree:true}));
 
 // ═══════════ FORMULÁRIOS ═══════════
 function showSheet(title, bodyHTML, footHTML){
   voiceCancel();
+  voiceCancelIA();
   document.getElementById('modals').innerHTML = `
   <div class="modal" onclick="if(event.target===this)closeSheet()">
     <div class="sheet" role="dialog" aria-modal="true" aria-label="${String(title).replace(/<[^>]*>/g,'')}">
