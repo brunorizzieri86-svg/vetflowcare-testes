@@ -85,9 +85,14 @@ header{background:linear-gradient(145deg,var(--dark) 0%,#1a3060 60%,rgba(45,192,
 .ring .pct{position:absolute;font-weight:900}
 main{padding:16px}
 .sec{margin-bottom:20px}
-.sec-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.sec-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px}
 .sec-h span{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
-.sec-h button{background:none;color:var(--primary);font-size:12px;font-weight:700;padding:0}
+/* v9.86: botões de ação do cabeçalho de seção (+ Adicionar, + Novo Atendimento,
+   + Registrar, + Novo Receituário, Ver todos →) eram texto sem fundo/borda/padding
+   e sumiam visualmente na tela (feedback do Bruno). Agora usam o mesmo padrão
+   visual de contorno já usado em outros botões secundários do app (equivalente a
+   .btn.sm.outline), aprovado por ele via print (Opção A) antes de entrar no código. */
+.sec-h button{background:var(--surface);color:var(--primary);border:1.5px solid var(--primary);border-radius:20px;padding:6px 13px;font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px;box-shadow:var(--shadow)}
 .card+.card{margin-top:8px}
 .pets-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
@@ -3209,12 +3214,12 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.85';
+const APP_VER = '9.86';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.85',
+  ver: '9.86',
   titulo: 'Novidades da versão 🚀',
   itens: [
     ['🕊️','Falecidos vão para o final da lista','Na lista de Pacientes, quem tem óbito registrado agora sempre aparece por último — não importa se a ordenação é por nome, tutor ou saúde. Assim os pacientes ativos ficam sempre em primeiro.'],
@@ -8449,7 +8454,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.85 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.86 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
