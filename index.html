@@ -3214,14 +3214,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.88';
+const APP_VER = '9.89';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.88',
+  ver: '9.89',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🧪','Motor de IA (beta): corrigida a repetição e o texto inventado','Com o print que você mandou, encontramos a causa certa: o motor de IA repetia trechos em loop e inventava texto em silêncio do início/fim da gravação. Agora o áudio tem o silêncio cortado antes de transcrever e o motor usa configurações que travam a repetição. Ainda é beta — use o motor <b>Padrão</b> se preferir algo 100% confiável.'],
     ['🧪','Motor de IA (beta) mais confiável','Corrigimos o motor experimental de transcrição por IA do Ditado por Voz: agora usa um modelo mais preciso, se recupera sozinho de falhas de conexão (antes travava até reabrir o app) e grava o áudio com cancelamento de ruído/eco. Ainda é beta — use o motor <b>Padrão</b> se preferir.'],
     ['🕊️','Falecidos vão para o final da lista','Na lista de Pacientes, quem tem óbito registrado agora sempre aparece por último — não importa se a ordenação é por nome, tutor ou saúde. Assim os pacientes ativos ficam sempre em primeiro.'],
     ['🔏','Assinatura digital ICP-Brasil de verdade','Cadastrando seu certificado A1 e-CPF em Ajustes, a Receita Simples com assinatura digital já sai do app com a assinatura criptográfica ICP-Brasil aplicada de verdade no PDF — tudo processado só no seu aparelho, sem enviar nada para a internet.'],
@@ -8455,7 +8456,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.88 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.89 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -9571,6 +9572,49 @@ let vfcIaModelAtivo=null;
 function vfcImportTransformers(){return import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.0');}
 async function loadIaPipeline(id){if(!vfcIaPipelinePromise){voiceStatus(id,'Carregando biblioteca de IA…');vfcIaPipelinePromise=(async()=>{const {pipeline}=await (window.vfcImportTransformers||vfcImportTransformers)();try{const p=await pipeline('automatic-speech-recognition',VFC_IA_MODEL_PRINCIPAL,{progress_callback:(pr)=>{if(pr&&pr.status==='progress'&&pr.total){voiceStatus(id,`Baixando modelo de IA… ${Math.round((pr.loaded/pr.total)*100)}%`);}}});vfcIaModelAtivo=VFC_IA_MODEL_PRINCIPAL;return p;}catch(errPrincipal){voiceStatus(id,'Modelo principal indisponível, tentando versão mais leve…');const p=await pipeline('automatic-speech-recognition',VFC_IA_MODEL_RESERVA,{progress_callback:(pr)=>{if(pr&&pr.status==='progress'&&pr.total){voiceStatus(id,`Baixando modelo de IA (leve)… ${Math.round((pr.loaded/pr.total)*100)}%`);}}});vfcIaModelAtivo=VFC_IA_MODEL_RESERVA;return p;}})();vfcIaPipelinePromise.catch(()=>{vfcIaPipelinePromise=null;});}return vfcIaPipelinePromise;}
 async function blobToFloat32Mono16k(blob){const arrayBuffer=await blob.arrayBuffer();const AudioCtx=window.AudioContext||window.webkitAudioContext;const tempCtx=new AudioCtx();const decoded=await tempCtx.decodeAudioData(arrayBuffer);try{tempCtx.close();}catch(e){}const targetRate=16000;const offlineCtx=new OfflineAudioContext(1,Math.ceil(decoded.duration*targetRate)+1,targetRate);const source=offlineCtx.createBufferSource();source.buffer=decoded;source.connect(offlineCtx.destination);source.start(0);const rendered=await offlineCtx.startRendering();return rendered.getChannelData(0);}
+// v9.89 — Bruno mandou o texto REAL que ditou ("o cachorro estava com diarreia há
+// três dias e queríamos receitar um remédio na data de hoje, dia 1/10/2026")
+// comparado com o que saiu ("Eu paciente relato aqui, o cachorro teve de Arrea e
+// Vómito durante três dias. Vamos receitar algum rede de Arrea, para conterem o de
+// Arrea hoje na data de A1 do 10 de 2016. Quem está a feira?"). Isso bate com 2
+// causas raiz bem documentadas e conhecidas do Whisper (confirmadas em várias
+// fontes independentes nesta rodada de pesquisa):
+//  1) REPETIÇÃO EM LOOP ("de Arrea" 3x) — causada pelo próprio modelo se auto-
+//     realimentar com a saída anterior (condition_on_prev_tokens, ligado por
+//     padrão). Corrigido abaixo: condition_on_prev_tokens:false quebra esse loop.
+//  2) TEXTO INVENTADO do nada ("Vómito" que ele nunca falou, "Eu paciente relato
+//     aqui" no início, "Quem está a feira?" no final) — causado pelo modelo tentar
+//     "ouvir fala" em trechos de SILÊNCIO (começo/fim da gravação, antes/depois da
+//     pessoa falar de verdade) e alucinar texto genérico de treino pra preencher.
+//     Corrigido com 2 camadas: vfcTrimSilence() corta o silêncio do início/fim do
+//     áudio ANTES de mandar pro modelo (a causa mais direta), e
+//     no_speech_threshold+no_repeat_ngram_size como reforço extra no próprio motor.
+// Corte de silêncio simples por energia (RMS), sem depender de biblioteca externa:
+// olha em janelas de 20ms, acha onde a fala realmente começa/termina (com uma
+// margem de segurança) e descarta o resto. Se a gravação inteira for silenciosa
+// (não deveria acontecer — já existe aviso separado pra isso), devolve o áudio
+// original sem cortar nada, pra nunca arriscar apagar fala de verdade.
+function vfcTrimSilence(samples,sampleRate){
+  const janela=Math.round(sampleRate*0.02)||320;
+  const margem=Math.round(sampleRate*0.15);
+  const n=samples.length;
+  if(n<janela*2)return samples;
+  let pico=0;
+  for(let i=0;i<n;i++){const v=Math.abs(samples[i]);if(v>pico)pico=v;}
+  if(pico<1e-6)return samples;
+  const limite=pico*0.04;
+  let inicio=-1,fim=-1;
+  for(let i=0;i+janela<=n;i+=janela){
+    let soma=0;for(let j=i;j<i+janela;j++)soma+=samples[j]*samples[j];
+    const rms=Math.sqrt(soma/janela);
+    if(rms>limite){if(inicio===-1)inicio=i;fim=i+janela;}
+  }
+  if(inicio===-1)return samples; // nenhuma janela passou do limite — não corta
+  inicio=Math.max(0,inicio-margem);
+  fim=Math.min(n,fim+margem);
+  if(fim-inicio<sampleRate*0.3)return samples; // sobrou pouco demais — mais seguro não cortar
+  return samples.slice(inicio,fim);
+}
 function toggleDitadoIA(id,structured){if(vfcIaSession){pararDitadoIA();return;}if(!voiceOKIA()){voiceStatus(id,'Gravação indisponível neste navegador. Use o motor Padrão ou o teclado.');return;}if(!window.isSecureContext){voiceStatus(id,'Abra o app por HTTPS para usar o microfone.');return;}comecarDitadoIA(id,structured);}
 async function comecarDitadoIA(id,structured){const field=document.getElementById(id);if(!field)return;if(!document.getElementById('micpending_'+id)?.hidden){voiceStatus(id,'Revise ou descarte o trecho provisório antes de continuar.');return;}const d=voiceNote(id);if(d.applied){voiceStatus(id,'O relatório já foi aplicado. Use Desfazer aplicação antes de ampliar a transcrição.');return;}try{const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});const chunks=[];const mr=new MediaRecorder(stream);vfcIaSession={id,field,structured,stream,mediaRecorder:mr,chunks};mr.ondataavailable=e=>chunks.push(e.data);mr.onstop=()=>finishDitadoIA();mr.start();voiceButton({id},'⏹ Parar (IA)');voiceStatus(id,'🔴 Gravando (motor de IA)… toque novamente para parar.');}catch(err){voiceStatus(id,'Não consegui acessar o microfone: '+(err&&err.message?err.message:'permissão negada.'));}}
 function pararDitadoIA(){const s=vfcIaSession;if(!s)return;try{s.mediaRecorder.stop();}catch(e){}voiceStatus(s.id,'Processando áudio…');}
@@ -9581,7 +9625,7 @@ function voiceCancelIA(){const s=vfcIaSession;if(!s)return;vfcIaSession=null;try
 // Bruno no teste real). Com esses parâmetros, o transformers.js divide o áudio em
 // janelas de 30s com sobreposição de 5s e junta o resultado — comportamento padrão
 // recomendado pela própria biblioteca para áudio longo.
-async function finishDitadoIA(){const s=vfcIaSession;if(!s)return;s.stream.getTracks().forEach(t=>t.stop());voiceButton({id:s.id},'🎙️ Ditar');const blob=new Blob(s.chunks,{type:'audio/webm'});vfcIaSession=null;if(!blob.size){voiceStatus(s.id,'Nenhum áudio capturado.');return;}try{voiceStatus(s.id,'Carregando motor de IA (pode demorar na 1ª vez)…');const transcriber=await loadIaPipeline(s.id);voiceStatus(s.id,'Transcrevendo com IA…');const audio=await blobToFloat32Mono16k(blob);const result=await transcriber(audio,{language:'portuguese',task:'transcribe',chunk_length_s:30,stride_length_s:5,return_timestamps:true,top_k:0,do_sample:false,force_full_sequences:false});const texto=(result&&result.text?result.text:'').trim();if(!texto){voiceStatus(s.id,'Não entendi nenhuma fala. Tente de novo.');return;}const box=document.getElementById('micpending_'+s.id),input=document.getElementById('micpendingtext_'+s.id);if(box&&input){input.value=texto;box.hidden=false;}voiceStatus(s.id,'✅ Transcrito. Revise o trecho abaixo antes de incluir.');}catch(err){voiceStatus(s.id,'Erro no motor de IA: '+(err&&err.message?err.message:err)+' — tente o motor Padrão.');}}
+async function finishDitadoIA(){const s=vfcIaSession;if(!s)return;s.stream.getTracks().forEach(t=>t.stop());voiceButton({id:s.id},'🎙️ Ditar');const blob=new Blob(s.chunks,{type:'audio/webm'});vfcIaSession=null;if(!blob.size){voiceStatus(s.id,'Nenhum áudio capturado.');return;}try{voiceStatus(s.id,'Carregando motor de IA (pode demorar na 1ª vez)…');const transcriber=await loadIaPipeline(s.id);voiceStatus(s.id,'Transcrevendo com IA…');const audioBruto=await blobToFloat32Mono16k(blob);const audio=vfcTrimSilence(audioBruto,16000);const result=await transcriber(audio,{language:'portuguese',task:'transcribe',chunk_length_s:30,stride_length_s:5,return_timestamps:true,top_k:0,do_sample:false,force_full_sequences:false,condition_on_prev_tokens:false,no_speech_threshold:0.6,no_repeat_ngram_size:3});const texto=(result&&result.text?result.text:'').trim();if(!texto){voiceStatus(s.id,'Não entendi nenhuma fala. Tente de novo.');return;}const box=document.getElementById('micpending_'+s.id),input=document.getElementById('micpendingtext_'+s.id);if(box&&input){input.value=texto;box.hidden=false;}voiceStatus(s.id,'✅ Transcrito. Revise o trecho abaixo antes de incluir.');}catch(err){voiceStatus(s.id,'Erro no motor de IA: '+(err&&err.message?err.message:err)+' — tente o motor Padrão.');}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(vfcVoice){vfcVoice.message='Ditado pausado ao sair da tela. Toque em Ditar para continuar.';pararDitado();}if(vfcIaSession){pararDitadoIA();}}});
 document.addEventListener('DOMContentLoaded',()=>new MutationObserver(()=>{if(vfcVoice&&!vfcVoice.field.isConnected)voiceCancel();if(vfcIaSession&&!vfcIaSession.field.isConnected)voiceCancelIA();}).observe(document.body,{childList:true,subtree:true}));
 
