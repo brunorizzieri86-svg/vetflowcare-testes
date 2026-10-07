@@ -3214,14 +3214,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.89';
+const APP_VER = '9.90';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.89',
+  ver: '9.90',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🔏','Certificado A1 agora importa pelo celular','Corrigido: no celular o arquivo do certificado (.p12/.pfx) aparecia bloqueado na hora de escolher. Agora dá pra selecionar normalmente.'],
     ['🧪','Motor de IA (beta): corrigida a repetição e o texto inventado','Com o print que você mandou, encontramos a causa certa: o motor de IA repetia trechos em loop e inventava texto em silêncio do início/fim da gravação. Agora o áudio tem o silêncio cortado antes de transcrever e o motor usa configurações que travam a repetição. Ainda é beta — use o motor <b>Padrão</b> se preferir algo 100% confiável.'],
     ['🧪','Motor de IA (beta) mais confiável','Corrigimos o motor experimental de transcrição por IA do Ditado por Voz: agora usa um modelo mais preciso, se recupera sozinho de falhas de conexão (antes travava até reabrir o app) e grava o áudio com cancelamento de ruído/eco. Ainda é beta — use o motor <b>Padrão</b> se preferir.'],
     ['🕊️','Falecidos vão para o final da lista','Na lista de Pacientes, quem tem óbito registrado agora sempre aparece por último — não importa se a ordenação é por nome, tutor ou saúde. Assim os pacientes ativos ficam sempre em primeiro.'],
@@ -8456,7 +8457,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.89 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.90 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -8520,9 +8521,11 @@ function openAddCertSheet(){
     <div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.6">
       Use seu certificado digital <b>A1 e-CPF</b> para assinar receitas com validade jurídica. O certificado <b>e-CNPJ</b> (usado para notas fiscais) não é aceito.
     </div>
+    <!-- v9.90: sem atributo accept de propósito — no Android o seletor de arquivos deixa .p12/.pfx cinza (não selecionável) quando há filtro de extensão. A validação .p12/.pfx é feita em saveCert(). -->
     <label>Arquivo do certificado (.p12 ou .pfx) *</label>
-    <input type="file" accept=".p12,.pfx" id="fCertFile" aria-label="Arquivo do certificado A1" class="hidden" onchange="onCertFileChosen(this)">
+    <input type="file" id="fCertFile" aria-label="Arquivo do certificado A1" class="hidden" onchange="onCertFileChosen(this)">
     <div class="upbox" id="fCertFileBox" onclick="document.getElementById('fCertFile').click()">📤 Toque para selecionar o arquivo do certificado</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px">No celular, o arquivo pode estar na pasta Downloads ou no Google Drive. Se não aparecer, toque em ☰ e escolha "Arquivos" ou "Downloads".</div>
     <label>Senha do certificado *</label>
     <input type="password" id="fCertPass" placeholder="Senha definida na emissão do certificado">
     <label style="margin-top:10px">Salvar a senha do certificado neste aparelho?</label>
