@@ -3214,14 +3214,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.92';
+const APP_VER = '9.93';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.92',
+  ver: '9.93',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🧾','Receituário mais limpo','Removido o símbolo "Rx" do título da prescrição no receituário. O bloco com o QR Code do validador oficial continua igual.'],
     ['🔏','Receita mais bonita e QR Code garantido','O receituário ganhou novo visual (cabeçalho, quadro do paciente e bloco de assinatura). O QR Code do validador oficial agora aparece sempre no bloco de assinatura digital. Ao cadastrar o certificado, o app confere se a senha abre o arquivo — antes aceitava senha errada e a receita saía sem assinatura. Se a assinatura falhar, o app avisa o motivo e deixa digitar a senha de novo.'],
     ['🔏','Receita assinada: nova tela e já vem marcada','Com o certificado A1 cadastrado e assinatura automática ligada, o receituário novo já vem com a assinatura digital marcada. O PDF assinado agora mostra o QR Code, a data/hora e o tutor, como no padrão ICP-Brasil.'],
     ['🔏','Certificado A1 agora importa pelo celular','Corrigido: no celular o arquivo do certificado (.p12/.pfx) aparecia bloqueado na hora de escolher. Agora dá pra selecionar normalmente.'],
@@ -8459,7 +8460,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.92 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.93 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -10917,7 +10918,7 @@ function printRx(petId, rxId){
     letterheadHTML() +
     `<div class="doctitle">RECEITUÁRIO</div><div class="rxbar"></div>` +
     rxHeaderBlockHTML(pet) +
-    `<div class="rxlbl"><span class="rxsym">Rx</span> PRESCRIÇÃO</div>` +
+    `<div class="rxlbl">PRESCRIÇÃO</div>` +
     `<div class="content" style="min-height:150px">${esc(rx.content)}</div>`;
   const fname = 'Receita_'+(pet.name||'pet').replace(/[^\w]+/g,'_')+'_'+(rx.date||todayISO());
 
