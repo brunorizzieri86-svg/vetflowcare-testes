@@ -598,7 +598,7 @@ nav button{min-width:0}
 @media(max-height:600px){#splash.reg-single{justify-content:flex-start}#splash.reg-single .reg-card{padding:18px 18px}}
 
 </style>
-<script>const testStorage=(()=>{const raw=window.localStorage,prefix='vfc_test::';const keys=()=>Object.keys(raw).filter(k=>k.startsWith(prefix)).map(k=>k.slice(prefix.length));const api={getItem:k=>raw.getItem(prefix+k),setItem:(k,v)=>raw.setItem(prefix+k,v),removeItem:k=>raw.removeItem(prefix+k),clear:()=>keys().forEach(k=>raw.removeItem(prefix+k)),key:i=>keys()[i]||null};return new Proxy({},{get:(_,k)=>k==='length'?keys().length:api[k],ownKeys:keys,getOwnPropertyDescriptor:()=>({enumerable:true,configurable:true})});})();</script><script data-bundled="ui-updates.js">
+<script>const testStorage=(()=>{const raw=window.localStorage,prefix='';const keys=()=>Object.keys(raw).filter(k=>k.startsWith(prefix)).map(k=>k.slice(prefix.length));const api={getItem:k=>raw.getItem(prefix+k),setItem:(k,v)=>raw.setItem(prefix+k,v),removeItem:k=>raw.removeItem(prefix+k),clear:()=>keys().forEach(k=>raw.removeItem(prefix+k)),key:i=>keys()[i]||null};return new Proxy({},{get:(_,k)=>k==='length'?keys().length:api[k],ownKeys:keys,getOwnPropertyDescriptor:()=>({enumerable:true,configurable:true})});})();</script><script data-bundled="ui-updates.js">
 /* Referências oficiais recebidas: arte intacta e controles HTML sobrepostos. */
 // Mostra o erro de validação do cadastro diretamente no campo (borda vermelha + foco), em vez de
 // só num texto pequeno lá embaixo. Se o campo estiver na etapa 1 mas a tela atual for a etapa 2
@@ -3214,14 +3214,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.93';
+const APP_VER = '9.94';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.93',
+  ver: '9.94',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🗂️','Pasta de Termos em cada paciente','Na aba Termos do paciente agora existe a pasta "Termos gerados deste paciente". Todo termo que você gerar fica guardado ali, com data e tutor, e você pode ver/imprimir de novo, enviar pelo WhatsApp, anexar a foto do termo assinado em papel e excluir. A aba mostra quantos termos existem, o PDF sai com nome organizado (ex.: Termo_Anestesico_Vicky_2026-10-10) e a busca 🔍 também encontra os termos.'],
     ['🧾','Receituário mais limpo','Removido o símbolo "Rx" do título da prescrição no receituário. O bloco com o QR Code do validador oficial continua igual.'],
     ['🔏','Receita mais bonita e QR Code garantido','O receituário ganhou novo visual (cabeçalho, quadro do paciente e bloco de assinatura). O QR Code do validador oficial agora aparece sempre no bloco de assinatura digital. Ao cadastrar o certificado, o app confere se a senha abre o arquivo — antes aceitava senha errada e a receita saía sem assinatura. Se a assinatura falhar, o app avisa o motivo e deixa digitar a senha de novo.'],
     ['🔏','Receita assinada: nova tela e já vem marcada','Com o certificado A1 cadastrado e assinatura automática ligada, o receituário novo já vem com a assinatura digital marcada. O PDF assinado agora mostra o QR Code, a data/hora e o tutor, como no padrão ICP-Brasil.'],
@@ -3532,7 +3533,7 @@ function normalizePet(p){
     fertility:'Fértil', tutor:'', tutorId:'', birth:'', weight:0, porte:'Médio',
     chip:'', registry:'', notes:'', photo:null, color:null,
     weightHistory:[], vaccines:[], medications:[],
-    appointments:[], prescriptions:[], documents:[]
+    appointments:[], prescriptions:[], documents:[], termos:[]
   }, p, {species: sp});
   out.vaccines = (out.vaccines||[]).map(v =>
     Object.assign({status: v.applied ? 'aplicada' : 'programada', protocol: 'anual'}, v));
@@ -3643,7 +3644,7 @@ function b64d(str){ const s=atob(str); const u=new Uint8Array(s.length); for(let
 let _idb = null;
 function idbOpen(){
   return new Promise((res, rej) => {
-    const r = indexedDB.open('vetflowcare-tests', 3);
+    const r = indexedDB.open('vetflowcare', 3);
     r.onupgradeneeded = () => {
       const db = r.result;
       if(!db.objectStoreNames.contains('docs')) db.createObjectStore('docs');
@@ -6086,7 +6087,7 @@ function executarBusca(q){
   const term = q.trim().toLowerCase();
 
   // Agrupa resultados por categoria
-  const secPets=[],secTuts=[],secAppts=[],secVacs=[];
+  const secPets=[],secTuts=[],secAppts=[],secVacs=[],secTermos=[];
 
   DB.pets.forEach(pet=>{
     const tut = DB.tutors?.find(t=>t.id===pet.tutorId);
@@ -6111,6 +6112,14 @@ function executarBusca(q){
         secVacs.push({v,pet});
       }
     });
+
+    // v9.94 — termos gerados: busca pelo tipo, paciente, tutor ou procedimento
+    (pet.termos||[]).forEach(r=>{
+      const tn = (TERMS[r.type]?.name||'');
+      const tt = DB.tutors?.find(x=>x.id===r.tutorId) || tut;
+      const hay = (tn+' '+pet.name+' '+(tt?.name||'')+' '+(r.f?.fTProc||'')+' termo').toLowerCase();
+      if(term && hay.includes(term)) secTermos.push({r,pet,tt});
+    });
   });
 
   (DB.tutors||[]).forEach(t=>{
@@ -6124,7 +6133,7 @@ function executarBusca(q){
     return;
   }
 
-  const total = secPets.length+secTuts.length+secAppts.length+secVacs.length;
+  const total = secPets.length+secTuts.length+secAppts.length+secVacs.length+secTermos.length;
   if(!total){
     el.innerHTML = `<div style="text-align:center;color:rgba(255,255,255,.35);padding:40px 0;font-size:14px">Nenhum resultado para "<b style="color:#fff">${esc(q)}</b>"</div>`;
     return;
@@ -6186,6 +6195,22 @@ function executarBusca(q){
         </div>
       </div>`;
     }).join('');
+  }
+
+  if(secTermos.length){
+    html += `<div style="font-size:10px;letter-spacing:2px;color:#2DC0AE;font-weight:800;margin:12px 0 8px">📄 TERMOS (${Math.min(secTermos.length,6)})</div>`;
+    html += secTermos.slice(0,6).map(({r,pet,tt})=>`
+      <div class="busca-termo" onclick="document.getElementById('buscaOverlay')?.remove();openPet('${pet.id}');setTimeout(()=>{currentPetTab='termos';render()},60)"
+        style="background:rgba(255,255,255,.07);border-radius:14px;padding:12px 14px;margin-bottom:8px;cursor:pointer;border:1px solid rgba(255,255,255,.1)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:22px">${TERMS[r.type]?.emo||'📄'}</div>
+          <div style="flex:1">
+            <div style="font-weight:800;color:#fff;font-size:13px">${hl(TERMS[r.type]?.name||'Termo')}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">${hl(pet.name)}${tt?.name?' · '+hl(tt.name):''} · ${fmtDate(r.dt)}${r.foto?' · 📷':''}${r.assin?' · ✅':''}</div>
+          </div>
+          <div style="color:rgba(255,255,255,.3);font-size:18px">›</div>
+        </div>
+      </div>`).join('');
   }
 
   if(secVacs.length){
@@ -6715,7 +6740,7 @@ async function viewTutorFicha(tid){
   }
   const w = window.open('');
   if(!w){ toast('⚠ Permita pop-ups'); return; }
-  w.document.write(`<title>${esc(t.ficha.name)}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${data}" style="max-width:100%;max-height:100vh"><div style="position:fixed;right:0;bottom:0;z-index:10001;background:#ffedb5;color:#665328;font:9px Arial;padding:3px 6px;pointer-events:none">TESTES · DADOS SEPARADOS</div></body>`);
+  w.document.write(`<title>${esc(t.ficha.name)}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${data}" style="max-width:100%;max-height:100vh"></body>`);
 }
 function delTutorFicha(tid){
   askDel('📎 Excluir ficha', 'Deseja excluir <b>a ficha anexada</b> deste tutor?', `doDelTutorFicha('${tid}')`);
@@ -6818,7 +6843,7 @@ function renderPetHero(pet){
       <button class="${currentPetTab==='info'?'on':''}" onclick="currentPetTab='info';render()">Ficha</button>
       <button class="${currentPetTab==='health'?'on':''}" onclick="currentPetTab='health';render()">Saúde</button>
       <button class="${currentPetTab==='rx'?'on':''}" onclick="currentPetTab='rx';render()">Receita</button>
-      <button class="${currentPetTab==='termos'?'on':''}" onclick="currentPetTab='termos';render()">Termos</button>
+      <button class="${currentPetTab==='termos'?'on':''}" onclick="currentPetTab='termos';render()">Termos${(pet.termos||[]).length?' ('+pet.termos.length+')':''}</button>
       <button class="${currentPetTab==='docs'?'on':''}" onclick="currentPetTab='docs';render()">Arquivos</button>
     </div>
   </div>`;
@@ -7479,13 +7504,46 @@ const TERMS = {
 function renderPetTerms(pet){
   return `<div class="sec"><div class="sec-h"><span>📄 Termos e Atestados</span></div>
     <div class="card" style="font-size:12px;color:var(--muted);margin-bottom:10px">
-      Documentos com preenchimento automático dos dados do tutor e do animal, no padrão timbrado do receituário (logo + assinatura). Gere, imprima em PDF e envie ao tutor.</div>
+      Documentos com preenchimento automático dos dados do tutor e do animal, no padrão timbrado do receituário (logo + assinatura). Gere, imprima em PDF e envie ao tutor. Tudo que você gerar fica guardado na <b>pasta abaixo</b>.</div>
     ${Object.entries(TERMS).map(([k,t])=>`<div class="card" style="display:flex;align-items:center;gap:12px">
       <div style="width:44px;height:44px;border-radius:13px;background:var(--rxbg);display:flex;align-items:center;justify-content:center;font-size:21px">${t.emo}</div>
       <div style="flex:1;min-width:0"><b style="font-size:14px">${t.name}</b>
       <div style="color:var(--muted);font-size:11px">${t.desc}</div></div>
       <button class="btn sm rx" onclick="openTermForm('${pet.id}','${k}')">Gerar</button></div>`).join('')}
-  </div>`;
+  </div>
+  ${renderPastaTermos(pet)}`;
+}
+// Pasta de termos gerados do paciente
+function renderPastaTermos(pet){
+  const lista = termosDoPet(pet);
+  const head = `<div class="sec"><div class="sec-h"><span>🗂️ Termos gerados deste paciente (${lista.length})</span></div>`;
+  if(!lista.length) return head + `<div class="card" style="font-size:12px;color:var(--muted);text-align:center;padding:18px 14px">Nenhum termo gerado ainda.<br>Quando você gerar um, ele aparece aqui para consultar, reenviar ou anexar a foto do termo assinado.</div></div>`;
+  return head + lista.map(r => {
+    const t = TERMS[r.type] || {emo:'📄', name:'Termo'};
+    const tut = DB.tutors.find(x=>x.id===r.tutorId) || tutorOf(pet);
+    const p = pet.id, i = r.id;
+    const marks = [
+      r.assin ? '<span style="color:var(--success);font-weight:700">✅ assinado pelo tutor</span>' : '',
+      r.foto ? '<span style="color:var(--success);font-weight:700">📷 foto do termo assinado</span>' : ''
+    ].filter(Boolean).join(' · ');
+    return `<div class="card termrec" data-termid="${i}">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:12px;background:var(--rxbg);display:flex;align-items:center;justify-content:center;font-size:19px">${t.emo}</div>
+        <div style="flex:1;min-width:0"><b style="font-size:13px">${esc(t.name)}</b>
+          <div style="color:var(--muted);font-size:11px">${fmtTermoQuando(r)}${tut?.name?' · '+esc(tut.name):''}${r.f?.fTProc?' · '+esc(r.f.fTProc):''}</div>
+          ${marks?`<div style="font-size:11px;margin-top:2px">${marks}</div>`:''}</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+        <button class="btn sm rx" onclick="reprintTerm('${p}','${i}')">🖨️ Ver / Imprimir</button>
+        <button class="btn sm success" onclick="enviarTermo('${p}','${i}')">📤 Enviar</button>
+        ${r.foto
+          ? `<button class="btn sm outline" onclick="verFotoTermo('${p}','${i}')">📷 Ver foto</button>
+             <button class="btn sm gray" onclick="removerFotoTermo('${p}','${i}')">Trocar/remover foto</button>`
+          : `<label class="btn sm outline" style="cursor:pointer;margin:0">📷 Anexar foto do assinado
+               <input type="file" accept="image/*" style="display:none" onchange="anexarFotoTermo('${p}','${i}',this)"></label>`}
+        <button class="btn sm gray" style="margin-left:auto" onclick="excluirTermo('${p}','${i}')">🗑</button>
+      </div></div>`;
+  }).join('') + '</div>';
 }
 
 function openTermForm(petId, type){
@@ -7657,16 +7715,28 @@ function respSignHTML(assin, quando, tutor, hashSeed){
 // Assinatura capturada para o termo em edição (limpa a cada novo termo)
 let _termAssin = null, _termAssinQuando = null;
 
-function printTerm(petId, type){
-  const pet = DB.pets.find(p=>p.id===petId);
-  const tutor = DB.tutors.find(x=>x.id===resolveTutorId('fTTutor')) || tutorOf(pet);
-  const city = val('fTCity'); DB.vet.city = city; save();
-  const dt = val('fTDate') || todayISO();
-  const F = id => { const v = val(id); return v ? esc(v) : '<span class="fill"></span>'; };
-  if(type !== 'atestado' && (!val('fTVet') || !val('fTCrmv'))){
-    toast('⚠ Preencha o veterinário responsável e o CRMV'); return;
-  }
-  const crmvLine = `${esc(val('fTVet')||DB.vet.name||'')}${(val('fTCrmv')||crmvFull())?', '+esc(val('fTCrmv')||crmvFull()):''}`;
+// ═══ v9.94 — Pasta de Termos por paciente (histórico dos termos gerados) ═══
+// Cada termo gerado vira um registro em pet.termos (dados do formulário + assinatura do
+// tutor). Dá para ver/imprimir de novo, enviar, anexar a foto do termo assinado em papel.
+const TERM_FILE = {atestado:'Atestado_Sanitario', anestesico:'Termo_Anestesico', cirurgia:'Termo_Cirurgico', recusa:'Termo_Recusa'};
+const TERM_FIELDS = ['fTProc','fTObsVet','fTObsTutor','fTRabDate','fTRabVal','fTRabNome','fTRabLab','fTRabLote'];
+function termFileName(type, pet, dt){
+  const nm = String(pet.name||'Paciente').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,'') || 'Paciente';
+  return `${TERM_FILE[type]||'Termo'}_${nm}_${dt}`;
+}
+function collectTermParams(type){
+  const tutor = DB.tutors.find(x=>x.id===resolveTutorId('fTTutor'));
+  const f = {}; TERM_FIELDS.forEach(id => { const v = val(id); if(v) f[id] = v; });
+  return { type, tutorId: tutor?.id||'', city: val('fTCity'), dt: val('fTDate') || todayISO(),
+    vet: val('fTVet'), crmv: val('fTCrmv'), f, assin: _termAssin||null, assinQuando: _termAssinQuando||null };
+}
+function buildTermInner(pet, type, P){
+  const tutor = DB.tutors.find(x=>x.id===P.tutorId) || tutorOf(pet);
+  const city = P.city, dt = P.dt || todayISO();
+  const g = id => id==='fTVet' ? (P.vet||'') : id==='fTCrmv' ? (P.crmv||'') : id==='fTCity' ? (P.city||'') : id==='fTDate' ? dt : (P.f&&P.f[id]||'');
+  const F = id => { const v = g(id); return v ? esc(v) : '<span class="fill"></span>'; };
+  const _termAssin = P.assin, _termAssinQuando = P.assinQuando;
+  const crmvLine = `${esc(g('fTVet')||DB.vet.name||'')}${(g('fTCrmv')||crmvFull())?', '+esc(g('fTCrmv')||crmvFull()):''}`;
   let inner = '';
 
   if(type === 'atestado'){
@@ -7675,7 +7745,7 @@ function printTerm(petId, type){
       <div style="font-size:14px;line-height:2;text-align:justify">
       Atesto para os devidos fins, que o animal acima foi por mim examinado e apresenta bom estado geral de saúde, no momento do exame não manifestou sinais de doenças infecciosas ou parasitárias (pulgas, carrapatos ou miíases).<br><br>
       Encontra-se apto para viajar de avião ou ônibus.<br><br>
-      Realizou a vacinação contra a raiva dia ${val('fTRabDate')?fmtDate(val('fTRabDate')):'____/____/____'}, válida até ${val('fTRabVal')?fmtDate(val('fTRabVal')):'____/____/____'}, vacina com nome comercial ${F('fTRabNome')}, do laboratório ${F('fTRabLab')} e número de lote ${F('fTRabLote')}.
+      Realizou a vacinação contra a raiva dia ${g('fTRabDate')?fmtDate(g('fTRabDate')):'____/____/____'}, válida até ${g('fTRabVal')?fmtDate(g('fTRabVal')):'____/____/____'}, vacina com nome comercial ${F('fTRabNome')}, do laboratório ${F('fTRabLab')} e número de lote ${F('fTRabLote')}.
       <div style="text-align:right;margin-top:22px">Sem mais para o momento,<br>atenciosamente,</div></div>` +
       termDateLine(city, dt) + vetFooterHTML(dt);
   }
@@ -7686,9 +7756,9 @@ function printTerm(petId, type){
       <div style="font-size:13px;line-height:2;text-align:justify">
       Declaro o livre consentimento para a realização ${isCir?'do procedimento cirúrgico':'do(s) procedimento(s) anestésico(s) necessários'}: <b>${F('fTProc')}</b>, no animal acima identificado, a ser realizado pelo(a) Médico(a) Veterinário(a): <b>${crmvLine}</b>.<br><br>
       Declaro ainda, ter sido esclarecido(a) acerca dos riscos inerentes${isCir?', durante ou após a realização do procedimento cirúrgico citado':' ao(s) procedimento(s) proposto(s)'}, estando o(a) profissional isento(a) de quaisquer responsabilidades decorrentes de tais riscos.<br><br>
-      <b>Observações de interesse a serem fornecidas pelo(a) Médico(a) Veterinário(a):</b><br>${val('fTObsVet')?esc(val('fTObsVet')):'________________________________________________________________'}<br><br>
-      <b>Observações de interesse a serem fornecidas pelo(a) tutor(a) / responsável pelo animal:</b><br>${val('fTObsTutor')?esc(val('fTObsTutor')):'________________________________________________________________'}
-      </div>` + termDateLine(city, dt) + respSignHTML(_termAssin, _termAssinQuando, tutor, `${type}|${pet.name}|${val('fTProc')}|${val('fTObsVet')}|${val('fTObsTutor')}|${dt}`) +
+      <b>Observações de interesse a serem fornecidas pelo(a) Médico(a) Veterinário(a):</b><br>${g('fTObsVet')?esc(g('fTObsVet')):'________________________________________________________________'}<br><br>
+      <b>Observações de interesse a serem fornecidas pelo(a) tutor(a) / responsável pelo animal:</b><br>${g('fTObsTutor')?esc(g('fTObsTutor')):'________________________________________________________________'}
+      </div>` + termDateLine(city, dt) + respSignHTML(_termAssin, _termAssinQuando, tutor, `${type}|${pet.name}|${g('fTProc')}|${g('fTObsVet')}|${g('fTObsTutor')}|${dt}`) +
       `<div style="margin-top:40px">${vetFooterHTML(dt)}</div>`;
   }
   if(type === 'recusa'){
@@ -7697,12 +7767,109 @@ function printTerm(petId, type){
       <div style="font-size:13px;line-height:2;text-align:justify">
       Declaro que fui devidamente esclarecido(a) pelo(a) Médico(a) Veterinário(a) <b>${crmvLine}</b> sobre o diagnóstico e a importância do tratamento/procedimento indicado para o animal acima identificado: <b>${F('fTProc')}</b>.<br><br>
       Ainda assim, por livre e espontânea decisão, <b>RECUSO</b> a realização do tratamento/procedimento proposto, assumindo integral responsabilidade pelas consequências desta decisão e isentando o(a) profissional de quaisquer responsabilidades decorrentes desta recusa.<br><br>
-      <b>Motivo da recusa:</b><br>${val('fTObsTutor')?esc(val('fTObsTutor')):'________________________________________________________________'}
-      </div>` + termDateLine(city, dt) + respSignHTML(_termAssin, _termAssinQuando, tutor, `${type}|${pet.name}|${val('fTProc')}|${val('fTObsTutor')}|${dt}`) +
+      <b>Motivo da recusa:</b><br>${g('fTObsTutor')?esc(g('fTObsTutor')):'________________________________________________________________'}
+      </div>` + termDateLine(city, dt) + respSignHTML(_termAssin, _termAssinQuando, tutor, `${type}|${pet.name}|${g('fTProc')}|${g('fTObsTutor')}|${dt}`) +
       `<div style="margin-top:40px">${vetFooterHTML(dt)}</div>`;
   }
+  return inner;
+}
+
+function printTerm(petId, type){
+  const pet = DB.pets.find(p=>p.id===petId);
+  const P = collectTermParams(type);
+  DB.vet.city = P.city; save();
+  if(type !== 'atestado' && (!P.vet || !P.crmv)){
+    toast('⚠ Preencha o veterinário responsável e o CRMV'); return;
+  }
+  salvarTermoGerado(pet, P);   // guarda na pasta de termos do paciente
+  const inner = buildTermInner(pet, type, P);
   closeSheet();
-  printShell(TERMS[type].name + ' — ' + pet.name, inner);
+  printShell(TERMS[type].name + ' — ' + pet.name, inner, termFileName(type, pet, P.dt));
+}
+// Guarda o termo na pasta do paciente. Se já existir um idêntico (mesmo tipo, data e
+// conteúdo), não duplica — apenas atualiza (mantém a foto já anexada).
+function salvarTermoGerado(pet, P){
+  pet.termos = pet.termos || [];
+  const key = JSON.stringify([P.type,P.dt,P.tutorId,P.city,P.vet,P.crmv,P.f]);
+  let rec = pet.termos.find(t => t.key === key);
+  if(rec){
+    if(P.assin && !rec.assin){ rec.assin = P.assin; rec.assinQuando = P.assinQuando; }
+    rec.regen = todayISO();
+  } else {
+    rec = Object.assign({id: uid(), key, created: new Date().toISOString()}, P);
+    pet.termos.unshift(rec);
+  }
+  save();
+  return rec;
+}
+function reprintTerm(petId, termId){
+  const pet = DB.pets.find(p=>p.id===petId); const rec = pet?.termos?.find(t=>t.id===termId);
+  if(!rec){ toast('⚠ Termo não encontrado'); return; }
+  printShell(TERMS[rec.type].name + ' — ' + pet.name, buildTermInner(pet, rec.type, rec), termFileName(rec.type, pet, rec.dt));
+}
+async function enviarTermo(petId, termId){
+  const pet = DB.pets.find(p=>p.id===petId); const rec = pet?.termos?.find(t=>t.id===termId);
+  if(!rec) return;
+  toast('⏳ Preparando o PDF…');
+  await gerarReceitaPdfReal(buildTermInner(pet, rec.type, rec), termFileName(rec.type, pet, rec.dt), null, {share:true, title: TERMS[rec.type].name+' — '+pet.name});
+}
+function termosDoPet(pet){ return (pet.termos||[]).slice().sort((a,b)=>(b.created||'').localeCompare(a.created||'')); }
+function fmtTermoQuando(rec){ return fmtDate(rec.dt); }
+function anexarFotoTermo(petId, termId, input){
+  const file = input.files && input.files[0]; if(!file) return;
+  if(file.size > 20_000_000){ toast('⚠ Arquivo muito grande (máx 20MB)'); return; }
+  const pet = DB.pets.find(p=>p.id===petId); const rec = pet?.termos?.find(t=>t.id===termId);
+  if(!rec) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = async () => {
+      const cv = document.createElement('canvas');
+      const scale = Math.min(1, 1600/Math.max(img.width,img.height));
+      cv.width = Math.round(img.width*scale); cv.height = Math.round(img.height*scale);
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      const id = uid();
+      try{
+        await idbPut(id, cv.toDataURL('image/jpeg',.8));
+        if(rec.foto) idbDel(rec.foto.id);
+        rec.foto = {id, name:'Termo assinado — '+TERMS[rec.type].name, date:todayISO(), kind:'img'};
+        save(); toast('📷 Foto do termo assinado salva!'); render();
+      }catch(err){ toast('⚠ Erro ao salvar a foto'); }
+    };
+    img.onerror = () => toast('⚠ Não consegui abrir essa imagem');
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+async function verFotoTermo(petId, termId){
+  const rec = DB.pets.find(p=>p.id===petId)?.termos?.find(t=>t.id===termId);
+  if(!rec?.foto) return;
+  const data = await idbGet(rec.foto.id);
+  if(!data){ toast('⚠ Foto não encontrada'); return; }
+  document.getElementById('termFotoOv')?.remove();
+  const ov = document.createElement('div');
+  ov.id = 'termFotoOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:#000e;display:flex;flex-direction:column;align-items:center;justify-content:center';
+  ov.innerHTML = `<img src="${data}" style="max-width:100%;max-height:88vh;object-fit:contain" alt="termo assinado">
+    <button class="btn" style="margin-top:14px" onclick="document.getElementById('termFotoOv').remove()">Fechar</button>`;
+  document.body.appendChild(ov);
+}
+function removerFotoTermo(petId, termId){
+  askDel('📷 Remover foto', 'Deseja remover a <b>foto do termo assinado</b>? O termo continua na pasta.', `doRemoverFotoTermo('${petId}','${termId}')`);
+}
+function doRemoverFotoTermo(petId, termId){
+  const rec = DB.pets.find(p=>p.id===petId)?.termos?.find(t=>t.id===termId);
+  if(rec?.foto){ idbDel(rec.foto.id); delete rec.foto; save(); render(); toast('🗑️ Foto removida'); }
+}
+function excluirTermo(petId, termId){
+  askDel('📄 Excluir termo', 'Deseja excluir <b>este termo da pasta</b> (e a foto anexada, se houver)?', `doExcluirTermo('${petId}','${termId}')`);
+}
+function doExcluirTermo(petId, termId){
+  const pet = DB.pets.find(p=>p.id===petId); if(!pet) return;
+  const rec = (pet.termos||[]).find(t=>t.id===termId);
+  if(rec?.foto) idbDel(rec.foto.id);
+  pet.termos = (pet.termos||[]).filter(t=>t.id!==termId);
+  save(); render(); toast('🗑️ Termo excluído');
 }
 
 // ── 🗂️ Arquivo Morto — exportação anual do prontuário (conformidade CFMV) ──
@@ -7994,7 +8161,7 @@ async function viewDoc(petId, docId){
   }
   const w = window.open('');
   if(!w){ toast('⚠ Permita pop-ups para visualizar'); return; }
-  w.document.write(`<title>${esc(d.name)}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${d.data}" style="max-width:100%;max-height:100vh"><div style="position:fixed;right:0;bottom:0;z-index:10001;background:#ffedb5;color:#665328;font:9px Arial;padding:3px 6px;pointer-events:none">TESTES · DADOS SEPARADOS</div></body>`);
+  w.document.write(`<title>${esc(d.name)}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${d.data}" style="max-width:100%;max-height:100vh"></body>`);
   delete d.data;
 }
 function delRecord(petId, coll, id){
@@ -8032,6 +8199,7 @@ function doDeletePet(id){
   const pet = DB.pets.find(p=>p.id===id);
   if(pet?.photoId) idbDel(pet.photoId);
   (pet?.docs||[]).forEach(d => d.idb && idbDel(d.id));
+  (pet?.termos||[]).forEach(t => t.foto && idbDel(t.foto.id));
   DB.pets = DB.pets.filter(p=>p.id!==id);
   save(); closeSheet(); currentPetId=null; goTab('pets'); toast('🗑️ Paciente excluído');
 }
@@ -8460,7 +8628,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.93 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.94 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -8897,7 +9065,7 @@ async function sharePendFile(){
 }
 async function completeBackupSnapshot(){
   const snapshot=JSON.parse(JSON.stringify(DB));
-  const documents=[...snapshot.pets.flatMap(p=>p.documents||[]),...(snapshot.tutors||[]).filter(t=>t.ficha).map(t=>t.ficha)];
+  const documents=[...snapshot.pets.flatMap(p=>[...(p.documents||[]),...(p.termos||[]).map(t=>t.foto).filter(Boolean)]),...(snapshot.tutors||[]).filter(t=>t.ficha).map(t=>t.ficha)];
   for(const doc of documents){
     if(!doc.data)doc.data=await idbGet(doc.id);
     if(!doc.data)throw new Error('Anexo indisponível: '+(doc.name||doc.id));
@@ -8964,7 +9132,7 @@ async function restoreJSONSnapshot(data){
   const candidate=data.version>=4?migrate(data):migrateV3(data);
   const added=[];
   try{
-    const docs=[...candidate.pets.flatMap(p=>p.documents||[]),...(candidate.tutors||[]).filter(t=>t.ficha).map(t=>t.ficha)];
+    const docs=[...candidate.pets.flatMap(p=>[...(p.documents||[]),...(p.termos||[]).map(t=>t.foto).filter(Boolean)]),...(candidate.tutors||[]).filter(t=>t.ficha).map(t=>t.ficha)];
     for(const doc of docs){if(doc.data){const id='restore-'+uid();await idbPut(id,doc.data);added.push(id);doc.id=id;delete doc.data;}}
     clearTimeout(_saveTimer);
     await queueStorage(async()=>{
@@ -10520,8 +10688,8 @@ function signatureHTML(dateISO){
     <div style="font-size:13px;font-weight:700;color:#1A2F5A">${esc(v.name||'Assinatura')}</div>
     <div style="font-size:12px;color:#6B7A8D">${crmvFull()||''}</div></div>`;
 }
-function printShell(title, inner){
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>
+function printShell(title, inner, fileName){
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${fileName||title}</title><style>
     *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;color-adjust:exact !important}
     body{font-family:-apple-system,'Segoe UI',sans-serif;padding:36px;color:#1A2F5A;max-width:720px;margin:0 auto}
     @media print{body{padding:20px}}
@@ -10539,7 +10707,7 @@ function printShell(title, inner){
   </style>
 </head><body>${inner}
   ${isPro()?'':'<div class="wmfree">VERSÃO GRATUITA</div>'}
-  <div class="foot"><b style="color:#1E3A6E;letter-spacing:1px">VetFlowCare</b> · ORGANIZA · CONECTA · CUIDA${isPro()?'':' · Versão gratuita'}</div><div style="position:fixed;right:0;bottom:0;z-index:10001;background:#ffedb5;color:#665328;font:9px Arial;padding:3px 6px;pointer-events:none">TESTES · DADOS SEPARADOS</div></body></html>`;
+  <div class="foot"><b style="color:#1E3A6E;letter-spacing:1px">VetFlowCare</b> · ORGANIZA · CONECTA · CUIDA${isPro()?'':' · Versão gratuita'}</div></body></html>`;
   // Impressão via iframe oculto (funciona mesmo com pop-ups bloqueados)
   document.getElementById('printFrame')?.remove();
   const f = document.createElement('iframe');
@@ -10549,8 +10717,14 @@ function printShell(title, inner){
   const d = f.contentDocument || f.contentWindow.document;
   d.open(); d.write(html); d.close();
   setTimeout(() => {
+    // v9.94: o nome sugerido ao "Salvar como PDF" vem do título da página — usa o nome organizado
+    const oldTitle = document.title;
+    if(fileName){ document.title = fileName; window._lastPrintFileName = fileName; }
+    const back = () => { if(fileName) document.title = oldTitle; };
+    try { f.contentWindow.addEventListener('afterprint', back); } catch(e){}
     try { f.contentWindow.focus(); f.contentWindow.print(); }
-    catch(e){ toast('⚠ Impressão não suportada neste navegador'); }
+    catch(e){ toast('⚠ Impressão não suportada neste navegador'); back(); }
+    if(fileName) setTimeout(back, 60000);
   }, 450);
 }
 
@@ -10682,7 +10856,7 @@ function openSignInfo(){
 // o espaço reservado da assinatura (ByteRange/Contents) ANTES de salvar, e depois
 // embute a assinatura PKCS#7 real por cima, usando @signpdf + node-forge (rodando
 // 100% no navegador — validado em bancada própria antes de entrar aqui).
-async function gerarReceitaPdfReal(innerHTML, fileNameBase, assinarInfo){
+async function gerarReceitaPdfReal(innerHTML, fileNameBase, assinarInfo, modo){
   const holder = document.createElement('div');
   holder.style.cssText = 'position:fixed;left:-9999px;top:0;width:720px;background:#fff;padding:36px;font-family:-apple-system,"Segoe UI",sans-serif;color:#1A2F5A;z-index:-1';
   holder.innerHTML = `<style>
@@ -10751,12 +10925,27 @@ async function gerarReceitaPdfReal(innerHTML, fileNameBase, assinarInfo){
     window._lastRxPdfBytes = bytes.length; // hook usado pelos testes automatizados
     window._lastRxPdfPages = pdfDoc.getPageCount();
     const blob = new Blob([bytes], {type:'application/pdf'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = fileNameBase + '.pdf';
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    window._lastPdfShared = false;
+    let compartilhou = false;
+    if(modo && modo.share){
+      // v9.94: envia direto (WhatsApp, e-mail…) pela folha de compartilhamento do aparelho
+      try{
+        const file = new File([blob], fileNameBase + '.pdf', {type:'application/pdf'});
+        if(navigator.canShare && navigator.canShare({files:[file]})){
+          await navigator.share({files:[file], title: modo.title||fileNameBase});
+          compartilhou = true; window._lastPdfShared = true;
+        }
+      }catch(e){ if(e && e.name === 'AbortError') compartilhou = true; }
+    }
+    if(!compartilhou){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = fileNameBase + '.pdf';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    }
     window._lastRxPdfOk = true;
+    if(modo && modo.share){ toast(window._lastPdfShared ? '📤 Pronto para enviar!' : '📄 PDF baixado — envie pelo WhatsApp/e-mail'); return; }
     toast(window._lastRxSigned ? '🔐 Receita assinada digitalmente e baixada!' : '📄 PDF gerado! Assine com seu certificado (ou gov.br) antes de enviar.');
   } catch(e){
     window._lastRxPdfOk = false;
@@ -11541,5 +11730,5 @@ function afterLGPD(){
 if(!testStorage.getItem('vfc_lgpd'))showLGPD();else afterLGPD();
 </script>
 
-<div style="position:fixed;right:0;bottom:0;z-index:10001;background:#ffedb5;color:#665328;font:9px Arial;padding:3px 6px;pointer-events:none">TESTES · DADOS SEPARADOS</div></body>
+</body>
 </html>
