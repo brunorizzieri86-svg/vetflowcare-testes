@@ -3214,14 +3214,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.91';
+const APP_VER = '9.92';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.91',
+  ver: '9.92',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🔏','Receita mais bonita e QR Code garantido','O receituário ganhou novo visual (cabeçalho, quadro do paciente e bloco de assinatura). O QR Code do validador oficial agora aparece sempre no bloco de assinatura digital. Ao cadastrar o certificado, o app confere se a senha abre o arquivo — antes aceitava senha errada e a receita saía sem assinatura. Se a assinatura falhar, o app avisa o motivo e deixa digitar a senha de novo.'],
     ['🔏','Receita assinada: nova tela e já vem marcada','Com o certificado A1 cadastrado e assinatura automática ligada, o receituário novo já vem com a assinatura digital marcada. O PDF assinado agora mostra o QR Code, a data/hora e o tutor, como no padrão ICP-Brasil.'],
     ['🔏','Certificado A1 agora importa pelo celular','Corrigido: no celular o arquivo do certificado (.p12/.pfx) aparecia bloqueado na hora de escolher. Agora dá pra selecionar normalmente.'],
     ['🧪','Motor de IA (beta): corrigida a repetição e o texto inventado','Com o print que você mandou, encontramos a causa certa: o motor de IA repetia trechos em loop e inventava texto em silêncio do início/fim da gravação. Agora o áudio tem o silêncio cortado antes de transcrever e o motor usa configurações que travam a repetição. Ainda é beta — use o motor <b>Padrão</b> se preferir algo 100% confiável.'],
@@ -8458,7 +8459,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.91 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.92 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -8582,7 +8583,17 @@ function saveCert(){
   if(!cpf || cpf.length!==11){ toast('⚠ Informe um CPF válido'); return; }
   const savePass = !!window._certSavePassPending;
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload = async e => {
+    // v9.92: só aceita o certificado se ele realmente abrir com a senha digitada.
+    const chk = await vfcValidarCertificado(e.target.result, pass);
+    if(!chk.ok){
+      let er = document.getElementById('fCertErr');
+      if(!er){ er = document.createElement('div'); er.id='fCertErr'; er.style.cssText='margin-top:10px;padding:10px 12px;border-radius:10px;background:#FDECEC;color:#B3261E;font-size:12px;font-weight:700;line-height:1.5';
+        document.getElementById('fCertPass').insertAdjacentElement('afterend', er); }
+      er.textContent = '⚠ Não consegui abrir o certificado. A senha está incorreta ou o arquivo não é um certificado A1 válido (.p12/.pfx). Nada foi salvo — confira a senha e tente de novo.';
+      toast('⚠ Senha incorreta ou certificado inválido');
+      return;
+    }
     DB.vet.cert = { fileName: file.name, fileB64: e.target.result, cpf, autoSign: !!window._certAutoSignPending,
       savePassword: savePass, savedPassword: savePass ? pass : null, addedAt: todayISO() };
     window._certPassword = pass; // sempre disponível na sessão atual; só persiste no banco se savePassword=true
@@ -10458,13 +10469,36 @@ function saveRx(petId, rxId){
 }
 
 // ═══════════ IMPRESSÃO: RECEITUÁRIO TIMBRADO ═══════════
+// CSS extra do receituário (v9.92) — compartilhado entre a impressão (printShell) e o PDF real
+// (gerarReceitaPdfReal) para os dois ficarem idênticos.
+const VFC_RX_CSS = `
+  .doctitle{font-size:19px;letter-spacing:5px;margin-bottom:6px}
+  .rxbar{width:70px;height:4px;border-radius:4px;background:#2DC0AE;margin:0 auto 20px}
+  .box.rxinfo{background:#F4FBFA;border:1.5px solid #BFE9E3;border-radius:12px;padding:12px 16px}
+  .rxgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px 18px;font-size:12.5px;line-height:1.5}
+  .rxgrid .full{grid-column:1 / -1}
+  .rxlbl{display:flex;align-items:center;gap:10px;margin:22px 0 4px;color:#1E3A6E;font-weight:900;font-size:13px;letter-spacing:1px}
+  .rxsym{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:30px;color:#2DC0AE;line-height:1}
+  .rxlbl:after{content:'';flex:1;height:1.5px;background:#D3EFEA}
+  .box.sigbox{border:1.5px solid #2DC0AE;border-radius:12px;background:#F7FCFB;padding:14px 16px}
+`;
+// QR que aponta pro validador OFICIAL do governo (nunca pra servidor nosso). Se a biblioteca
+// de QR não estiver carregada devolve '' — o documento sai igual, só sem a imagem.
+function vfcQrImgTag(cell, margin){
+  try{
+    const qr = qrcode(0, 'M');
+    qr.addData('https://validar.iti.gov.br');
+    qr.make();
+    return qr.createImgTag(cell||4, margin||4);
+  }catch(e){ return ''; }
+}
 function letterheadHTML(){
   const v = DB.vet;
-  return `<div style="display:flex;align-items:center;gap:16px;border-bottom:3px solid #2DC0AE;padding-bottom:14px;margin-bottom:20px">
-    ${v.logo?`<img src="${v.logo}" style="height:64px;max-width:120px;object-fit:contain">`:`<div style="width:60px;height:60px;border-radius:12px;background:linear-gradient(135deg,#1E3A6E,#2DC0AE);display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0">🐾</div>`}
+  return `<div style="display:flex;align-items:center;gap:16px;background:linear-gradient(90deg,#EAF8F6,#F7FCFB);border-radius:12px;border-bottom:4px solid #2DC0AE;padding:14px 16px;margin-bottom:22px">
+    ${v.logo?`<img src="${v.logo}" style="height:68px;max-width:120px;object-fit:contain">`:`<div style="width:60px;height:60px;border-radius:12px;background:linear-gradient(135deg,#1E3A6E,#2DC0AE);display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0">🐾</div>`}
     <div>
-      <div style="font-size:19px;font-weight:900;color:#1E3A6E">${esc(v.name||'Profissional')}</div>
-      <div style="font-size:13px;color:#2DC0AE;font-weight:700">${crmvFull()||''}</div>
+      <div style="font-size:20px;font-weight:900;color:#1E3A6E">${esc(v.name||'Profissional')}</div>
+      <div style="font-size:13px;color:#1FA392;font-weight:800">${crmvFull()||''}</div>
       ${v.sipeagro?`<div style="font-size:11px;color:#6B7A8D">SIPEAGRO/MAPA: ${esc(v.sipeagro)}</div>`:''}
       ${v.email?`<div style="font-size:11px;color:#6B7A8D">${esc(v.email)}</div>`:''}
     </div></div>`;
@@ -10499,6 +10533,7 @@ function printShell(title, inner){
     .via{page-break-after:always}
     .via:last-child{page-break-after:auto}
     .vialbl{text-align:right;font-size:10px;font-weight:800;color:#6B7A8D;letter-spacing:1px;margin-bottom:8px}
+    ${VFC_RX_CSS}
     .wmfree{position:fixed;top:42%;left:0;right:0;text-align:center;font-size:40px;font-weight:900;color:rgba(224,82,82,.10);transform:rotate(-24deg);letter-spacing:5px;pointer-events:none;z-index:99}
   </style>
 </head><body>${inner}
@@ -10521,13 +10556,19 @@ function printShell(title, inner){
 // Bloco resumido do tutor + animal (modelo da receita)
 function rxHeaderBlockHTML(pet){
   const t = tutorOf(pet);
-  return `<div class="box">
+  const end = ((t?.address || '') + (t?.cep ? ' · CEP '+t.cep : '')).trim();
+  return `<div class="box rxinfo">
     <b class="bt">TUTOR E ANIMAL</b>
-    <b>Tutor:</b> ${esc(t?.name || tutorName(pet) || '')}<span class="fill" style="min-width:40px"></span><br>
-    <b>CPF:</b> ${t?.cpf ? esc(fmtCPF(t.cpf)) : '<span class="fill" style="min-width:150px"></span>'}<br>
-    <b>Endereço:</b> ${esc(t?.address || '')}${t?.cep ? ' · CEP '+esc(t.cep) : ''}<br>
-    <b>Animal:</b> ${esc(pet.name)} &nbsp;·&nbsp; <b>Idade:</b> ${calcAge(pet.birth)} &nbsp;·&nbsp; <b>Peso:</b> ${pet.weight} kg<br>
-    <b>Espécie:</b> ${esc(pet.species)} &nbsp;·&nbsp; <b>Sexo:</b> ${esc(pet.gender)}${pet.fertility?' ('+esc(pet.fertility)+')':''}
+    <div class="rxgrid">
+      <div><b>Tutor:</b> ${esc(t?.name || tutorName(pet) || '')}</div>
+      <div><b>CPF:</b> ${t?.cpf ? esc(fmtCPF(t.cpf)) : '<span class="fill" style="min-width:110px"></span>'}</div>
+      <div class="full"><b>Endereço:</b> ${esc(end)}</div>
+      <div><b>Animal:</b> ${esc(pet.name)}</div>
+      <div><b>Espécie:</b> ${esc(pet.species)}</div>
+      <div><b>Idade:</b> ${calcAge(pet.birth)}</div>
+      <div><b>Peso:</b> ${pet.weight} kg</div>
+      <div class="full"><b>Sexo:</b> ${esc(pet.gender)}${pet.fertility?' ('+esc(pet.fertility)+')':''}</div>
+    </div>
   </div>`;
 }
 // Dados do veterinário no FINAL do documento (modelo da Linda)
@@ -10545,13 +10586,18 @@ function vetFooterHTML(dateISO){
 }
 function digitalSignHTML(dateISO){
   const v = DB.vet;
-  return `<div class="box" style="margin-top:50px;text-align:center;border-style:dashed">
+  const qr = vfcQrImgTag(4, 4);
+  return `<div class="box sigbox" style="margin-top:44px;text-align:left;border-style:dashed">
     <b class="bt">ASSINATURA DIGITAL</b>
-    <div style="font-size:12px;line-height:1.9">
-      Documento emitido para <b>assinatura eletrônica qualificada (ICP-Brasil)</b>.<br>
-      Assine este PDF com seu certificado digital e-CPF antes de enviar.<br>
-      <b>${esc(v.name||'')}</b> · ${crmvFull()||''} · ${fmtDate(dateISO)}
-      ${v.certInfo?`<br>Certificado: ${esc(v.certInfo)}`:''}
+    <div style="display:flex;gap:16px;align-items:center">
+      ${qr?`<div style="flex-shrink:0">${qr}</div>`:''}
+      <div style="font-size:12px;line-height:1.8">
+        Documento emitido para <b>assinatura eletrônica qualificada (ICP-Brasil)</b>.<br>
+        Assine este PDF com seu certificado digital e-CPF antes de enviar.<br>
+        <b>${esc(v.name||'')}</b> · ${crmvFull()||''} · ${fmtDate(dateISO)}
+        ${v.certInfo?`<br>Certificado: ${esc(v.certInfo)}`:''}
+        <br><span style="color:#6B7A8D;font-size:11px">Depois de assinado, confira em <b>validar.iti.gov.br</b> (QR Code ao lado).</span>
+      </div>
     </div></div>`;
 }
 // Bloco usado quando a receita FOI DE FATO assinada com o certificado A1 cadastrado
@@ -10563,11 +10609,12 @@ function assinaturaCertificadoHTML(dateISO, qrImgTag, pet){
   const agora = new Date();
   const hora = agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const tutor = pet ? tutorName(pet) : '';
-  return `<div class="box" style="margin-top:50px;text-align:left;border-style:solid;border-color:#2DC0AE">
-    <div style="display:flex;gap:14px;align-items:center">
-      ${qrImgTag?`<div style="flex-shrink:0">${qrImgTag}</div>`:''}
-      <div style="font-size:11px;line-height:1.7;color:#1A2F5A">
-        <b style="color:#1E3A6E;font-size:12px">✅ Este documento foi assinado eletronicamente (ICP-Brasil).</b><br>
+  const qr = qrImgTag || vfcQrImgTag(4, 4);
+  return `<div class="box sigbox" style="margin-top:44px;text-align:left">
+    <div style="display:flex;gap:16px;align-items:center">
+      ${qr?`<div style="flex-shrink:0">${qr}</div>`:''}
+      <div style="font-size:11.5px;line-height:1.7;color:#1A2F5A">
+        <b style="color:#1E3A6E;font-size:13px">✅ Este documento foi assinado eletronicamente (ICP-Brasil).</b><br>
         Receita emitida em ${fmtDate(dateISO)} às ${hora} por <b>${esc(v.name||'')}</b> · ${crmvFull()||''}${tutor?` para o tutor <b>${esc(tutor)}</b>`:''}${pet&&pet.name?` (paciente <b>${esc(pet.name)}</b>)`:''}.<br>
         Certificado digital: e-CPF A1.<br>
         <span style="color:#6B7A8D">A autenticidade pode ser verificada em <b>validar.iti.gov.br</b> (escaneie o QR Code e envie este arquivo PDF).</span>
@@ -10644,6 +10691,7 @@ async function gerarReceitaPdfReal(innerHTML, fileNameBase, assinarInfo){
     .box{border:1.5px solid #1A2F5A;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:12px}
     .box b.bt{display:block;font-size:10px;letter-spacing:1px;color:#6B7A8D;margin-bottom:6px}
     .fill{display:inline-block;border-bottom:1px solid #999;min-width:180px}
+    ${VFC_RX_CSS}
   </style>${innerHTML}
   <div class="foot"><b style="color:#1E3A6E;letter-spacing:1px">VetFlowCare</b> · ORGANIZA · CONECTA · CUIDA${isPro()?'':' · Versão gratuita'}</div>`;
   document.body.appendChild(holder);
@@ -10746,6 +10794,43 @@ function cancelarSenhaCertificadoSheet(){
   closeSheet();
 }
 
+// v9.92 — quando a assinatura com o certificado falha, o app NÃO gera mais um PDF "sem
+// assinatura" em silêncio (foi o que enganou a Linda: o PDF saía sem QR e sem aviso claro).
+// Mostra o motivo e deixa o veterinário escolher: digitar a senha de novo ou gerar sem assinar.
+function abrirFalhaAssinaturaSheet(pet, rx, baseHTML, fname, motivo){
+  window._pendingFalhaAssinatura = { pet, rx, baseHTML, fname };
+  showSheet('⚠ Não consegui assinar a receita', `
+    <div style="font-size:13px;line-height:1.7">
+      A receita <b>não foi assinada</b> com o seu certificado digital.<br>
+      Motivo mais comum: <b>senha do certificado incorreta</b>. Confira maiúsculas, minúsculas e números.
+    </div>
+    <div id="falhaAssinaturaMotivo" style="font-size:11px;color:var(--muted);margin-top:10px;word-break:break-word">Detalhe técnico: ${esc(motivo||'desconhecido')}</div>`,
+    `<button class="btn gray" onclick="closeSheet()">Cancelar</button>
+     <button class="btn outline" onclick="falhaAssinaturaGerarSemAssinar()">📄 Gerar sem assinatura</button>
+     <button class="btn" onclick="falhaAssinaturaTentarDeNovo()">🔑 Digitar a senha de novo</button>`);
+}
+function falhaAssinaturaTentarDeNovo(){
+  const x = window._pendingFalhaAssinatura; closeSheet();
+  if(x) setTimeout(()=>iniciarAssinaturaReceita(x.pet, x.rx, x.baseHTML, x.fname), 120);
+}
+function falhaAssinaturaGerarSemAssinar(){
+  const x = window._pendingFalhaAssinatura; closeSheet();
+  if(!x) return;
+  const inner = x.baseHTML + (x.rx.sign==='ambas' ? vetFooterHTML(x.rx.date) + digitalSignHTML(x.rx.date) : digitalSignHTML(x.rx.date));
+  gerarReceitaPdfReal(inner, x.fname);
+}
+// v9.92 — confere se o arquivo .p12/.pfx abre com a senha informada. Devolve {ok, erro}.
+// Sem isso o app aceitava qualquer senha no cadastro e só falhava depois, na hora de assinar.
+async function vfcValidarCertificado(dataUrl, senha){
+  try{
+    if(!window.VfcSign || !window.Buffer) return { ok:true, pulou:true };
+    const bytes = window.Buffer.from(String(dataUrl).split(',').pop(), 'base64');
+    const signer = new window.VfcSign.P12Signer(bytes, { passphrase: senha });
+    await signer.sign(window.Buffer.from('validacao'), new Date());
+    return { ok:true };
+  }catch(e){ return { ok:false, erro:(e&&e.message)||String(e) }; }
+}
+
 function iniciarAssinaturaReceita(pet, rx, baseHTML, fname){
   if(!window._certPassword){
     abrirSenhaCertificadoSheet((senha) => {
@@ -10771,18 +10856,16 @@ async function prosseguirAssinaturaReceita(pet, rx, baseHTML, fname){
   } catch(e){
     window._lastRxSigned = false;
     window._lastRxSignErr = e.message;
-    toast('⚠ Senha do certificado incorreta (ou arquivo inválido). Gerando a receita sem a assinatura automática — assine manualmente.');
-    const rxInnerFallback = baseHTML + (rx.sign==='ambas' ? vetFooterHTML(rx.date) + digitalSignHTML(rx.date) : digitalSignHTML(rx.date));
-    gerarReceitaPdfReal(rxInnerFallback, fname);
+    // v9.92: a senha que não funcionou NÃO pode ficar em memória (antes ela era reaproveitada
+    // pra sempre e o app nunca mais pedia a senha, gerando receitas sem assinatura em silêncio).
+    window._certPassword = null;
+    abrirFalhaAssinaturaSheet(pet, rx, baseHTML, fname, e.message);
     return;
   }
 
   // Senha OK — monta o QR (aponta pro validador OFICIAL do governo, nunca pra um
   // servidor nosso) e o bloco "assinado de verdade", e manda assinar o PDF real.
-  const qr = qrcode(0, 'M');
-  qr.addData('https://validar.iti.gov.br');
-  qr.make();
-  const qrImgTag = qr.createImgTag(3, 4);
+  const qrImgTag = vfcQrImgTag(4, 4);
   const rxInnerAssinado = baseHTML + (rx.sign==='ambas' ? vetFooterHTML(rx.date) + assinaturaCertificadoHTML(rx.date, qrImgTag, pet) : assinaturaCertificadoHTML(rx.date, qrImgTag, pet));
   gerarReceitaPdfReal(rxInnerAssinado, fname, { p12Bytes, senha });
 }
@@ -10832,9 +10915,10 @@ function printRx(petId, rxId){
   // Receita Simples — tutor/animal resumidos no topo, dados do veterinário no final
   const baseHTML =
     letterheadHTML() +
-    `<div class="doctitle">RECEITUÁRIO</div>` +
+    `<div class="doctitle">RECEITUÁRIO</div><div class="rxbar"></div>` +
     rxHeaderBlockHTML(pet) +
-    `<div class="content">${esc(rx.content)}</div>`;
+    `<div class="rxlbl"><span class="rxsym">Rx</span> PRESCRIÇÃO</div>` +
+    `<div class="content" style="min-height:150px">${esc(rx.content)}</div>`;
   const fname = 'Receita_'+(pet.name||'pet').replace(/[^\w]+/g,'_')+'_'+(rx.date||todayISO());
 
   // Com certificado A1 cadastrado (e conta Pro), a Receita Simples com assinatura
