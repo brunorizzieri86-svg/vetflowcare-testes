@@ -3214,14 +3214,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.90';
+const APP_VER = '9.91';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.90',
+  ver: '9.91',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🔏','Receita assinada: nova tela e já vem marcada','Com o certificado A1 cadastrado e assinatura automática ligada, o receituário novo já vem com a assinatura digital marcada. O PDF assinado agora mostra o QR Code, a data/hora e o tutor, como no padrão ICP-Brasil.'],
     ['🔏','Certificado A1 agora importa pelo celular','Corrigido: no celular o arquivo do certificado (.p12/.pfx) aparecia bloqueado na hora de escolher. Agora dá pra selecionar normalmente.'],
     ['🧪','Motor de IA (beta): corrigida a repetição e o texto inventado','Com o print que você mandou, encontramos a causa certa: o motor de IA repetia trechos em loop e inventava texto em silêncio do início/fim da gravação. Agora o áudio tem o silêncio cortado antes de transcrever e o motor usa configurações que travam a repetição. Ainda é beta — use o motor <b>Padrão</b> se preferir algo 100% confiável.'],
     ['🧪','Motor de IA (beta) mais confiável','Corrigimos o motor experimental de transcrição por IA do Ditado por Voz: agora usa um modelo mais preciso, se recupera sozinho de falhas de conexão (antes travava até reabrir o app) e grava o áudio com cancelamento de ruído/eco. Ainda é beta — use o motor <b>Padrão</b> se preferir.'],
@@ -8457,7 +8458,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.90 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.91 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -10418,9 +10419,10 @@ function openRxForm(petId, rxId){
       <option value="controle" ${rx?.type==='controle'?'selected':''}>Receita de Controle Especial (2 vias)${isPro()?'':' — ✨ Pro'}</option>
     </select>
     <label>Forma de assinatura</label>
+    ${(() => { window._rxSignAutoDefault = !rx && !!(DB.vet.cert && DB.vet.cert.autoSign && isPro()); return ''; })()}
     <select id="fRxSign">
-      <option value="imagem" ${(!rx||(rx.sign!=='digital'&&rx.sign!=='ambas'))?'selected':''}>🖊️ Assinatura em imagem (carimbo/manuscrita)</option>
-      <option value="digital" ${rx?.sign==='digital'?'selected':''}>💻 Assinatura digital ICP-Brasil (assinar o PDF depois)</option>
+      <option value="imagem" ${(!window._rxSignAutoDefault && (!rx||(rx.sign!=='digital'&&rx.sign!=='ambas')))?'selected':''}>🖊️ Assinatura em imagem (carimbo/manuscrita)</option>
+      <option value="digital" ${(rx?.sign==='digital'||window._rxSignAutoDefault)?'selected':''}>💻 Assinatura digital ICP-Brasil${(DB.vet.cert&&isPro())?' (assina automático com seu certificado)':' (assinar o PDF depois)'}</option>
       <option value="ambas" ${rx?.sign==='ambas'?'selected':''}>🖊️+💻 As duas no mesmo documento (imagem + ICP-Brasil)</option>
     </select>
     <div style="font-size:11px;color:var(--muted);margin-top:4px">
@@ -10556,16 +10558,19 @@ function digitalSignHTML(dateISO){
 // (Etapa 3 — assinatura criptográfica real, verificada por dentro antes de gerar este
 // HTML). Só é honesto porque neste ponto a assinatura já existe de verdade no PDF —
 // nunca usar este texto sem antes ter confirmado que signpdf.sign() teve sucesso.
-function assinaturaCertificadoHTML(dateISO, qrImgTag){
+function assinaturaCertificadoHTML(dateISO, qrImgTag, pet){
   const v = DB.vet;
-  return `<div class="box" style="margin-top:50px;text-align:center;border-style:solid;border-color:#2DC0AE">
-    <div style="display:flex;gap:14px;align-items:center;text-align:left">
+  const agora = new Date();
+  const hora = agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const tutor = pet ? tutorName(pet) : '';
+  return `<div class="box" style="margin-top:50px;text-align:left;border-style:solid;border-color:#2DC0AE">
+    <div style="display:flex;gap:14px;align-items:center">
       ${qrImgTag?`<div style="flex-shrink:0">${qrImgTag}</div>`:''}
-      <div style="font-size:11px;line-height:1.8;color:#1A2F5A">
-        <b style="color:#1E3A6E">✅ Assinado digitalmente (ICP-Brasil)</b><br>
-        <b>${esc(v.name||'')}</b> · ${crmvFull()||''}<br>
-        Certificado: e-CPF A1 · ${fmtDate(dateISO)}<br>
-        <span style="color:#6B7A8D">Para verificar a autenticidade, acesse <b>validar.iti.gov.br</b> e envie este arquivo PDF.</span>
+      <div style="font-size:11px;line-height:1.7;color:#1A2F5A">
+        <b style="color:#1E3A6E;font-size:12px">✅ Este documento foi assinado eletronicamente (ICP-Brasil).</b><br>
+        Receita emitida em ${fmtDate(dateISO)} às ${hora} por <b>${esc(v.name||'')}</b> · ${crmvFull()||''}${tutor?` para o tutor <b>${esc(tutor)}</b>`:''}${pet&&pet.name?` (paciente <b>${esc(pet.name)}</b>)`:''}.<br>
+        Certificado digital: e-CPF A1.<br>
+        <span style="color:#6B7A8D">A autenticidade pode ser verificada em <b>validar.iti.gov.br</b> (escaneie o QR Code e envie este arquivo PDF).</span>
       </div>
     </div></div>`;
 }
@@ -10778,7 +10783,7 @@ async function prosseguirAssinaturaReceita(pet, rx, baseHTML, fname){
   qr.addData('https://validar.iti.gov.br');
   qr.make();
   const qrImgTag = qr.createImgTag(3, 4);
-  const rxInnerAssinado = baseHTML + (rx.sign==='ambas' ? vetFooterHTML(rx.date) + assinaturaCertificadoHTML(rx.date, qrImgTag) : assinaturaCertificadoHTML(rx.date, qrImgTag));
+  const rxInnerAssinado = baseHTML + (rx.sign==='ambas' ? vetFooterHTML(rx.date) + assinaturaCertificadoHTML(rx.date, qrImgTag, pet) : assinaturaCertificadoHTML(rx.date, qrImgTag, pet));
   gerarReceitaPdfReal(rxInnerAssinado, fname, { p12Bytes, senha });
 }
 

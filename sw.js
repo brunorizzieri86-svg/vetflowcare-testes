@@ -1,8 +1,8 @@
-// VetFlowCare — Service Worker v9.90 — TESTES
+// VetFlowCare — Service Worker v9.91 — TESTES
 // Estratégia: Network-First (busca atualização na rede; cache só responde offline)
 // B&G Systems | Todos os direitos reservados
 
-const CACHE = 'vfc-test-v9.90';
+const CACHE = 'vfc-test-v9.91';
 
 // 9.74: cadastro em tela única, sem fotos de animais — register-data-art.png e
 // register-security-art.png não são mais usados nessa tela e saíram do pré-cache.
