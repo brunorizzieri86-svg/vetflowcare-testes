@@ -225,6 +225,43 @@ canvas{width:100%!important}
 #installBanner{background:var(--dark);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:10px;font-size:13px}
 #installBanner button{background:var(--primary);color:#fff;border-radius:16px;padding:6px 14px;font-size:12px;font-weight:700}
 .rxcontent{white-space:pre-wrap;font-size:13px;color:var(--text);background:var(--bg);border-radius:10px;padding:10px 12px;margin-top:8px;max-height:120px;overflow:hidden}
+/* ═══ v9.95 — Tour guiado por botões + Aulas práticas ═══ */
+.tour-layer{position:fixed;inset:0;z-index:9000}
+.tour-block{position:absolute;inset:0;background:transparent}
+.tour-layer.nohole .tour-block{background:rgba(10,20,50,.66)}
+.tour-hole{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(10,20,50,.66);border:2.5px solid var(--primary);pointer-events:none;transition:left .22s,top .22s,width .22s,height .22s}
+.tour-box{position:fixed;background:var(--surface);color:var(--text);border-radius:18px;padding:16px 16px 14px;box-shadow:0 18px 50px #0007;border:1px solid var(--border);width:min(380px,calc(100vw - 24px));max-height:70vh;overflow:auto}
+.tour-box.center{left:50%;top:50%;transform:translate(-50%,-50%)}
+.tour-kicker{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--primary)}
+.tour-box h3{margin:4px 0 6px;font-size:17px;color:var(--text)}
+.tour-box p{margin:0 0 8px;font-size:14px;line-height:1.6;color:var(--text)}
+.tour-tip{background:rgba(45,192,174,.12);border:1px solid rgba(45,192,174,.4);border-radius:10px;padding:7px 10px;font-size:12.5px;margin-bottom:8px;line-height:1.5}
+.tour-miss{background:var(--bg);border-radius:10px;padding:7px 10px;font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5}
+.tour-prog{height:5px;background:var(--border);border-radius:99px;overflow:hidden;margin:8px 0 10px}
+.tour-prog i{display:block;height:100%;background:var(--primary)}
+.tour-btns{display:flex;gap:8px;align-items:center}.tour-btns .grow{flex:1}
+.tour-btns .btn{width:auto;padding:9px 14px;font-size:13px}
+@media(max-width:699px){.tour-box:not(.center){left:12px;right:12px;top:auto;bottom:12px;width:auto;max-height:46vh}.tour-box.top:not(.center){top:12px;bottom:auto}}
+.tour-tabs{display:flex;gap:8px;margin-bottom:12px}
+.tour-tabs button{flex:1;padding:10px 8px;border-radius:12px;border:2px solid var(--border);background:var(--surface);color:var(--text);font-weight:800;font-size:13px}
+.tour-tabs button.on{border-color:var(--primary);background:rgba(45,192,174,.12);color:var(--primary)}
+.tour-cat{margin:14px 0 6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.tour-card-mod{display:flex;gap:10px;align-items:center;border:2px solid var(--border);background:var(--surface);border-radius:14px;padding:10px 12px;cursor:pointer;margin-bottom:8px}
+.tour-card-mod.on{border-color:var(--primary);background:rgba(45,192,174,.1)}
+.tour-card-mod .grow{flex:1;min-width:0}.tour-card-mod b{display:block;font-size:14px}
+.tour-card-mod small{display:block;font-size:12px;color:var(--muted);line-height:1.4}
+.tour-card-mod .btn{width:auto;flex:none;padding:7px 11px;font-size:12px}
+.tour-mico{font-size:24px;flex:none}
+.tour-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.tour-actions .btn{width:auto;flex:1;min-width:130px}
+.lesson-card.done{border-color:var(--success)}
+.lesson-bar{position:fixed;left:10px;right:10px;top:max(8px,env(safe-area-inset-top));z-index:9001;max-width:460px;margin:0 auto;background:var(--dark);color:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 10px 30px #0006;border:1.5px solid var(--primary);font-size:12.5px;line-height:1.45}
+.lesson-bar .lb-title{display:block;font-size:12.5px;color:var(--primary);margin-bottom:2px}.lesson-bar .lb-body b{display:inline;color:#fff;margin:0}
+.lesson-bar .lb-btns{display:flex;gap:8px;margin-top:7px}
+.lesson-bar .lb-btns button{background:rgba(255,255,255,.14);color:#fff;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700}
+.lesson-bar.min{padding:8px 12px;cursor:pointer}.lesson-bar.min .lb-body,.lesson-bar.min .lb-btns{display:none}
+.tour-pulse{outline:3px solid var(--primary)!important;outline-offset:3px;border-radius:12px;animation:tourPulse 1.1s ease-in-out infinite}
+@keyframes tourPulse{0%,100%{outline-color:var(--primary)}50%{outline-color:rgba(45,192,174,.2)}}
+.tour-home-card{border:1.5px solid var(--primary);background:rgba(45,192,174,.08);margin-bottom:14px}
 </style>
 
 <style id="access-refresh">
@@ -3214,14 +3251,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.94';
+const APP_VER = '9.95';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.94',
+  ver: '9.95',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🧭','Tour guiado por botões e Aulas práticas','Novo jeito de aprender o app: o Tour guiado escurece a tela, destaca o botão de verdade e explica para que serve, módulo por módulo (instalar o app, Início, dados profissionais, tutores, pacientes, saúde, receitas, termos, agenda, financeiro, backup e mais). E as Aulas práticas ensinam fazendo, com os seus dados: preencher seus dados, cadastrar o primeiro tutor e paciente, registrar vacina, atendimento, receita e termo e fazer o backup. Abra em Ajustes → Tour guiado e aulas. Substitui o tutorial antigo.'],
     ['🗂️','Pasta de Termos em cada paciente','Na aba Termos do paciente agora existe a pasta "Termos gerados deste paciente". Todo termo que você gerar fica guardado ali, com data e tutor, e você pode ver/imprimir de novo, enviar pelo WhatsApp, anexar a foto do termo assinado em papel e excluir. A aba mostra quantos termos existem, o PDF sai com nome organizado (ex.: Termo_Anestesico_Vicky_2026-10-10) e a busca 🔍 também encontra os termos.'],
     ['🧾','Receituário mais limpo','Removido o símbolo "Rx" do título da prescrição no receituário. O bloco com o QR Code do validador oficial continua igual.'],
     ['🔏','Receita mais bonita e QR Code garantido','O receituário ganhou novo visual (cabeçalho, quadro do paciente e bloco de assinatura). O QR Code do validador oficial agora aparece sempre no bloco de assinatura digital. Ao cadastrar o certificado, o app confere se a senha abre o arquivo — antes aceitava senha errada e a receita saía sem assinatura. Se a assinatura falhar, o app avisa o motivo e deixa digitar a senha de novo.'],
@@ -3303,14 +3341,14 @@ function showWhatsNew(){
         <div style="font-size:13px;color:var(--muted);margin-top:3px;line-height:1.6">${d}</div></div>
       </div>`).join('')}
     <div style="font-size:14px;line-height:1.8;margin-top:14px">
-    Quer ver como usar? O guia completo está em <b>Ajustes → 📖 Ver Tutorial do App</b>.<br><br>
+    Quer ver como usar? O guia completo está em <b>Ajustes → 🧭 Tour guiado e aulas</b>.<br><br>
     Continue mandando ideias — este app é construído junto com quem usa. 💙<br>
     Bom trabalho e ótimos atendimentos! 🐾<br>
     <span style="color:var(--muted);font-size:12px">— Claudinho & equipe B&G Systems</span></div>
     <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
       ${blocoComunidadeSutil()}
     </div>`,
-    `<button class="btn gray" onclick="testStorage.setItem('vfc_seen_ver', APP_VER);closeSheet();openTutorial(0)">📖 Ver tutorial</button>
+    `<button class="btn gray" onclick="testStorage.setItem('vfc_seen_ver', APP_VER);closeSheet();tourOpenChooser('tour')">🧭 Tour e aulas</button>
      <button class="btn" onclick="testStorage.setItem('vfc_seen_ver', APP_VER);closeSheet()">Vamos lá! ✨</button>`);
   testStorage.setItem('vfc_seen_ver', APP_VER);
 }
@@ -5842,214 +5880,430 @@ function saveVetSetup(){
   }
 }
 
-// ═══ TUTORIAL GUIADO ═══
-const TUT_STEPS = [
-  {emo:'🐾', title:'Bem-vindo(a) ao VetFlowCare!',
-   body:`Sua clínica completa no bolso: <b>Organiza · Conecta · Cuida</b>.<br><br>
-   ✅ Funciona <b>offline</b> — os dados ficam no seu aparelho<br>
-   ✅ <b>Instale na tela inicial</b>: menu do navegador → "Adicionar à tela inicial"<br>
-   ✅ Proteja tudo com <b>senha criptografada</b> e <b>backups</b><br><br>
-   Este guia mostra <b>cada módulo</b> do sistema. Pode pular e rever quando quiser em <b>Ajustes → Ajuda</b>.`,
-   action:{label:'📲 Instalar o App agora (1º passo!)', fn:'promptInstall()'}},
-  {emo:'🎁', title:'Seu teste grátis já está ativo!',
-   body:`<div style="background:linear-gradient(135deg,rgba(45,192,174,.12),rgba(78,142,172,.12));border:1.5px solid var(--primary);border-radius:12px;padding:12px 14px;margin-bottom:10px">
-   <b style="color:var(--primary);font-size:14px">✅ Acesso completo liberado por 30 dias — sem código, sem pagamento!</b></div>
-   Ao criar sua conta, o teste já começou automaticamente. Você pode explorar <b>tudo</b> sem precisar falar com ninguém:<br><br>
-   • 🐾 Pacientes <b>ilimitados</b><br>
-   • 💰 <b>Financeiro completo</b>: fluxo de caixa, despesas, relatórios<br>
-   • 💬 <b>Cobrança pelo WhatsApp</b> com um toque<br>
-   • 🎨 Sua <b>logo e assinatura</b> nos documentos<br>
-   • 💊 <b>Controle Especial</b> · sem marca-d'água<br><br>
-   Ao fim dos 30 dias, se quiser continuar, é só assinar o Plano Pro em <b>Ajustes → ✨ Pro</b>. <b>Seus dados ficam salvos</b> independente de qualquer coisa.`,
-   action:{label:'🚀 Entendi, vamos explorar!', fn:'finishTutorial(true)'}},
-  {emo:'🏠', title:'Início — seu painel do dia',
-   body:`Ao abrir, você vê tudo que importa <b>hoje</b>:<br><br>
-   • <b>Índice de saúde</b>: anel com a média dos pacientes<br>
-   • <b>📅 Próximos 7 dias</b>: vacinas, atendimentos e pagamentos chegando<br>
-   • <b>Banner vermelho</b> = algo vencido; toque para resolver<br>
-   • <b>💰 Financeiro</b>: acesso discreto ao módulo completo`},
-  {emo:'👤', title:'Tutores — cadastre primeiro o responsável',
-   body:`Em <b>Pacientes → aba Tutores</b>:<br><br>
-   • Digite o <b>CEP</b> e o endereço preenche sozinho<br>
-   • O telefone vira botão do <b>WhatsApp</b> no perfil<br>
-   • O perfil tem abas <b>Responsável / Animais</b> — e "Adicionar animal" já vinculado<br>
-   • Anexe a <b>ficha de cadastro</b> em papel (foto ou PDF)<br><br>
-   Os dados do tutor entram sozinhos em receitas e termos!`,
-   action:{label:'👤 Cadastrar meu primeiro tutor', fn:'startFirstPatient()'}},
-  {emo:'🐕', title:'Animais — a ficha de cada paciente',
-   body:`Em <b>Pacientes → aba Animais</b> (ou pelo botão <b>➕</b> fixo):<br><br>
-   • Cadastro com espécie, raça, sexo, fertilidade e peso<br>
-   • <b>Nascimento é opcional</b> — digite DD/MM/AAAA se souber<br>
-   • Foto pela <b>📷 câmera</b> ou galeria<br>
-   • Use os <b>filtros</b>: A-Z, ❤️ Saúde (piores primeiro), espécie ou tutor<br>
-   • A busca encontra por nome, raça <b>ou tutor</b>`},
-  {emo:'💉', title:'Vacinas — protocolos automáticos',
-   body:`Na ficha do animal → <b>Saúde</b>:<br><br>
-   • Registre a vacina escolhendo o <b>protocolo</b>: Anual, Primovacinação (21d), 30 dias, Librela (45d), Cytopoint (60d) ou <b>Personalizado</b> (você informa os dias)<br>
-   • O app <b>calcula a próxima dose</b> e cria a "Programada" com alertas<br>
-   • Ao aplicar: toque <b>✓ Aplicar</b>, informe <b>data e lote</b> — a seguinte entra sozinha<br>
-   • Primovacinação vira reforço anual após a 2ª dose, automaticamente`},
-  {emo:'🩺', title:'Atendimentos — prontuário e valores',
-   body:`Ainda em <b>Saúde</b>, a linha do tempo de atendimentos:<br><br>
-   • Tipo, resumo, prontuário completo e <b>retorno automático</b> na agenda<br>
-   • <b>💰 Itens do atendimento</b>: consulta, vacina, exame… cada um com valor (em <b>R$</b>, formatado sozinho) — o total soma sozinho<br>
-   • <b>🏷️ Desconto</b>: aplique um desconto em % — o total já sai com o desconto, e é esse valor que vai para o Financeiro<br>
-   • <b>Parcele em até 5x</b>: valores e vencimentos individuais<br>
-   • <b>🧾 Despesas do atendimento</b> (sala, anestesista…) caem sozinhas no Financeiro<br>
-   • <b>💬 Avisar tutor</b>: manda lembrete no WhatsApp com a mensagem já escrita<br>
-   • Imprima o prontuário timbrado quando precisar<br><br>
-   💡 Tem também o tipo <b>📞 Orientações via Telefone</b>, para registrar aquele atendimento que você resolveu por ligação.`},
+// ═══ v9.95 — TOUR GUIADO POR BOTÕES + AULAS PRÁTICAS (substitui o tutorial em telas) ═══
+// • Tour guiado: escurece a tela, destaca o botão de verdade e explica para que serve, por módulo.
+// • Aulas práticas: o app abre o formulário real (vazio) e acompanha o usuário até ele salvar.
+// Tudo em dados reais — o aluno já cadastra seus primeiros tutores/pacientes aprendendo.
+function tourState(){
+  const s = DB.settings = DB.settings || {};
+  s.tour = s.tour || {};
+  s.tour.done = s.tour.done || [];
+  s.tour.lessons = s.tour.lessons || [];
+  return s.tour;
+}
+const _tourSleep = ms => new Promise(r => setTimeout(r, ms));
+function tourPetId(){
+  if(currentPetId && DB.pets.some(p=>p.id===currentPetId)) return currentPetId;
+  return DB.pets.find(p=>!p.deceased)?.id || DB.pets[0]?.id || null;
+}
+function tourGoPetTab(tab){
+  const id = tourPetId(); if(!id) return;
+  currentPetId = id; currentTutorId = null; showFinance = false; currentPetTab = tab; render();
+}
+const _tg = {
+  home:     () => goTab('home'),
+  animais:  () => { pplView = 'animais'; goTab('pets'); },
+  tutores:  () => { pplView = 'tutores'; goTab('pets'); },
+  tutor:    () => { openTutor(DB.tutors[0].id); },
+  pet:  tab => () => tourGoPetTab(tab),
+  agenda:   () => goTab('calendar'),
+  fin:      () => goFinance(),
+  alerts:   () => goTab('alerts'),
+  settings: () => goTab('settings')
+};
+const TOUR_NEED_PET = '<b>Esta tela é a ficha de um paciente.</b> Você ainda não tem nenhum cadastrado — faça a 🎓 Aula prática “Cadastre seu primeiro paciente” e depois refaça este módulo para ver o botão real.';
+const TOUR_NEED_TUTOR = '<b>Esta tela é o perfil de um tutor.</b> Cadastre seu primeiro tutor na 🎓 Aula prática e depois refaça este módulo para ver o botão real.';
 
-  {emo:'🎙️', title:'Ditado por voz — escreva falando',
-   body:`Nunca mais digite prontuário com o dedo sujo de luva. No prontuário, na receita e nas orientações há o botão <b>🎙️ Ditar</b>.<br><br>
-   <b>Como usar:</b><br>
-   1. Toque em <b>🎙️ Ditar</b> e autorize o microfone (só na primeira vez)<br>
-   2. <b>Fale naturalmente</b>, dizendo o nome de cada parte:<br>
-   <span style="color:var(--muted);font-size:13px">"queixa principal o animal está mancando há três dias… anamnese sem trauma aparente… exame físico dor à palpação do joelho… diagnóstico suspeita de ruptura de ligamento… conduta repouso e anti-inflamatório por sete dias"</span><br>
-   3. Toque em <b>⏹️ Parar</b><br><br>
-   ✨ O texto se <b>organiza sozinho</b> em QUEIXA PRINCIPAL, ANAMNESE, EXAME FÍSICO, DIAGNÓSTICO e CONDUTA — formatadinho, pronto para imprimir.<br><br>
-   <span style="color:var(--muted);font-size:12px">💡 Se o botão avisar que não há reconhecimento de voz (comum no iPhone), use o <b>microfone do teclado</b> do celular: funciona do mesmo jeito.</span>`},
-  {emo:'📝', title:'Receituário — passo a passo de cada tipo',
-   body:`Na aba <b>Receita</b> do animal, o fluxo completo para cada situação:<br><br>
-   <b>1️⃣ Receita Simples</b> (dia a dia)<br>
-   • Em Ajustes → Dados Profissionais, faça o <b>upload da sua assinatura com carimbo</b> (foto em fundo branco)<br>
-   • Crie a receita → Gerar PDF → <b>envie direto no WhatsApp</b> do tutor ✓<br><br>
-   <b>2️⃣ Receita Controlada (uso humano)</b><br>
-   • Crie no modelo <b>Controle Especial</b> (2 vias) com <b>assinatura digital</b> marcada no app<br>
-   • Gere o PDF → <b>autentique no app gov.br</b> (Assinar Documento) → envie ✓<br><br>
-   <b>3️⃣ Receita Controlada (manipulação)</b><br>
-   • Cadastre seu <b>certificado ICP-Brasil (e-CPF)</b> — o app tem o guia em "Como funciona?"<br>
-   • Use também a assinatura com carimbo → gere o PDF → <b>autentique no gov.br</b> ✓<br><br>
-   💡 A farmácia confere a autenticidade pelo validador do governo.`,
-   action:{label:'📝 Ir para a aba Receita e praticar', fn:'goReceitaDemo()'}},
-  {emo:'📄', title:'Termos — documentos em segundos',
-   body:`Na aba <b>Termos</b>, 4 documentos que se preenchem sozinhos:<br><br>
-   • <b>Atestado Sanitário</b> (viagem) — puxa a antirrábica da carteirinha!<br>
-   • <b>Consentimento Anestésico</b> e <b>Cirúrgico</b><br>
-   • <b>Recusa de Tratamento</b><br><br>
-   Selecione o tutor, confira veterinário/CRMV e gere o PDF timbrado com logo e assinatura.`},
-  {emo:'📎', title:'Arquivos — exames e exportação',
-   body:`Na aba <b>Arquivos</b>:<br><br>
-   • Envie exames por <b>📷 foto, galeria ou PDF</b> (até 20MB cada)<br>
-   • Os dados do tutor ficam visíveis com edição rápida<br>
-   • <b>Exportar Ficha (PDF)</b>: escolha as seções — ex: só a <b>carteira de vacinação</b> para viagem`},
-  {emo:'📤', title:'Compartilhar Ficha — no topo do paciente',
-   body:`Os 3 botões redondos no alto da ficha:<br><br>
-   • <b>✏️ Editar</b>: altera os dados do paciente<br>
-   • <b>📤 Compartilhar</b>: envia o resumo do animal por <b>WhatsApp</b>, <b>Copiar</b> (cola em qualquer lugar), <b>E-mail</b> ou <b>Nativo</b> (menu de apps do celular) — e o botão <b>Exportar/Imprimir Ficha (PDF)</b> gera o documento timbrado escolhendo as seções<br>
-   • <b>🗑️ Excluir</b>: remove o paciente (pede confirmação)`},
-  {emo:'📅', title:'Agenda, Rota do dia e Alertas',
-   body:`<b>📅 Agenda</b>: calendário com pontinhos coloridos por dia (vermelho = vencido). Toque no dia → <b>"➕ Novo Atendimento"</b> já com a data. Cada atendimento na lista de <b>Próximos Eventos</b> tem os botões <b>✏️ Editar</b> e <b>🗑️ Excluir</b> para ajustar por ali mesmo.<br><br>
-   <b>🗺️ Rota do dia</b> — para quem atende em domicílio, o botão ao lado:<br>
-   • Lista os atendimentos <b>na ordem dos horários</b>, com o endereço do tutor<br>
-   • Cada parada abre direto no <b>🚗 Waze</b> ou no <b>🗺️ Google Maps</b><br>
-   • <b>Rota completa</b> num toque: todas as paradas em sequência no Maps<br>
-   • <b>🚗 Quilometragem</b>: lance os km rodados e o valor por km — vira despesa automática no Financeiro<br><br>
-   <b>🔔 Alertas</b>: tudo que vence — vacinas, medicações, atendimentos e <b>pagamentos</b> — avisado com 7, 3 e 1 dia de antecedência. Cada alerta tem o botão <b>💬 Avisar o tutor</b>.`},
-  {emo:'💰', title:'Financeiro — controle total',
-   body:`Pelo botão no Início. Cinco abas, cada uma limpa e exclusiva:<br><br>
-   • <b>🟢 Recebido</b>: total que já entrou no caixa este mês + a lista dos recebimentos<br>
-   • <b>🟡 A Receber</b>: total pendente, o <b>🔔 aviso das cobranças que vencem em até 3 dias</b> em destaque no topo, e filtros por período (Hoje, 7 dias, Quinzenal, Mensal, Todos). Marque como recebido, altere vencimento e <b>💬 Cobre no WhatsApp</b> (Pro)<br>
-   • <b>🔴 Atrasado</b>: total atrasado + a lista dos vencidos, para você priorizar quem cobrar<br>
-   • <b>🧾 Despesas</b>: por mês e categoria, com gráfico (Pro)<br>
-   • <b>📊 Fluxo</b>: resumo do período com <b>recebido, a receber, despesas e saldo</b>, <b>produção clínica</b> (consultas, cirurgias, plantões…), <b>recebido por forma de pagamento</b> (Pix, cartões, dinheiro), ticket médio e evolução mês a mês + PDF (Pro)`},
-  {emo:'✅', title:'Confirmar atendimentos — reduza faltas',
-   body:`Na <b>tela inicial</b>, quando há agendamentos chegando, aparece o painel <b>📋 Confirmar atendimentos</b>:<br><br>
-   • Mostra os atendimentos de <b>amanhã</b> (ou de 2 dias, você escolhe nos Ajustes)<br>
-   • Toque em <b>💬 Confirmar</b> e o WhatsApp abre com a mensagem pronta — você só envia<br>
-   • O tutor confirma que vem, e você <b>reduz as faltas</b> na sua agenda<br>
-   • Configure em <b>Ajustes → ✅ Confirmar Atendimentos</b> (ligar/desligar e escolher 1 ou 2 dias de antecedência)`},
-  {emo:'💳', title:'Taxas de cartão — quanto você realmente recebe',
-   body:`Veja o valor <b>líquido real</b> de cada recebimento, já descontando a taxa da maquininha:<br><br>
-   • <b>1. Configure suas taxas</b>: em <b>Ajustes → 💳 Taxas de Cartão</b>, ajuste os percentuais da sua maquininha (já vem com valores padrão: Pix 0%, Débito 1.99%, Crédito 3.49%)<br>
-   • <b>2. No atendimento ou na cobrança</b>: escolha o <b>meio de pagamento</b> (Pix, dinheiro, débito, crédito)<br>
-   • <b>3. No Financeiro</b>: o app mostra o valor bruto e o <b>líquido lado a lado</b> — quanto entra no seu bolso depois da taxa<br><br>
-   💡 As taxas variam por maquininha e negociação. Confira na sua operadora (Cielo, Stone, PagSeguro…) e ajuste nos Ajustes.`},
-  {emo:'🔐', title:'Segurança — login e criptografia',
-   body:`Em <b>Ajustes → Segurança</b>:<br><br>
-   • <b>Crie login e senha</b>: tudo passa a ser gravado com <b>criptografia AES-256</b> — o 👁 mostra a senha ao digitar<br>
-   • Protege tutores, CPFs, telefones e prontuários caso alguém pegue seu celular<br>
-   • Os dados <b>nunca saem do aparelho</b>: não existe servidor guardando prontuário de ninguém<br><br>
-   ⚠️ <b>Guarde bem a senha.</b> Sem ela, os dados criptografados não podem ser recuperados — por isso o backup do próximo passo é tão importante.`},
-
-  {emo:'💳', title:'Carteirinha de Vacinação em PDF',
-   body:`Na ficha do animal → <b>Saúde</b>, no topo das vacinas:<br><br>
-   • Toque em <b>💳 Gerar Carteirinha (PDF)</b> — sai um documento profissional com o pet, os dados do tutor, todas as vacinas e as próximas doses<br>
-   • <b>📷 Selo da ampola</b>: em cada vacina aplicada, toque em <b>Fotografar selo</b> para registrar o rótulo da ampola. Depois da foto, você <b>ajusta o recorte</b> — arraste a caixa sobre o selo e deixe só ele bem enquadrado. Já tem selo salvo? Use <b>✂️ Ajustar selo</b> para reenquadrar sem tirar outra foto<br>
-   • <b>📝 Anotações</b>: um bloco livre por animal (temperamento, reações, orientações) que também sai na carteirinha<br>
-   • A carteirinha <b>pagina sozinha</b> se houver muitas vacinas — sempre legível para imprimir ou enviar ao tutor`},
-  {emo:'📄', title:'Documentos e assinatura do tutor',
-   body:`Todos os documentos saem em <b>PDF</b> com seu timbre (logo, nome, CRMV) e podem ser impressos ou arquivados:<br><br>
-   • <b>✍️ Assinatura na tela</b>: nos termos de consentimento (anestésico, cirurgia, recusa), o tutor assina com o dedo. O PDF sai com <b>nome, CPF, data/hora e código de verificação</b>, no formato de <b>assinatura eletrônica simples (Lei nº 14.063/2020)</b><br>
-   • Prefere o papel? Deixe em branco e colha a assinatura impressa, como antes — nada muda no fluxo antigo<br>
-   • <b>🗂️ Arquivo Morto</b> (Ajustes): exporte o prontuário de um ano inteiro em PDF para guarda legal — o CFMV exige guardar por <b>20 anos</b>`},
-  {emo:'🛡️', title:'Proteção de Dados — o passo mais importante',
-   body:`Prontuário é documento legal: o <b>CFMV exige guardar por 20 anos</b>. Por isso o app protege em camadas — e uma delas depende de você.<br><br>
-   <b>O app faz sozinho:</b><br>
-   • <b>🔄 Cópia interna</b>: grava em <b>dois lugares</b> do aparelho. Se o navegador limpar um, ele recupera do outro<br>
-   • <b>🚨 Integridade</b>: ao abrir, confere se algum dado sumiu e avisa <b>antes</b> de você gravar por cima<br>
-   • <b>📸 Pontos de restauração</b>: 7 diários + 4 semanais + 6 mensais — dá para voltar até <b>6 meses</b><br><br>
-   <b>Você precisa fazer:</b><br>
-   • <b>💾 Backup Completo</b> uma vez por semana — Drive ou WhatsApp para você mesmo<br>
-   • É a <b>única</b> proteção contra perder, quebrar ou ter o celular roubado<br><br>
-   Tudo isso fica em <b>Ajustes → 🛡️ Central de Proteção</b>: mostra onde seus dados estão, quando foi o último backup e permite restaurar qualquer ponto.<br><br>
-   🍎 <b>Usa iPhone?</b> <b>Instale na Tela de Início</b> (Compartilhar → Adicionar à Tela de Início). Sem isso, o Safari pode apagar os dados após dias sem uso.<br>
-   ⚠️ <b>Nunca</b> limpe "dados de navegação" do navegador — isso apaga o app.`,
-   action:{label:'🛡️ Abrir a Central de Proteção', fn:'finishTutorial(true);openCentralProtecao()'}},
-  {emo:'🕊️', title:'Registro de óbito',
-   body:`Em situações delicadas, o VetFlowCare permite registrar o óbito de um paciente com cuidado e respeito.<br><br>
-   Acesse a ficha do paciente → aba <b>Arquivos</b> → role até o final → toque em <b>🕊️ Registrar óbito do paciente</b>.<br><br>
-   Você pode informar a data e uma observação (opcionais). O paciente é desativado da agenda, mas todo o histórico clínico fica preservado.<br><br>
-   Caso precise, é possível <b>↩ Reativar</b> a qualquer momento pelo mesmo local.`,
-   action:{label:'Entendido', fn:''}},
-  {emo:'🔍', title:'Busca Global — encontre tudo em segundos',
-   body:`Toque no ícone <b>🔍</b> no canto superior direito do app para abrir a busca global.<br><br>
-   Com ela você encontra qualquer coisa em segundos:<br><br>
-   • <b>🐾 Pacientes</b>: por nome, raça, espécie ou tutor<br>
-   • <b>👤 Tutores</b>: por nome, telefone ou e-mail<br>
-   • <b>📋 Atendimentos</b>: por tipo ou texto do prontuário<br>
-   • <b>💉 Vacinas</b>: pelo nome da vacina<br><br>
-   O termo buscado aparece <mark style="background:#2DC0AE33;color:#2DC0AE;border-radius:3px;padding:0 2px">destacado</mark> nos resultados. Clique em qualquer item para ir direto ao paciente.`,
-   action:{label:'🔍 Testar a busca agora', fn:'finishTutorial(true);abrirBusca()'}},
-  {emo:'🎉', title:'Tudo pronto!',
-   body:`Você conhece o essencial do VetFlowCare. 🐾<br><br>
-   Reveja este guia quando quiser em <b>Ajustes → Ajuda</b>.<br><br>
-   E lembre: você já tem <b>30 dias grátis</b> com tudo liberado — é só usar! ✨`,
-   action:{label:'🐾 Começar a usar o app!', fn:'finishTutorial(true)'}}
+const TOUR_MODS = [
+ {id:'install', icon:'📲', cat:'Começando', title:'Instalar o app no celular', desc:'Ícone na tela inicial, tela cheia e mais segurança.', steps:[
+  {title:'Instale o VetFlowCare como aplicativo', text:'Instalado, o VetFlowCare ganha ícone na tela inicial, abre em <b>tela cheia</b> (sem barra do navegador) e funciona <b>offline</b>. No iPhone, a instalação também protege seus dados contra a limpeza automática do Safari.', tip:'Leva menos de 1 minuto e só precisa ser feito uma vez.'},
+  {go:_tg.settings, sel:'[onclick*="promptInstall"]', title:'Botão “Instalar o App neste celular”', text:'É aqui. No <b>Android (Chrome)</b>, toque no botão e confirme a janela “Instalar”. Se a janela não aparecer, o app mostra o passo a passo: menu <b>⋮</b> → “Instalar aplicativo”.'},
+  {title:'No iPhone / iPad', text:'No <b>Safari</b>: toque no botão <b>Compartilhar</b> (quadrado com seta) → role e toque em <b>“Adicionar à Tela de Início”</b> → <b>Adicionar</b>. Pronto, o ícone aparece como um app de verdade.', tip:'Importante no iPhone: sem instalar, o Safari pode apagar os dados do app após alguns dias sem uso.'},
+  {title:'Seus dados ficam no seu aparelho', text:'O VetFlowCare não tem servidor guardando prontuários: tudo fica <b>no seu aparelho</b>, protegido por senha. Por isso o <b>backup</b> é essencial — você vai ver como fazer no módulo “Backup & Segurança”.', tip:'Nunca limpe os “dados de navegação” do navegador: isso apaga o app.'}
+ ]},
+ {id:'start', icon:'🧭', cat:'Começando', title:'Conhecendo o app', desc:'Início, busca, perfil e menu de baixo.', steps:[
+  {go:_tg.home, sel:'#scorecard', title:'Índice de saúde dos pacientes', text:'Ao abrir, você vê o resumo da clínica: quantos pacientes, se há algo vencido e o <b>índice de saúde</b> médio. Abaixo ficam os próximos 7 dias: vacinas, atendimentos e pagamentos chegando.'},
+  {sel:'#appHeader [onclick*="abrirBusca"]', title:'Busca global 🔍', text:'Encontra <b>pacientes, tutores, atendimentos, vacinas e termos</b> de uma vez só — por nome, raça, telefone ou texto do prontuário. Toque no resultado para ir direto ao paciente.'},
+  {sel:'#appHeader .profile-chip', title:'Seu perfil', text:'Mostra o seu nome. Toque para abrir os <b>Ajustes</b>: dados profissionais, backup, segurança, plano Pro e ajuda.'},
+  {sel:'#mainNav', title:'Menu de baixo', text:'Os 6 atalhos do app: <b>Início</b>, <b>Pacientes</b> (animais e tutores), <b>Financeiro</b>, <b>Agenda</b>, <b>Alertas</b> (tudo que vence) e <b>Ajustes</b>.'},
+  {sel:'.pet-add, [onclick*="openPetForm()"]', title:'Novo paciente', text:'Atalho para cadastrar um animal direto da tela inicial. Pode cadastrar também em <b>Pacientes → + Cadastrar Paciente</b>.'},
+  {title:'Seu teste grátis já está ativo 🎁', text:'Ao criar a conta, o <b>teste de 30 dias</b> começou sozinho, com tudo liberado: pacientes ilimitados, financeiro completo, cobrança pelo WhatsApp, logo e assinatura nos documentos. Seus dados ficam salvos de qualquer forma.', tip:'Para continuar depois dos 30 dias: Ajustes → ✨ Plano Pro.'}
+ ]},
+ {id:'profile', icon:'👨‍⚕️', cat:'Começando', title:'Seus dados profissionais', desc:'Nome, CRMV, logo e assinatura nos documentos.', steps:[
+  {go:_tg.settings, sel:'#vName', title:'Seu nome', text:'Preencha seu nome completo. Ele sai no cabeçalho das <b>receitas, termos, carteirinhas e atestados</b>.', tip:'Preencha uma vez só — todos os documentos usam esses dados automaticamente.'},
+  {sel:'#vUf', title:'Estado e número do CRMV', text:'Escolha o estado e digite o número do seu CRMV. O app monta o “CRMV-SP 12345” sozinho nos documentos.'},
+  {sel:'[onclick*="vLogoFile"]', title:'Seu logo', text:'Envie o logo da clínica (foto ou imagem). Ele sai no timbre dos documentos.'},
+  {sel:'[onclick*="vSigFile"]', title:'Assinatura com carimbo', text:'Envie uma <b>foto da sua assinatura com carimbo em fundo branco</b>. Ela é colocada sozinha nas receitas e termos.'},
+  {sel:'[onclick*="openAddCertSheet"]', title:'Certificado digital (opcional)', text:'Se você tem o <b>certificado A1 e-CPF</b> (ICP-Brasil), cadastre aqui: o app assina a receita digitalmente e coloca o <b>QR Code</b> do validador oficial do governo.', tip:'Sem certificado, dá para assinar pelo app gov.br depois de gerar o PDF.'},
+  {sel:'[onclick*="saveVetProfile"]', title:'Salvar', text:'Depois de preencher, toque em <b>💾 Salvar Dados Profissionais</b>.'}
+ ]},
+ {id:'tutors', icon:'👤', cat:'Cadastros', title:'Tutores', desc:'Cadastro do responsável, WhatsApp e ficha.', steps:[
+  {go:_tg.tutores, sel:'[onclick*="pplView=\'tutores\'"]', title:'Aba Tutores', text:'Em <b>Pacientes</b> há duas listas: <b>Animais</b> e <b>Tutores</b>. Cadastre primeiro o responsável: os dados dele entram sozinhos em receitas e termos.'},
+  {sel:'[onclick*="openTutorForm()"]', title:'Cadastrar tutor', text:'Preencha nome, CPF e telefone. Digite o <b>CEP</b> e o endereço <b>se completa sozinho</b>.', tip:'Com o telefone preenchido, o perfil ganha o botão do WhatsApp.', opt:true},
+  {sel:'.card[onclick*="openTutor("]', title:'Abrir o perfil do tutor', text:'Toque no tutor para abrir o perfil, com as abas <b>Responsável</b> e <b>Animais</b>.', needTutor:true},
+  {go:_tg.tutor, sel:'.wa-btn, .btn.success', title:'WhatsApp do tutor', text:'Abre a conversa com o tutor com um toque.', needTutor:true},
+  {sel:'[onclick*="tutorTab=\'animais\'"]', title:'Animais do tutor', text:'Lista os animais do tutor e permite <b>adicionar outro animal já vinculado</b> a ele.', needTutor:true},
+  {sel:'[onclick*="tFichaFile"]', title:'Ficha de cadastro em papel', text:'Anexe a <b>foto ou PDF da ficha</b> que o tutor preencheu no papel.', needTutor:true}
+ ]},
+ {id:'pets', icon:'🐾', cat:'Cadastros', title:'Pacientes (animais)', desc:'Lista, filtros, busca e cadastro de animais.', steps:[
+  {go:_tg.animais, sel:'[onclick*="pplView=\'animais\'"]', title:'Aba Animais', text:'A lista de todos os pacientes, com espécie, raça, idade e índice de saúde.'},
+  {sel:'#mainContent input[type="search"], #mainContent input[placeholder*="Buscar"]', title:'Busca rápida', text:'Encontre por <b>nome, raça ou tutor</b>.'},
+  {sel:'[onclick*="petSort"]', title:'Ordenar e filtrar', text:'Use <b>A-Z</b>, <b>Tutor</b>, <b>❤️ Saúde</b> (piores primeiro) e os filtros de espécie (Cães, Gatos…).'},
+  {sel:'[onclick*="openPetForm()"]', title:'Cadastrar paciente', text:'Informe tutor, nome, espécie, raça, sexo, fertilidade e peso. <b>Nascimento é opcional</b>. Dá para tirar a foto pela câmera.', opt:true},
+  {sel:'.card[onclick*="openPet("]', title:'Abrir a ficha', text:'Toque no paciente para abrir a ficha completa.', needPet:true}
+ ]},
+ {id:'petfile', icon:'🐕', cat:'Ficha do paciente', title:'Ficha do paciente', desc:'Abas, peso e botões do topo.', steps:[
+  {go:_tg.pet('info'), sel:'#petHero .bk', title:'Voltar', text:'Volta para a lista de pacientes.', needPet:true},
+  {sel:'#petHero [onclick*="openPetForm"]', title:'✏️ Editar', text:'Altera os dados do paciente (nome, peso, tutor, foto…).', needPet:true},
+  {sel:'#petHero [onclick*="sharePet"]', title:'📤 Compartilhar ficha', text:'Envia o resumo do animal por <b>WhatsApp</b>, e-mail ou copia o texto. Também gera a <b>ficha em PDF</b>, escolhendo as seções (ex.: só a carteira de vacinação para viagem).', needPet:true},
+  {sel:'#petHero [onclick*="confirmDeletePet"]', title:'🗑️ Excluir', text:'Remove o paciente — sempre pede confirmação antes.', needPet:true},
+  {sel:'[onclick*="currentPetTab=\'health\'"]', title:'As abas da ficha', text:'<b>Ficha</b> (dados e peso), <b>Saúde</b> (vacinas, medicações e atendimentos), <b>Receita</b>, <b>Termos</b> e <b>Arquivos</b>.', needPet:true},
+  {sel:'[onclick*="openWeightForm"]', title:'Registrar peso', text:'Cada pesagem entra no <b>gráfico de evolução</b> do animal.', needPet:true}
+ ]},
+ {id:'health', icon:'💉', cat:'Ficha do paciente', title:'Saúde: vacinas e atendimentos', desc:'Vacinas, medicações, prontuário e carteirinha.', steps:[
+  {go:_tg.pet('health'), sel:'[onclick*="gerarCarteirinha"]', title:'💳 Carteirinha de vacinação (PDF)', text:'Gera um documento profissional com o pet, o tutor, todas as vacinas e as próximas doses. Em cada vacina aplicada, dá para <b>fotografar o selo da ampola</b>.', needPet:true},
+  {sel:'[onclick*="openNotaCarteirinha"]', title:'📝 Anotações', text:'Um bloco livre por animal (temperamento, reações, orientações) que também sai na carteirinha.', needPet:true},
+  {sel:'[onclick*="openVaccineForm"]', title:'Registrar vacina', text:'Escolha o <b>protocolo</b>: Anual, Primovacinação (21 dias), 30 dias, Librela (45 dias), Cytopoint (60 dias) ou Personalizado. O app <b>calcula a próxima dose</b> e cria a “Programada” com alerta.', tip:'Ao aplicar: toque em ✓ Aplicar, informe data e lote — a seguinte entra sozinha.', needPet:true},
+  {sel:'[onclick*="openMedForm"]', title:'Medicações', text:'Registre medicações em uso, com dose e período — o app avisa quando terminam.', needPet:true},
+  {sel:'[onclick*="openApptForm(\'"]', title:'Novo atendimento', text:'Tipo, resumo, <b>prontuário completo</b> e <b>retorno automático</b> na agenda. Cada item (consulta, vacina, exame…) tem valor, com <b>desconto</b>, parcelamento em até 5x, e o total vai sozinho para o Financeiro.', tip:'Tem também o tipo “📞 Orientações via Telefone”.', needPet:true},
+  {title:'🎙️ Ditado por voz', text:'No prontuário, na receita e nas orientações há o botão <b>🎙️ Ditar</b>: fale normalmente (“queixa principal… anamnese… exame físico… diagnóstico… conduta”) e o texto <b>se organiza sozinho</b> em cada parte.', tip:'Se o aparelho não tiver reconhecimento de voz (comum no iPhone), use o microfone do teclado.'}
+ ]},
+ {id:'rx', icon:'📝', cat:'Ficha do paciente', title:'Receitas', desc:'Receita simples e controlada, com assinatura.', steps:[
+  {go:_tg.pet('rx'), sel:'[onclick*="openRxForm"]', title:'+ Novo Receituário', text:'Abre o formulário da receita. Escolha o tipo, escreva a prescrição (pode <b>ditar</b>) e gere o PDF timbrado.', needPet:true},
+  {title:'Receita simples (dia a dia)', text:'Com sua assinatura enviada nos Ajustes: crie a receita → <b>Gerar PDF</b> → envie direto pelo <b>WhatsApp do tutor</b>.'},
+  {title:'Receita de controle especial', text:'Escolha o modelo <b>Controle Especial</b> (2 vias) com a assinatura digital marcada. Gere o PDF e <b>autentique no app gov.br</b> (“Assinar Documento”) antes de enviar.'},
+  {title:'Assinatura digital ICP-Brasil', text:'Com o <b>certificado A1 e-CPF</b> cadastrado, o app assina o PDF sozinho e inclui o <b>QR Code do validador oficial</b> (validar.iti.gov.br). A farmácia confere a autenticidade por lá.', tip:'Envie sempre o PDF original (como documento), nunca foto ou print — senão a assinatura se perde.'}
+ ]},
+ {id:'terms', icon:'📄', cat:'Ficha do paciente', title:'Termos e pasta de termos', desc:'4 documentos prontos e a pasta do paciente.', steps:[
+  {go:_tg.pet('termos'), sel:'[onclick*="openTermForm"]', title:'Gerar um termo', text:'4 documentos que se preenchem sozinhos: <b>Atestado Sanitário</b> (puxa a antirrábica da carteirinha), <b>Consentimento Anestésico</b>, <b>Consentimento Cirúrgico</b> e <b>Recusa de Tratamento</b>.', needPet:true},
+  {title:'Assinatura do tutor na tela', text:'Nos termos de consentimento, o tutor pode <b>assinar com o dedo</b> na tela. O PDF sai com nome, CPF, data/hora e código de verificação. Prefere papel? Deixe em branco e colha a assinatura impressa.'},
+  {find:['#mainContent .sec-h','Termos gerados'], title:'🗂️ Pasta de termos do paciente', text:'Todo termo gerado fica guardado aqui, com data e tutor. Você pode <b>ver/imprimir de novo</b>, <b>enviar</b> pelo WhatsApp, <b>anexar a foto do termo assinado</b> em papel e excluir.', tip:'O PDF sai com nome organizado, ex.: Termo_Anestesico_Vicky_2026-10-10.', needPet:true}
+ ]},
+ {id:'docs', icon:'📎', cat:'Ficha do paciente', title:'Arquivos e exames', desc:'Fotos, PDFs de exames e registro de óbito.', steps:[
+  {go:_tg.pet('docs'), sel:'[onclick*="docCam"]', title:'📷 Tirar foto', text:'Fotografe um exame ou documento direto pela câmera.', needPet:true},
+  {sel:'[onclick*="docFile"]', title:'🖼️ Galeria', text:'Escolha uma imagem que já está no celular.', needPet:true},
+  {sel:'[onclick*="docPdf"]', title:'📄 Enviar PDF', text:'Anexe PDFs de exames (até 20 MB cada).', needPet:true},
+  {sel:'[onclick*="abrirModalObito"]', title:'🕊️ Registrar óbito', text:'Em situações delicadas, registra o óbito com cuidado: o paciente sai da agenda, mas <b>todo o histórico clínico fica preservado</b>. Dá para reativar depois.', needPet:true}
+ ]},
+ {id:'agenda', icon:'📅', cat:'Rotina da clínica', title:'Agenda e rota do dia', desc:'Calendário, novo atendimento e rota de visitas.', steps:[
+  {go:_tg.agenda, sel:'.cal-day.today, .cal-day', title:'Calendário', text:'Os dias com atendimento ficam marcados (vermelho = vencido). Toque num dia para ver os compromissos dele.'},
+  {sel:'[onclick*="openApptPicker"]', title:'➕ Novo atendimento', text:'Agenda um atendimento escolhendo o paciente, a data e o horário.'},
+  {sel:'[onclick*="openRota"]', title:'🗺️ Rota do dia', text:'Para quem atende em domicílio: lista as visitas em ordem de horário, com o endereço do tutor, e abre no <b>Waze</b> ou no <b>Google Maps</b>. Também lança a <b>quilometragem</b>, que vira despesa no Financeiro.'}
+ ]},
+ {id:'finance', icon:'💰', cat:'Rotina da clínica', title:'Financeiro', desc:'Cobranças, recebidos, despesas e fluxo de caixa.', steps:[
+  {go:_tg.fin, sel:'[onclick*="openChargeForm"]', title:'➕ Cobrança', text:'Lança uma cobrança avulsa. Os atendimentos com valor já caem aqui sozinhos.'},
+  {sel:'[onclick*="finView=\'receb\'"]', title:'Recebido · A Receber · Atrasado', text:'<b>🟢 Recebido</b>: o que já entrou. <b>🟡 A Receber</b>: pendente — cobranças que vencem em até 3 dias aparecem em destaque. <b>🔴 Atrasado</b>: para priorizar quem cobrar.'},
+  {sel:'[onclick*="finView=\'desp\'"]', title:'🧾 Despesas', text:'Despesas por mês e categoria, com gráfico.'},
+  {sel:'[onclick*="finView=\'fluxo\'"]', title:'📊 Fluxo', text:'Resumo do período: recebido, a receber, despesas e saldo, produção clínica e recebido por forma de pagamento (Pix, cartões, dinheiro).'},
+  {sel:'[onclick*="toggleFinValues"]', title:'Ocultar valores', text:'Esconde os valores da tela — útil quando há alguém por perto.'}
+ ]},
+ {id:'alerts', icon:'🔔', cat:'Rotina da clínica', title:'Alertas', desc:'Tudo que vence: vacinas, retornos e pagamentos.', steps:[
+  {go:_tg.alerts, sel:'#mainContent .chip', title:'Filtros dos alertas', text:'Veja <b>Todos</b>, <b>Vencidos</b>, <b>Hoje</b> ou <b>Próximos</b>. O app avisa com 7, 3 e 1 dia de antecedência.'},
+  {sel:'#mainNav [data-tab="alerts"]', title:'O sino no menu', text:'O número vermelho mostra quantos itens estão vencidos. Cada alerta tem o botão <b>💬 Avisar o tutor</b> com a mensagem pronta no WhatsApp.'}
+ ]},
+ {id:'backup', icon:'🛡️', cat:'Sistema', title:'Backup e segurança', desc:'Proteja seus dados — o passo mais importante.', steps:[
+  {go:_tg.settings, sel:'[onclick*="openCentralProtecao"]', title:'🛡️ Central de Proteção', text:'Mostra onde seus dados estão guardados, quando foi o último backup e permite <b>restaurar um ponto</b> (7 diários, 4 semanais e 6 mensais).'},
+  {sel:'[onclick*="exportJSON"]', title:'💾 Backup Completo', text:'Baixa um arquivo com <b>todos</b> os seus dados. Guarde no Google Drive ou mande para o seu WhatsApp. Faça <b>uma vez por semana</b>.', tip:'É a única proteção contra perder, quebrar ou ter o celular roubado.'},
+  {sel:'[onclick*="exportEncBackup"]', title:'🔐 Backup criptografado', text:'O mesmo backup, protegido pela sua senha — ideal para guardar na nuvem.'},
+  {sel:'[onclick*="importFile"]', title:'📂 Restaurar backup', text:'Recupera os dados de um arquivo de backup — por exemplo, ao trocar de celular.'},
+  {sel:'[onclick*="openSecurityPanel"]', title:'Segurança: login e senha', text:'Crie login e senha para os dados serem gravados <b>criptografados</b>. Guarde bem a senha: sem ela os dados não podem ser recuperados.'},
+  {sel:'[onclick*="openArquivoMorto"]', title:'🗂️ Arquivo Morto', text:'Exporta o prontuário de um ano inteiro em PDF. O CFMV exige guardar o prontuário por <b>20 anos</b>.'}
+ ]},
+ {id:'settings', icon:'⚙️', cat:'Sistema', title:'Ajustes e Plano Pro', desc:'Notificações, metas, taxas, plano e ajuda.', steps:[
+  {go:_tg.settings, sel:'[onclick*="openProModal"]', title:'✨ Plano Pro', text:'Assine para continuar com todos os recursos depois do teste grátis. Seus dados ficam salvos de qualquer forma.', opt:true},
+  {sel:'[onclick*="nVac"]', title:'Notificações e alertas', text:'Escolha o que quer ser avisado: vacinas, atendimentos e com quantos dias de antecedência.'},
+  {sel:'#setMetaMensal', title:'Meta mensal', text:'Defina a meta de faturamento do mês para acompanhar no Início.'},
+  {sel:'#taxa_pix', title:'💳 Taxas de cartão', text:'Configure as taxas da sua maquininha: o Financeiro mostra o valor <b>bruto e o líquido</b> de cada recebimento.'},
+  {sel:'[onclick*="confirmPanel"]', title:'✅ Confirmar atendimentos', text:'Mostra no Início os atendimentos de amanhã com o botão de confirmar pelo WhatsApp — reduz faltas.'},
+  {sel:'[onclick*="tourOpenChooser"]', title:'Refazer o tour e as aulas', text:'Volte aqui sempre que quiser rever o tour ou fazer as aulas práticas.'},
+  {sel:'[onclick*="wa.me"]', title:'Suporte', text:'Dúvida ou sugestão? Fale com a equipe pelo WhatsApp.'}
+ ]}
 ];
-function goReceitaDemo(){
-  finishTutorial(true);
-  if(DB.pets.length){
-    openPet(DB.pets[0].id);
-    currentPetTab = 'rx';
-    render();
-    toast('📝 Esta é a aba Receita — toque em "Nova Receita"!');
-  } else {
-    goTab('pets');
-    toast('🐾 Cadastre um paciente primeiro — a receita nasce da ficha dele!');
-  }
-}
-function startFirstPatient(){
-  finishTutorial(true);
-  goTab('pets'); pplView = 'tutores';
-  setTimeout(openTutorForm, 250);
-}
-// contador compacto para muitos passos
+let tour = {ids:[], steps:[], i:0, on:false, el:null}, tourSel = new Set(), tourTab = 'lessons';
 
-function openTutorial(step = 0){
-  step = Math.min(step, TUT_STEPS.length - 1);
-  testStorage.setItem('vfc_tut_step', step);
-  const s = TUT_STEPS[step];
-  const last = step === TUT_STEPS.length - 1;
-  const dots = TUT_STEPS.map((_,i)=>
-    `<span style="width:8px;height:8px;border-radius:50%;display:inline-block;margin:0 3px;background:${i===step?'var(--primary)':'var(--border)'}"></span>`).join('');
-  showSheet(`${s.emo} ${s.title}`, `
-    <div style="font-size:14px;line-height:1.7;color:var(--text)">${s.body}</div>
-    ${s.action?`<button class="btn" style="margin-top:14px" onclick="${s.action.fn}">${s.action.label}</button>`:''}
-    <div style="text-align:center;margin-top:16px">${dots}</div>
-    <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:6px">${step+1} de ${TUT_STEPS.length}</div>`,
-    `${step>0?`<button class="btn gray" onclick="openTutorial(${step-1})">‹ Anterior</button>`:`<button class="btn gray" onclick="finishTutorial()">Pular</button>`}
-     <button class="btn" onclick="${last?'finishTutorial()':`openTutorial(${step+1})`}">${last?'✓ Começar!':'Próximo ›'}</button>`);
+function tourDoneSet(){ return new Set(tourState().done); }
+function tourAllSteps(){ return TOUR_MODS.reduce((n,m)=>n+m.steps.length, 0); }
+
+// ── Chooser (aulas práticas + tour) ──
+function tourOpenChooser(tab){
+  closeTour(true); lessonStop(true);
+  if(tab) tourTab = tab;
+  const st = tourState(), lsDone = new Set(st.lessons);
+  const done = tourDoneSet();
+  const cats = [...new Set(TOUR_MODS.map(m=>m.cat))];
+  const lessonsHTML = `
+    <div class="card" style="font-size:13px;line-height:1.6;margin-bottom:10px">
+      <b>🎓 Aulas práticas</b> — você aprende <b>fazendo</b>, com os seus dados de verdade. O app abre a tela certa, vazia, e acompanha até você salvar.
+      <div style="margin-top:6px;color:var(--muted);font-size:12px">${lsDone.size} de ${TOUR_LESSONS.length} aulas concluídas</div></div>
+    ${TOUR_LESSONS.map((l,i)=>`<div class="card lesson-card ${lsDone.has(l.id)?'done':''}" style="display:flex;gap:12px;align-items:center">
+      <div class="tour-mico">${lsDone.has(l.id)?'✅':l.icon}</div>
+      <div style="flex:1;min-width:0"><b style="font-size:14px">${i+1}. ${l.title}</b><div style="font-size:12px;color:var(--muted);line-height:1.4">${l.goal}</div></div>
+      <button class="btn sm ${lsDone.has(l.id)?'outline':''}" style="width:auto" onclick="lessonStart('${l.id}')">${lsDone.has(l.id)?'Refazer':'Começar'}</button></div>`).join('')}`;
+  const tourHTML = `
+    <div class="card" style="font-size:13px;line-height:1.6;margin-bottom:10px">
+      <b>🧭 Tour guiado</b> — o app <b>destaca cada botão</b> na tela e explica para que serve. Faça o tour completo (${tourAllSteps()} passos) ou só os módulos que quiser.</div>
+    <div class="tour-actions"><button class="btn" onclick="tourAll()">▶ Tour completo</button>
+      <button class="btn outline" id="tour_go_sel" onclick="tourStartSel()" disabled>Começar selecionados</button></div>
+    ${cats.map(c=>`<div class="tour-cat">${c}</div>${TOUR_MODS.filter(m=>m.cat===c).map(m=>`<div class="tour-card-mod ${tourSel.has(m.id)?'on':''}" data-tm="${m.id}" onclick="tourToggle('${m.id}')">
+      <div class="tour-mico">${m.icon}</div><div class="grow"><b>${m.title}</b><small>${m.desc}</small><small>${m.steps.length} passos${done.has(m.id)?' · ✓ visto':''}</small></div>
+      <button class="btn sm" onclick="event.stopPropagation();tourStart(['${m.id}'])">▶ Só este</button></div>`).join('')}`).join('')}`;
+  showSheet('🧭 Aprender o VetFlowCare', `
+    <div class="tour-tabs"><button class="${tourTab==='lessons'?'on':''}" onclick="tourOpenChooser('lessons')">🎓 Aulas práticas</button>
+      <button class="${tourTab==='tour'?'on':''}" onclick="tourOpenChooser('tour')">🧭 Tour guiado</button></div>
+    ${tourTab==='lessons' ? lessonsHTML : tourHTML}`,
+    `<button class="btn" onclick="closeSheet()">Fechar</button>`);
+  tourSyncSel();
+}
+function tourSyncSel(){
+  const b = document.getElementById('tour_go_sel');
+  if(b){ b.disabled = !tourSel.size; b.textContent = tourSel.size ? `Começar selecionados (${tourSel.size})` : 'Começar selecionados'; }
+  document.querySelectorAll('.tour-card-mod').forEach(c => c.classList.toggle('on', tourSel.has(c.dataset.tm)));
+}
+function tourToggle(id){ tourSel.has(id) ? tourSel.delete(id) : tourSel.add(id); tourSyncSel(); }
+function tourAll(){ tourStart(TOUR_MODS.map(m=>m.id)); }
+function tourStartSel(){ tourStart(TOUR_MODS.filter(m=>tourSel.has(m.id)).map(m=>m.id)); }
+
+// ── Motor do tour ──
+function tourStart(ids){
+  const mods = TOUR_MODS.filter(m=>ids.includes(m.id)); if(!mods.length) return;
+  closeSheet(); lessonStop(true);
+  tour = {ids:mods.map(m=>m.id), steps:[], i:0, on:true, el:null};
+  mods.forEach(m => m.steps.forEach((s,k) => tour.steps.push(Object.assign({}, s, {mod:m, k, n:m.steps.length}))));
+  document.getElementById('tourLayer')?.remove();
+  const layer = document.createElement('div');
+  layer.id = 'tourLayer'; layer.className = 'tour-layer';
+  layer.innerHTML = '<div class="tour-block"></div><div class="tour-hole" hidden></div><div class="tour-box" role="dialog" aria-live="polite"></div>';
+  document.body.appendChild(layer);
+  window.addEventListener('resize', tourPlace); window.addEventListener('scroll', tourPlace, true); document.addEventListener('keydown', tourKey);
+  tourShow(0);
+}
+function closeTour(silent){
+  document.getElementById('tourLayer')?.remove();
+  window.removeEventListener('resize', tourPlace); window.removeEventListener('scroll', tourPlace, true); document.removeEventListener('keydown', tourKey);
+  tour.on = false;
+}
+function tourExit(){
+  closeTour(); goTab('home');
+  toast('Tour encerrado. Retome em Ajustes → Tour guiado e aulas.');
+}
+function tourKey(e){
+  if(!tour.on) return;
+  if(e.key === 'Escape') tourExit();
+  else if(e.key === 'ArrowRight' || e.key === 'Enter'){ e.preventDefault(); tourShow(tour.i+1); }
+  else if(e.key === 'ArrowLeft'){ e.preventDefault(); tourShow(tour.i-1); }
+}
+function tourVisible(el){ const r = el.getBoundingClientRect(); return r.width > 1 && r.height > 1; }
+function tourTarget(s){
+  let list = [];
+  try{
+    if(s.find){ const [css,re] = s.find, rx = new RegExp(re,'i'); list = [...document.querySelectorAll(css)].filter(b => rx.test((b.textContent||'').trim())); }
+    else if(s.sel) list = [...document.querySelectorAll(s.sel)];
+  }catch(e){}
+  return list.find(tourVisible) || null;
+}
+async function tourShow(i){
+  if(!tour.on) return;
+  if(i < 0) i = 0;
+  if(i >= tour.steps.length){ tourFinish(); return; }
+  tour.i = i; const s = tour.steps[i];
+  const faltaPet = s.needPet && !DB.pets.length, faltaTutor = s.needTutor && !DB.tutors.length;
+  tour.note = faltaPet ? TOUR_NEED_PET : faltaTutor ? TOUR_NEED_TUTOR : '';
+  if(s.go && !faltaPet && !faltaTutor){
+    closeSheet();
+    try{ s.go(); }catch(e){}
+    await _tourSleep(220);
+  }
+  if(!tour.on) return;
+  const t = (faltaPet || faltaTutor) ? null : tourTarget(s);
+  if(t){
+    const r = t.getBoundingClientRect(), small = innerWidth < 700;
+    const fixed = !!t.closest('#mainNav,#appHeader .topbar,.fab,#installBanner');
+    if(!fixed){
+      const lim = small ? innerHeight*0.5 : innerHeight*0.8;
+      if(r.top < 70 || r.bottom > lim) window.scrollTo({top: Math.max(0, scrollY + r.top - (small ? 110 : innerHeight*0.25)), behavior:'auto'});
+    }
+  }
+  tour.el = t; tourRender();
+  setTimeout(tourPlace, 60);
+}
+function tourRender(){
+  const box = document.querySelector('#tourLayer .tour-box'); if(!box) return;
+  const s = tour.steps[tour.i], last = tour.i === tour.steps.length-1, pct = Math.round((tour.i+1)/tour.steps.length*100);
+  const miss = tour.note ? `<div class="tour-miss">${tour.note}</div>` : (!tour.el && (s.sel||s.find) ? '<div class="tour-miss">Este botão aparece quando já existe algum cadastro nesta tela. Cadastre o primeiro item (veja as 🎓 Aulas práticas) e refaça este módulo.</div>' : '');
+  box.innerHTML = `<div class="tour-kicker">${s.mod.icon} ${s.mod.title} · ${s.k+1}/${s.n}</div><h3>${s.title}</h3><p>${s.text}</p>${s.tip?`<div class="tour-tip">💡 ${s.tip}</div>`:''}${miss}
+    <div class="tour-prog"><i style="width:${pct}%"></i></div>
+    <div class="tour-btns"><button class="btn sm gray" onclick="tourExit()">Sair</button><span class="grow"></span>
+    <button class="btn sm gray" onclick="tourShow(${tour.i-1})" ${tour.i===0?'disabled':''}>Voltar</button>
+    <button class="btn sm" onclick="tourShow(${tour.i+1})">${last?'Concluir':'Próximo'}</button></div>`;
+}
+function tourPlace(){
+  const layer = document.getElementById('tourLayer'); if(!layer || !tour.on) return;
+  const hole = layer.querySelector('.tour-hole'), box = layer.querySelector('.tour-box');
+  const t = tour.el && document.body.contains(tour.el) ? tour.el : null;
+  if(!t){ hole.hidden = true; box.style.cssText = ''; box.classList.remove('top'); box.classList.add('center'); layer.classList.add('nohole'); return; }
+  layer.classList.remove('nohole'); box.classList.remove('center');
+  const r = t.getBoundingClientRect(), p = 6;
+  hole.hidden = false; hole.style.cssText = `left:${r.left-p}px;top:${r.top-p}px;width:${r.width+p*2}px;height:${r.height+p*2}px`;
+  if(innerWidth < 700){ box.style.cssText = ''; box.classList.toggle('top', r.top + r.height/2 > innerHeight*0.5); return; }
+  box.classList.remove('top');
+  const bw = Math.min(380, innerWidth-24), bh = box.offsetHeight || 200;
+  let top = r.bottom + p + 14; if(top + bh > innerHeight-12) top = r.top - p - 14 - bh; if(top < 12) top = Math.min(innerHeight-bh-12, Math.max(12, r.top));
+  const left = Math.min(Math.max(12, r.left), innerWidth-bw-12);
+  box.style.cssText = `left:${left}px;top:${top}px;width:${bw}px`;
+}
+function tourFinish(){
+  const ids = tour.ids.slice(); closeTour();
+  const st = tourState(); st.done = [...new Set([...st.done, ...ids])]; save();
+  goTab('home');
+  showSheet('Tour concluído 🎉', `<div style="font-size:14px;line-height:1.7">Pronto! Você viu ${ids.length===1?'o módulo':'os módulos'}: <b>${ids.map(id=>TOUR_MODS.find(m=>m.id===id).title).join(', ')}</b>.</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6">Para praticar com seus dados, faça as 🎓 Aulas práticas. Você pode refazer o tour quando quiser em Ajustes → Tour guiado e aulas.</div>`,
+    `<button class="btn gray" onclick="tourOpenChooser('tour')">Escolher outro módulo</button><button class="btn" onclick="tourOpenChooser('lessons')">🎓 Aulas práticas</button>`);
+}
+
+// ── Aulas práticas (em dados reais) ──
+window._tourFlags = window._tourFlags || {};
+const _lessonPetOf = () => DB.pets.find(p=>p.id===(lesson && lesson.petId));
+const TOUR_LESSONS = [
+ {id:'install', icon:'📲', title:'Instale o app no celular', goal:'Ícone na tela inicial, tela cheia e funciona offline.',
+  instant:true, start(){ promptInstall(); }},
+ {id:'profile', icon:'👨‍⚕️', title:'Preencha seus dados profissionais', goal:'Seu nome, CRMV, logo e assinatura saem sozinhos nos documentos.',
+  hint:'Preencha seu <b>nome</b>, escolha o <b>estado</b> e digite o <b>número do CRMV</b>. No fim da página, toque em <b>💾 Salvar Dados Profissionais</b>.', pulse:'[onclick*="saveVetProfile"]',
+  start(){ goTab('settings'); setTimeout(()=>{ document.getElementById('vName')?.scrollIntoView({block:'center'}); document.getElementById('vName')?.focus({preventScroll:true}); }, 250); },
+  snap:()=>({t:window._tourFlags.vet||0}), done:s=>(window._tourFlags.vet||0) > s.t},
+ {id:'tutor', icon:'👤', title:'Cadastre seu primeiro tutor', goal:'O responsável pelo animal: nome, telefone, CEP e endereço.',
+  hint:'Preencha o <b>nome</b> e o <b>telefone</b> (para usar o WhatsApp). Digite o <b>CEP</b>: o endereço se completa sozinho. Depois toque em <b>Salvar</b>.',
+  start(){ pplView = 'tutores'; goTab('pets'); setTimeout(()=>openTutorForm(), 250); },
+  snap:()=>({ids:DB.tutors.map(t=>t.id)}), done:s=>DB.tutors.some(t=>!s.ids.includes(t.id)),
+  reopen(){ openTutorForm(); }},
+ {id:'pet', icon:'🐕', title:'Cadastre seu primeiro paciente', goal:'Ficha do animal: espécie, raça, sexo, peso e tutor.',
+  hint:'Escolha o <b>tutor</b>, digite o <b>nome</b> do animal, a espécie, raça, sexo e peso (nascimento é opcional). Depois toque em <b>Salvar</b>.',
+  start(){ pplView = 'animais'; goTab('pets'); setTimeout(()=>openPetForm(), 250); },
+  snap:()=>({ids:DB.pets.map(p=>p.id)}), done:s=>DB.pets.some(p=>!s.ids.includes(p.id)),
+  after(s){ const p = DB.pets.find(x=>!s.ids.includes(x.id)); if(p){ const st = tourState(); st.lastPet = p.id; } },
+  reopen(){ openPetForm(); }},
+ {id:'vaccine', icon:'💉', title:'Registre uma vacina', goal:'O app calcula a próxima dose e cria o alerta sozinho.', needPet:true,
+  hint:'Escolha a <b>vacina</b> e o <b>protocolo</b> (ex.: Anual). Informe a data e toque em <b>Salvar</b> — a próxima dose entra sozinha.',
+  start(){ tourGoPetTab('health'); setTimeout(()=>openVaccineForm(lesson.petId), 250); },
+  snap:()=>({n:(_lessonPetOf()?.vaccines||[]).length}), done:s=>(_lessonPetOf()?.vaccines||[]).length > s.n,
+  reopen(){ openVaccineForm(lesson.petId); }},
+ {id:'appt', icon:'🩺', title:'Registre um atendimento', goal:'Prontuário, valor da consulta e retorno na agenda.', needPet:true,
+  hint:'Escolha o <b>tipo</b> e a <b>data</b>, escreva o <b>resumo</b> (dá para ditar no 🎙️) e, se quiser, os itens com valor. Toque em <b>Salvar</b>.',
+  start(){ tourGoPetTab('health'); setTimeout(()=>openApptForm(lesson.petId), 250); },
+  snap:()=>({n:(_lessonPetOf()?.appointments||[]).length}), done:s=>(_lessonPetOf()?.appointments||[]).length > s.n,
+  reopen(){ openApptForm(lesson.petId); }},
+ {id:'rx', icon:'📝', title:'Crie uma receita', goal:'Receituário timbrado com seus dados, pronto para enviar.', needPet:true,
+  hint:'Escolha o tipo de receita, escreva a <b>prescrição</b> (pode ditar no 🎙️) e toque em <b>Salvar</b>/gerar.',
+  start(){ tourGoPetTab('rx'); setTimeout(()=>openRxForm(lesson.petId), 250); },
+  snap:()=>({n:(_lessonPetOf()?.prescriptions||[]).length}), done:s=>(_lessonPetOf()?.prescriptions||[]).length > s.n,
+  reopen(){ openRxForm(lesson.petId); }},
+ {id:'term', icon:'📄', title:'Gere um termo', goal:'O termo fica guardado na pasta de termos do paciente.', needPet:true,
+  hint:'Confira o <b>tutor</b>, o <b>veterinário/CRMV</b> e toque em <b>🖨️ Gerar PDF</b>. O termo fica guardado na pasta do paciente.',
+  start(){ tourGoPetTab('termos'); setTimeout(()=>openTermForm(lesson.petId,'anestesico'), 250); },
+  snap:()=>({n:(_lessonPetOf()?.termos||[]).length}), done:s=>(_lessonPetOf()?.termos||[]).length > s.n,
+  reopen(){ openTermForm(lesson.petId,'anestesico'); }},
+ {id:'backup', icon:'💾', title:'Faça seu primeiro backup', goal:'A única proteção contra perder ou trocar de celular.',
+  hint:'Toque em <b>💾 Fazer Backup Completo</b> e guarde o arquivo no Google Drive ou mande para o seu WhatsApp.', pulse:'[onclick*="exportJSON"]',
+  start(){ goTab('settings'); setTimeout(()=>{ const b = document.querySelector('[onclick*="exportJSON"]'); b?.scrollIntoView({block:'center'}); }, 250); },
+  snap:()=>({t:window._tourFlags.backup||0}), done:s=>(window._tourFlags.backup||0) > s.t}
+];
+let lesson = null, _lessonTimer = 0, _pulseTimer = 0;
+// eventos que as aulas observam (sem mudar o comportamento original das funções)
+(function(){
+  const wrap = (name, flag) => { const orig = window[name]; if(typeof orig !== 'function') return; window[name] = function(){ window._tourFlags[flag] = (window._tourFlags[flag]||0) + 1; return orig.apply(this, arguments); }; };
+  wrap('saveVetProfile','vet'); wrap('saveVetSetup','vet'); wrap('doExportJSON','backup'); wrap('exportEncBackup','backup');
+})();
+
+function lessonStart(id){
+  const l = TOUR_LESSONS.find(x=>x.id===id); if(!l) return;
+  closeTour(true); closeSheet();
+  if(l.needPet && !DB.pets.length){
+    showSheet('Primeiro, um paciente 🐾', `<div style="font-size:14px;line-height:1.7">Esta aula usa um paciente. Faça antes a aula <b>“Cadastre seu primeiro paciente”</b> — é rapidinho.</div>`,
+      `<button class="btn gray" onclick="closeSheet()">Agora não</button><button class="btn" onclick="lessonStart('pet')">Cadastrar paciente</button>`);
+    return;
+  }
+  if(l.instant){ l.start(); tourLessonDone(l); return; }
+  let petId = null;
+  if(l.needPet){
+    const st = tourState();
+    petId = (currentPetId && DB.pets.some(p=>p.id===currentPetId)) ? currentPetId : (DB.pets.some(p=>p.id===st.lastPet) ? st.lastPet : tourPetId());
+  }
+  lesson = {id:l.id, def:l, petId, snap:{}, min:false};
+  lesson.snap = l.snap ? l.snap() : {};
+  lessonBar();
+  try{ l.start(); }catch(e){}
+  clearInterval(_lessonTimer);
+  _lessonTimer = setInterval(lessonCheck, 600);
+  clearInterval(_pulseTimer);
+  _pulseTimer = setInterval(lessonPulse, 700);
+}
+function lessonCheck(){
+  if(!lesson) return;
+  let ok = false;
+  try{ ok = lesson.def.done(lesson.snap); }catch(e){}
+  if(!ok) return;
+  const l = lesson.def, snap = lesson.snap;
+  try{ l.after && l.after(snap); }catch(e){}
+  lessonStop(true);
+  setTimeout(()=>tourLessonDone(l), 700);
+}
+function lessonPulse(){
+  document.querySelectorAll('.tour-pulse').forEach(e=>e.classList.remove('tour-pulse'));
+  if(!lesson || !lesson.def.pulse) return;
+  // não destaca botão da página enquanto um formulário (sheet) estiver aberto
+  if((document.getElementById('modals')?.innerHTML||'').trim()) return;
+  const el = [...document.querySelectorAll(lesson.def.pulse)].find(tourVisible);
+  if(el) el.classList.add('tour-pulse');
+}
+function lessonBar(){
+  document.getElementById('lessonBar')?.remove();
+  if(!lesson) return;
+  const l = lesson.def, idx = TOUR_LESSONS.findIndex(x=>x.id===l.id)+1;
+  const bar = document.createElement('div');
+  bar.id = 'lessonBar'; bar.className = 'lesson-bar' + (lesson.min ? ' min' : '');
+  const pet = lesson.petId ? DB.pets.find(p=>p.id===lesson.petId) : null;
+  bar.innerHTML = `<b class="lb-title" onclick="lessonToggleBar()">🎓 Aula ${idx}/${TOUR_LESSONS.length} · ${l.title}${lesson.min?' (toque para abrir)':''}</b>
+    <div class="lb-body">${pet?`Paciente: <b style="display:inline;color:#fff">${esc(pet.name)}</b>. `:''}${l.hint}</div>
+    <div class="lb-btns">${l.reopen?`<button onclick="lessonReopen()">↻ Abrir o formulário</button>`:''}<button onclick="lessonToggleBar()">⌃ Recolher</button><button onclick="lessonStop()">✕ Sair da aula</button></div>`;
+  bar.onclick = e => { if(lesson && lesson.min && e.target.closest('.lesson-bar')){ lessonToggleBar(); } };
+  document.body.appendChild(bar);
+}
+function lessonToggleBar(){ if(!lesson) return; lesson.min = !lesson.min; lessonBar(); }
+function lessonReopen(){ if(lesson && lesson.def.reopen){ try{ lesson.def.reopen(); }catch(e){} } }
+function lessonStop(silent){
+  clearInterval(_lessonTimer); clearInterval(_pulseTimer);
+  document.getElementById('lessonBar')?.remove();
+  document.querySelectorAll('.tour-pulse').forEach(e=>e.classList.remove('tour-pulse'));
+  const had = !!lesson; lesson = null;
+  if(had && !silent) toast('Aula encerrada. Retome em Ajustes → Tour guiado e aulas.');
+}
+function tourLessonDone(l){
+  const st = tourState();
+  if(!st.lessons.includes(l.id)) st.lessons.push(l.id);
+  save();
+  const idx = TOUR_LESSONS.findIndex(x=>x.id===l.id), next = TOUR_LESSONS.find((x,i)=>i>idx && !st.lessons.includes(x.id)) || TOUR_LESSONS.find(x=>!st.lessons.includes(x.id));
+  const all = st.lessons.length >= TOUR_LESSONS.length;
+  closeSheet();
+  showSheet(all ? '🏆 Você concluiu todas as aulas!' : '🎉 Aula concluída!',
+    `<div style="text-align:center;font-size:46px">${all?'🏆':'🎉'}</div>
+     <div style="font-size:14px;line-height:1.7;text-align:center"><b>${l.title}</b> — feito!<br><span style="color:var(--muted);font-size:12px">${st.lessons.length} de ${TOUR_LESSONS.length} aulas concluídas</span></div>
+     ${all?'<div style="font-size:13px;line-height:1.7;margin-top:10px;text-align:center">Agora você já domina o essencial do VetFlowCare. Se quiser conhecer cada botão, faça o 🧭 Tour guiado.</div>':''}`,
+    `<button class="btn gray" onclick="closeSheet()">Fechar</button>
+     ${next&&!all?`<button class="btn" onclick="lessonStart('${next.id}')">Próxima: ${next.title} ›</button>`:`<button class="btn" onclick="tourOpenChooser('tour')">🧭 Tour guiado</button>`}`);
+}
+
+// ── Boas-vindas (1º acesso) e atalhos que substituem o antigo tutorial em telas ──
+function openTutorial(){ tourWelcome(); }
+function tourWelcome(){
+  showSheet('👋 Bem-vindo(a) ao VetFlowCare!', `
+    <div style="font-size:14px;line-height:1.7">Sua clínica completa no bolso: <b>Organiza · Conecta · Cuida</b>.<br><br>
+    ✅ Funciona <b>offline</b> — os dados ficam no seu aparelho<br>
+    ✅ <b>Teste grátis de 30 dias</b> com tudo liberado<br>
+    ✅ Receitas, termos e carteirinhas com o <b>seu timbre</b><br><br>
+    Quer aprender com calma? Escolha como:</div>
+    <div class="card" style="margin-top:10px;cursor:pointer" onclick="tourOpenChooser('lessons')"><b>🎓 Aulas práticas</b><div style="font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5">Você aprende <b>fazendo</b>, com seus dados de verdade: instala o app, preenche seus dados e cadastra o primeiro tutor e paciente.</div></div>
+    <div class="card" style="cursor:pointer" onclick="tourOpenChooser('tour')"><b>🧭 Tour guiado por botões</b><div style="font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5">O app destaca cada botão da tela e explica para que serve — completo ou só os módulos que quiser.</div></div>
+    <div style="font-size:11.5px;color:var(--muted);margin-top:6px">Você encontra tudo isso depois em <b>Ajustes → Tour guiado e aulas</b>.</div>`,
+    `<button class="btn gray" onclick="finishTutorial()">Agora não</button><button class="btn" onclick="finishTutorial(true);tourOpenChooser('lessons')">🎓 Começar</button>`);
 }
 function finishTutorial(skipNext){
   testStorage.setItem('vfc_tut_done','1');
@@ -6058,6 +6312,18 @@ function finishTutorial(skipNext){
   closeSheet();
   if(!skipNext && !DB.vet.name) setTimeout(openVetSetup, 300);
 }
+// Cartão discreto no Início enquanto houver aulas por fazer (some ao concluir ou ao dispensar)
+function tourHomeCard(){
+  const st = tourState();
+  if(st.hideCard || st.lessons.length >= TOUR_LESSONS.length) return '';
+  return `<div class="card tour-home-card" style="cursor:pointer" onclick="tourOpenChooser('lessons')">
+    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:24px">🎓</span>
+      <div style="flex:1"><b style="font-size:14px;color:var(--primary)">Aprenda a usar o VetFlowCare</b>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:2px">${st.lessons.length} de ${TOUR_LESSONS.length} aulas práticas concluídas · toque para continuar</div></div>
+      <button style="background:none;color:var(--muted);font-size:16px;padding:4px 8px" onclick="event.stopPropagation();tourHideCard()" aria-label="Dispensar">✕</button></div></div>`;
+}
+function tourHideCard(){ tourState().hideCard = true; save(); render(); toast('Combinado! As aulas continuam em Ajustes → Tour guiado e aulas.'); }
+
 // ═══════════ BUSCA GLOBAL ═══════════
 function abrirBusca(){
   document.getElementById('buscaOverlay')?.remove();
@@ -6338,7 +6604,7 @@ function renderHome(){
   const od = evts.filter(e=>e.priority==='overdue');
   const week = evts.filter(e=>e.daysLeft>=0 && e.daysLeft<=7).slice(0,5);
 
-  let h = '';
+  let h = tourHomeCard();
   // 🎁 AVISO DO TESTE GRÁTIS — aparece quando faltam TRIAL_AVISO_DIAS (5) ou menos
   if(trialAtivo() && !isProReal()){
     const diasT = trialDiasRestantes();
@@ -8575,8 +8841,8 @@ function renderSettings(){
     <div class="card">
       <button class="btn" onclick="promptInstall()">📲 Instalar o App neste celular</button>
       <div style="font-size:11px;color:var(--muted);margin:4px 0 12px">Coloca o VetFlowCare como aplicativo de verdade: ícone próprio, tela cheia, sem barra do navegador.</div>
-      <button class="btn outline" onclick="openTutorial(0)">📖 Tutorial Rápido (guia passo a passo)</button>
-      <div style="font-size:11px;color:var(--muted);margin:4px 0 10px">Guia interativo com os módulos principais do app.</div>
+      <button class="btn outline" onclick="tourOpenChooser()">🧭 Tour guiado e aulas práticas${tourState().lessons.length?` (${tourState().lessons.length}/${TOUR_LESSONS.length})`:''}</button>
+      <div style="font-size:11px;color:var(--muted);margin:4px 0 10px">O app destaca cada botão e explica para que serve — e você aprende fazendo, com aulas práticas.</div>
       <button class="btn outline" onclick="window.open('https://vetflowcare.com.br/tutorial/','_blank')">📚 Tutorial Completo (manual detalhado)</button>
       <div style="font-size:11px;color:var(--muted);margin:4px 0 12px">Manual completo com todos os recursos, dicas e perguntas frequentes.</div>
       <button class="btn sm outline" style="width:100%;display:block;text-align:center" onclick="window.open('https://wa.me/5511912659906?text=' + encodeURIComponent('Oi! Preciso de ajuda com o VetFlowCare.'))">💬 Suporte e Dúvidas (WhatsApp)</button></div></div>
@@ -8628,7 +8894,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.94 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.95 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
