@@ -3301,14 +3301,16 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.98';
+const APP_VER = '10.00';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.98',
+  ver: '10.00',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['⏳','Validade do orçamento você define','No Orçamento em PDF agora existe o campo "Dias de validade da proposta": digite 7, 15, 20, 30… o número que você usa. O PDF mostra os dias e a data limite, e o app lembra o último valor que você usou.'],
+    ['📄','Botão de Orçamento sempre visível','O botão "Orçamento em PDF" agora fica sempre na tela de Novo Atendimento, logo abaixo dos valores. Se você tocar nele antes de preencher um serviço com valor, o app avisa o que falta.'],
     ['📄','Orçamento em PDF no Novo Atendimento','Na tela de Novo Atendimento, logo abaixo dos valores, apareceu o botão "Orçamento em PDF". Ele gera um documento com o título ORÇAMENTO, o seu timbre, tutor e paciente, a lista de serviços com valores, o desconto, o total, a forma de pagamento prevista e a validade de 7 dias, pronto para entregar ou enviar ao tutor. O orçamento não lança cobrança nem salva o atendimento: é só o documento.'],
     ['🎨','Agenda mais bonita e organizada por cores','Agora cada tipo tem a sua cor: Vacina (azul), Atendimento (roxo), Medicação (verde) e Pagamento (dourado). O vermelho ficou só para o que está VENCIDO, então nunca mais se confunde. Os pontinhos do calendário mostram a cor de cada compromisso do dia, os dias com item vencido ganham contorno vermelho, e os cartões da lista ficaram mais elegantes, com etiqueta do tipo e situação (atraso, hoje, em X dias). Novo: filtros por tipo logo abaixo do calendário, com a quantidade do mês.'],
     ['🎓','Aulas práticas muito melhores','As aulas agora guiam campo por campo: destacam o campo da vez, mostram "Passo 2 de 6" e avançam sozinhas conforme você preenche. Botões maiores e coloridos (Abrir formulário, Minimizar, Sair), a barra fica por cima de qualquer janela e funciona mesmo com o aviso do plano Pro aberto. Nova aula: lançar uma cobrança. Quem já tem cadastros (ou bateu o limite de 5 pacientes do plano grátis) pode marcar a aula como concluída. Em Ajustes → Ajuda agora há botões próprios para as Aulas práticas e para o Tour guiado.'],
@@ -9068,7 +9070,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.98 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.00 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -10604,8 +10606,12 @@ function openApptForm(petId, editId){
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>Subtotal dos serviços:</span><b id="fPSubTxt">R$ 0,00</b></div>
       <div id="fPDescBox" style="display:none;justify-content:space-between;font-size:12px;color:var(--danger);margin-top:2px"><span>Desconto aplicado:</span><b id="fPDescTxt">− R$ 0,00</b></div>
       <div style="display:flex;justify-content:space-between;margin-top:4px;padding-top:4px;border-top:1px solid var(--border)">💰 Total: <b id="fPTotalTxt">R$ 0,00</b></div></div>
-    <button type="button" id="fPOrcBtn" class="btn sm" style="display:none;margin-top:8px;width:100%;background:linear-gradient(135deg,#1E3A6E,#2D5FA8)" onclick="printOrcamento('${petId}')">📄 Orçamento em PDF</button>
-    <div id="fPOrcHint" style="display:none;font-size:11px;color:var(--muted);margin:4px 2px 0;line-height:1.5">Gera um orçamento para o tutor com os itens, o desconto e o total acima. Não lança cobrança nem salva o atendimento.</div>
+    <div id="fPOrcValWrap" style="margin-top:10px;display:flex;align-items:center;gap:8px;background:var(--vetbg);border-radius:10px;padding:8px 12px">
+      <label for="fPOrcDias" style="margin:0;font-size:12px;font-weight:800;flex:1;line-height:1.3">⏳ Dias de validade da proposta</label>
+      <input id="fPOrcDias" type="number" inputmode="numeric" min="1" max="365" step="1" value="${orcDiasPadrao()}" style="width:76px;text-align:center;font-weight:800;margin:0">
+      <span style="font-size:12px;color:var(--muted)">dias</span></div>
+    <button type="button" id="fPOrcBtn" class="btn sm" style="display:block;margin-top:8px;width:100%;background:linear-gradient(135deg,#1E3A6E,#2D5FA8)" onclick="printOrcamento('${petId}')">📄 Orçamento em PDF</button>
+    <div id="fPOrcHint" style="display:block;font-size:11px;color:var(--muted);margin:4px 2px 0;line-height:1.5">Gera um orçamento para o tutor com os itens, o desconto e o total acima. Não lança cobrança nem salva o atendimento.</div>
     <input type="hidden" id="fPValor" value="0">
     ${eA?.parcelas?.length ? `
     <label>Pagamento</label>
@@ -10747,9 +10753,7 @@ function recalcServTotal(){ if(!document.getElementById('fPValor'))return;
   }
   const box = document.getElementById('fPTotalBox');
   box.style.display = (subtotal > 0) ? 'block' : 'none';
-  const ob = document.getElementById('fPOrcBtn'), oh = document.getElementById('fPOrcHint');
-  if(ob) ob.style.display = (subtotal > 0) ? 'block' : 'none';
-  if(oh) oh.style.display = (subtotal > 0) ? 'block' : 'none';
+  // v9.99: botão do orçamento fica sempre visível; sem valor, printOrcamento avisa
   const subEl = document.getElementById('fPSubTxt');
   if(subEl) subEl.textContent = fmtBRL(subtotal);
   document.getElementById('fPTotalTxt').textContent = fmtBRL(total);
@@ -11136,7 +11140,13 @@ function signatureHTML(dateISO){
 // ═══ v9.98 — ORÇAMENTO em PDF (a partir da tela de Novo Atendimento) ═══
 // Lê os itens, o desconto e a forma de pagamento que estão NA TELA (mesmo sem salvar o atendimento).
 // Não cria cobrança nem atendimento: é só um documento para entregar ao tutor.
-const ORC_VALIDADE_DIAS = 7;
+const ORC_VALIDADE_DIAS = 7; // padrão de fábrica; o veterinário digita os dias na tela (v10.00) e o app lembra o último valor
+function orcDiasPadrao(){ const n = parseInt(DB.vet?.orcValidadeDias,10); return (n>=1 && n<=365) ? n : ORC_VALIDADE_DIAS; }
+function orcDiasLer(){ // devolve inteiro 1–365 ou 0 se inválido/vazio
+  const raw = String(document.getElementById('fPOrcDias')?.value||'').trim();
+  if(!/^\d+$/.test(raw)) return 0;
+  const n = parseInt(raw,10); return (n>=1 && n<=365) ? n : 0;
+}
 function orcSlug(t){ return String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,''); }
 function orcamentoColetar(){
   const itens = [...document.querySelectorAll('#fPItens .srow')].map(r => ({
@@ -11153,10 +11163,11 @@ function orcamentoColetar(){
     tipo: document.getElementById('fPTitle')?.value || '', resumo: (document.getElementById('fPResumo')?.value||'').trim(),
     dateISO, time: document.getElementById('fPTime')?.value || '', clinic: (document.getElementById('fPClinic')?.value||'').trim() };
 }
-function orcamentoHTML(pet, o, hoje){
+function orcamentoHTML(pet, o, hoje, dias){
+  dias = dias || ORC_VALIDADE_DIAS;
   const v = DB.vet, t = tutorOf(pet);
   const tutor = t?.name || tutorName(pet) || '';
-  const val = new Date(hoje+'T12:00:00'); val.setDate(val.getDate()+ORC_VALIDADE_DIAS);
+  const val = new Date(hoje+'T12:00:00'); val.setDate(val.getDate()+dias);
   const validoAte = val.toISOString().slice(0,10);
   const num = 'ORC-' + hoje.replace(/-/g,'') + '-' + new Date().toTimeString().slice(0,5).replace(':','');
   const th = 'padding:9px 12px;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:#fff;background:#1E3A6E;text-align:left';
@@ -11188,7 +11199,7 @@ function orcamentoHTML(pet, o, hoje){
       <span style="letter-spacing:2px;font-size:12px;font-weight:800">TOTAL</span><b style="font-size:20px">${fmtBRL(o.total)}</b></div></div>
   ${o.meio?`<div style="margin-top:14px;font-size:13px"><b>Forma de pagamento prevista:</b> ${o.meio.emo||''} ${esc(o.meio.label||'')}</div>`:''}
   <div style="margin-top:18px;border:1.5px dashed #9FD8D1;border-radius:10px;padding:10px 14px;font-size:11.5px;line-height:1.7;color:#4A5B73;background:#FAFEFD">
-    Este orçamento é uma <b>estimativa</b> dos serviços e valores, válida por ${ORC_VALIDADE_DIAS} dias a partir da emissão.
+    Este orçamento é uma <b>estimativa</b> dos serviços e valores, válida por ${dias} ${dias===1?'dia':'dias'} a partir da emissão (até ${fmtDate(validoAte)}).
     Os valores podem ser ajustados conforme a evolução clínica do paciente, exames adicionais ou intercorrências, sempre com o seu conhecimento prévio.</div>
   <div style="margin-top:34px;text-align:center">
     ${v.signature?`<img src="${v.signature}" style="height:56px;object-fit:contain;margin-bottom:-6px">`:''}
@@ -11201,8 +11212,11 @@ function printOrcamento(petId){
   if(!pet){ toast('⚠ Paciente não encontrado'); return; }
   const o = orcamentoColetar();
   if(!o.itens.length || o.subtotal <= 0){ toast('⚠ Adicione ao menos um serviço com valor'); return; }
+  const dias = orcDiasLer();
+  if(!dias){ toast('⚠ Informe os dias de validade (de 1 a 365)'); document.getElementById('fPOrcDias')?.focus(); return; }
+  DB.vet = DB.vet || {}; if(DB.vet.orcValidadeDias !== dias){ DB.vet.orcValidadeDias = dias; save(); }
   const hoje = todayISO();
-  printShell('Orçamento — ' + pet.name, orcamentoHTML(pet, o, hoje), `Orcamento_${orcSlug(pet.name)||'Paciente'}_${hoje}`);
+  printShell('Orçamento — ' + pet.name, orcamentoHTML(pet, o, hoje, dias), `Orcamento_${orcSlug(pet.name)||'Paciente'}_${hoje}`);
 }
 function printShell(title, inner, fileName){
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${fileName||title}</title><style>
