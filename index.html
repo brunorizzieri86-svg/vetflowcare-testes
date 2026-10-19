@@ -3301,14 +3301,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.97';
+const APP_VER = '9.98';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.97',
+  ver: '9.98',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['📄','Orçamento em PDF no Novo Atendimento','Na tela de Novo Atendimento, logo abaixo dos valores, apareceu o botão "Orçamento em PDF". Ele gera um documento com o título ORÇAMENTO, o seu timbre, tutor e paciente, a lista de serviços com valores, o desconto, o total, a forma de pagamento prevista e a validade de 7 dias, pronto para entregar ou enviar ao tutor. O orçamento não lança cobrança nem salva o atendimento: é só o documento.'],
     ['🎨','Agenda mais bonita e organizada por cores','Agora cada tipo tem a sua cor: Vacina (azul), Atendimento (roxo), Medicação (verde) e Pagamento (dourado). O vermelho ficou só para o que está VENCIDO, então nunca mais se confunde. Os pontinhos do calendário mostram a cor de cada compromisso do dia, os dias com item vencido ganham contorno vermelho, e os cartões da lista ficaram mais elegantes, com etiqueta do tipo e situação (atraso, hoje, em X dias). Novo: filtros por tipo logo abaixo do calendário, com a quantidade do mês.'],
     ['🎓','Aulas práticas muito melhores','As aulas agora guiam campo por campo: destacam o campo da vez, mostram "Passo 2 de 6" e avançam sozinhas conforme você preenche. Botões maiores e coloridos (Abrir formulário, Minimizar, Sair), a barra fica por cima de qualquer janela e funciona mesmo com o aviso do plano Pro aberto. Nova aula: lançar uma cobrança. Quem já tem cadastros (ou bateu o limite de 5 pacientes do plano grátis) pode marcar a aula como concluída. Em Ajustes → Ajuda agora há botões próprios para as Aulas práticas e para o Tour guiado.'],
     ['🧭','Tour guiado por botões e Aulas práticas','Novo jeito de aprender o app: o Tour guiado escurece a tela, destaca o botão de verdade e explica para que serve, módulo por módulo (instalar o app, Início, dados profissionais, tutores, pacientes, saúde, receitas, termos, agenda, financeiro, backup e mais). E as Aulas práticas ensinam fazendo, com os seus dados: preencher seus dados, cadastrar o primeiro tutor e paciente, registrar vacina, atendimento, receita e termo e fazer o backup. Abra em Ajustes → Ajuda. Substitui o tutorial antigo.'],
@@ -9067,7 +9068,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.97 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.98 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -10603,6 +10604,8 @@ function openApptForm(petId, editId){
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>Subtotal dos serviços:</span><b id="fPSubTxt">R$ 0,00</b></div>
       <div id="fPDescBox" style="display:none;justify-content:space-between;font-size:12px;color:var(--danger);margin-top:2px"><span>Desconto aplicado:</span><b id="fPDescTxt">− R$ 0,00</b></div>
       <div style="display:flex;justify-content:space-between;margin-top:4px;padding-top:4px;border-top:1px solid var(--border)">💰 Total: <b id="fPTotalTxt">R$ 0,00</b></div></div>
+    <button type="button" id="fPOrcBtn" class="btn sm" style="display:none;margin-top:8px;width:100%;background:linear-gradient(135deg,#1E3A6E,#2D5FA8)" onclick="printOrcamento('${petId}')">📄 Orçamento em PDF</button>
+    <div id="fPOrcHint" style="display:none;font-size:11px;color:var(--muted);margin:4px 2px 0;line-height:1.5">Gera um orçamento para o tutor com os itens, o desconto e o total acima. Não lança cobrança nem salva o atendimento.</div>
     <input type="hidden" id="fPValor" value="0">
     ${eA?.parcelas?.length ? `
     <label>Pagamento</label>
@@ -10744,6 +10747,9 @@ function recalcServTotal(){ if(!document.getElementById('fPValor'))return;
   }
   const box = document.getElementById('fPTotalBox');
   box.style.display = (subtotal > 0) ? 'block' : 'none';
+  const ob = document.getElementById('fPOrcBtn'), oh = document.getElementById('fPOrcHint');
+  if(ob) ob.style.display = (subtotal > 0) ? 'block' : 'none';
+  if(oh) oh.style.display = (subtotal > 0) ? 'block' : 'none';
   const subEl = document.getElementById('fPSubTxt');
   if(subEl) subEl.textContent = fmtBRL(subtotal);
   document.getElementById('fPTotalTxt').textContent = fmtBRL(total);
@@ -11126,6 +11132,77 @@ function signatureHTML(dateISO){
     <div style="border-top:1.5px solid #1A2F5A;width:280px;margin:6px auto 4px"></div>
     <div style="font-size:13px;font-weight:700;color:#1A2F5A">${esc(v.name||'Assinatura')}</div>
     <div style="font-size:12px;color:#6B7A8D">${crmvFull()||''}</div></div>`;
+}
+// ═══ v9.98 — ORÇAMENTO em PDF (a partir da tela de Novo Atendimento) ═══
+// Lê os itens, o desconto e a forma de pagamento que estão NA TELA (mesmo sem salvar o atendimento).
+// Não cria cobrança nem atendimento: é só um documento para entregar ao tutor.
+const ORC_VALIDADE_DIAS = 7;
+function orcSlug(t){ return String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,''); }
+function orcamentoColetar(){
+  const itens = [...document.querySelectorAll('#fPItens .srow')].map(r => ({
+    desc: (r.querySelector('.sDesc')?.value||'').trim(), valor: moedaVal(r.querySelector('.sVal')) || 0
+  })).filter(i => i.desc || i.valor);
+  const subtotal = itens.reduce((a,i)=>a+i.valor, 0);
+  let pct = parseFloat(String(document.getElementById('fPDesc')?.value||'').replace(',','.')) || 0;
+  pct = Math.min(100, Math.max(0, pct));
+  const descV = subtotal * pct / 100;
+  const meioKey = document.querySelector('#fPMeio .chip.on')?.dataset.meio || '';
+  const meio = (typeof MEIOS_PAG !== 'undefined' && MEIOS_PAG[meioKey]) ? MEIOS_PAG[meioKey] : null;
+  const dateISO = (document.getElementById('fPDate')?.value) || parseBRDate(document.getElementById('fPDateTxt')?.value||'') || todayISO();
+  return { itens, subtotal, pct, descV, total: subtotal - descV, meio,
+    tipo: document.getElementById('fPTitle')?.value || '', resumo: (document.getElementById('fPResumo')?.value||'').trim(),
+    dateISO, time: document.getElementById('fPTime')?.value || '', clinic: (document.getElementById('fPClinic')?.value||'').trim() };
+}
+function orcamentoHTML(pet, o, hoje){
+  const v = DB.vet, t = tutorOf(pet);
+  const tutor = t?.name || tutorName(pet) || '';
+  const val = new Date(hoje+'T12:00:00'); val.setDate(val.getDate()+ORC_VALIDADE_DIAS);
+  const validoAte = val.toISOString().slice(0,10);
+  const num = 'ORC-' + hoje.replace(/-/g,'') + '-' + new Date().toTimeString().slice(0,5).replace(':','');
+  const th = 'padding:9px 12px;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:#fff;background:#1E3A6E;text-align:left';
+  const rows = o.itens.map((i,k)=>`<tr style="background:${k%2?'#F4FAF9':'#fff'}">
+      <td style="padding:10px 12px;font-size:13px;color:#6B7A8D;width:34px">${k+1}</td>
+      <td style="padding:10px 12px;font-size:14px">${esc(i.desc||'Serviço')}</td>
+      <td style="padding:10px 12px;font-size:14px;text-align:right;white-space:nowrap;font-weight:700">${fmtBRL(i.valor)}</td></tr>`).join('');
+  return `${letterheadHTML()}
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin:4px 0 14px">
+    <div class="doctitle" style="margin:0;text-align:left;font-size:26px;letter-spacing:6px">ORÇAMENTO</div>
+    <div style="text-align:right;font-size:11px;color:#6B7A8D;line-height:1.6"><b style="color:#1E3A6E">Nº ${num}</b><br>Emitido em ${fmtDate(hoje)}<br>Válido até ${fmtDate(validoAte)}</div></div>
+  <div style="height:3px;background:linear-gradient(90deg,#2DC0AE,#1E3A6E);border-radius:3px;margin-bottom:16px"></div>
+  <div style="display:flex;gap:12px;margin-bottom:18px">
+    <div style="flex:1;background:#EDF8F7;border-radius:10px;padding:11px 14px;font-size:13px;line-height:1.7">
+      <div style="font-size:10px;letter-spacing:1px;color:#6B7A8D;font-weight:800">TUTOR / RESPONSÁVEL</div>
+      <b style="font-size:14px">${esc(tutor||'—')}</b>${t?.phone?`<br>${esc(fmtPhone(t.phone))}`:''}</div>
+    <div style="flex:1;background:#EDF8F7;border-radius:10px;padding:11px 14px;font-size:13px;line-height:1.7">
+      <div style="font-size:10px;letter-spacing:1px;color:#6B7A8D;font-weight:800">PACIENTE</div>
+      <b style="font-size:14px">${esc(pet.name)}</b><br>${esc(pet.species)} · ${esc(pet.breed||'SRD')}${pet.weight?` · ${pet.weight} kg`:''}</div></div>
+  ${(o.tipo||o.resumo)?`<div style="font-size:13px;margin-bottom:14px;line-height:1.7"><b>Atendimento:</b> ${esc(o.tipo)}${o.resumo?` — ${esc(o.resumo)}`:''}
+    <span style="color:#6B7A8D"> · previsto para ${fmtDate(o.dateISO)}${o.time?` às ${esc(o.time)}`:''}${o.clinic?` · ${esc(o.clinic)}`:''}</span></div>`:''}
+  <table style="width:100%;border-collapse:collapse;border:1px solid #D5EBE9;border-radius:10px;overflow:hidden">
+    <thead><tr><th style="${th};width:34px">#</th><th style="${th}">Descrição do serviço</th><th style="${th};text-align:right">Valor</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+  <div style="margin:14px 0 0 auto;width:300px;font-size:13px">
+    <div style="display:flex;justify-content:space-between;padding:5px 2px"><span style="color:#6B7A8D">Subtotal</span><b>${fmtBRL(o.subtotal)}</b></div>
+    ${o.pct>0?`<div style="display:flex;justify-content:space-between;padding:5px 2px;color:#C0392B"><span>Desconto (${o.pct.toLocaleString('pt-BR')}%)</span><b>− ${fmtBRL(o.descV)}</b></div>`:''}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;background:linear-gradient(135deg,#1E3A6E,#2D5FA8);color:#fff;border-radius:10px;padding:12px 14px">
+      <span style="letter-spacing:2px;font-size:12px;font-weight:800">TOTAL</span><b style="font-size:20px">${fmtBRL(o.total)}</b></div></div>
+  ${o.meio?`<div style="margin-top:14px;font-size:13px"><b>Forma de pagamento prevista:</b> ${o.meio.emo||''} ${esc(o.meio.label||'')}</div>`:''}
+  <div style="margin-top:18px;border:1.5px dashed #9FD8D1;border-radius:10px;padding:10px 14px;font-size:11.5px;line-height:1.7;color:#4A5B73;background:#FAFEFD">
+    Este orçamento é uma <b>estimativa</b> dos serviços e valores, válida por ${ORC_VALIDADE_DIAS} dias a partir da emissão.
+    Os valores podem ser ajustados conforme a evolução clínica do paciente, exames adicionais ou intercorrências, sempre com o seu conhecimento prévio.</div>
+  <div style="margin-top:34px;text-align:center">
+    ${v.signature?`<img src="${v.signature}" style="height:56px;object-fit:contain;margin-bottom:-6px">`:''}
+    <div style="border-top:1.5px solid #1A2F5A;width:280px;margin:8px auto 4px"></div>
+    <div style="font-size:13px;font-weight:700;color:#1A2F5A">${esc(v.name||'Médico(a) Veterinário(a)')}</div>
+    <div style="font-size:12px;color:#6B7A8D">${crmvFull()||''}</div></div>`;
+}
+function printOrcamento(petId){
+  const pet = DB.pets.find(p=>p.id===petId);
+  if(!pet){ toast('⚠ Paciente não encontrado'); return; }
+  const o = orcamentoColetar();
+  if(!o.itens.length || o.subtotal <= 0){ toast('⚠ Adicione ao menos um serviço com valor'); return; }
+  const hoje = todayISO();
+  printShell('Orçamento — ' + pet.name, orcamentoHTML(pet, o, hoje), `Orcamento_${orcSlug(pet.name)||'Paciente'}_${hoje}`);
 }
 function printShell(title, inner, fileName){
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${fileName||title}</title><style>
