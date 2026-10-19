@@ -21,11 +21,14 @@
   --vac:#4E8EAC; --vacbg:#EEF4FA; --med:#2DB37A; --medbg:#EBF8F2;
   --vet:#E05252; --vetbg:#FDEEEE; --rx:#7C5CE4; --rxbg:#F3F0FD;
   --shadow:0 2px 10px rgba(26,47,90,.06);
+  --ev-vac:#3D8BD9; --ev-vac-bg:rgba(61,139,217,.14); --ev-med:#27AE72; --ev-med-bg:rgba(39,174,114,.14);
+  --ev-vet:#7C5CE4; --ev-vet-bg:rgba(124,92,228,.14); --ev-pay:#E39A00; --ev-pay-bg:rgba(240,165,0,.16); --ev-od:#E05252;
 }
 body.dark{
   --bg:#0F1B2E; --surface:#1A2A44; --text:#E8F0F5; --muted:#8CA0B8;
   --border:#2A3D5C; --vacbg:#1E3350; --medbg:#16362C; --vetbg:#3A2028; --rxbg:#2A2450;
   --shadow:0 2px 10px rgba(0,0,0,.3);
+  --ev-vac:#5BA6F0; --ev-med:#3DCB8E; --ev-vet:#A18CF5; --ev-pay:#F5B83A; --ev-od:#F06A6A;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,'Segoe UI',Inter,Roboto,sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:76px}
@@ -271,6 +274,43 @@ canvas{width:100%!important}
 .lesson-bar.min{padding:9px 12px}.lesson-bar.min .lb-body,.lesson-bar.min .lb-btns,.lesson-bar.min .lb-prog{display:none}
 .tour-pulse{outline:3px solid var(--primary)!important;outline-offset:3px;border-radius:12px;box-shadow:0 0 0 7px rgba(45,192,174,.22)!important;animation:tourPulse 1.1s ease-in-out infinite}
 @keyframes tourPulse{0%,100%{outline-color:var(--primary)}50%{outline-color:rgba(45,192,174,.2)}}
+/* ═══ v9.97 — Agenda premium: 1 cor por TIPO (vermelho só para VENCIDO) ═══ */
+.cal-day{position:relative}
+.cal-day .dots{height:6px;gap:3px;margin-top:3px}
+.cal-day .dots i{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+.cal-day .dots i.t-vaccine{background:var(--ev-vac)}.cal-day .dots i.t-medication{background:var(--ev-med)}
+.cal-day .dots i.t-vet{background:var(--ev-vet)}.cal-day .dots i.t-pay{background:var(--ev-pay)}.cal-day .dots i.t-done{background:transparent;box-shadow:inset 0 0 0 1.5px var(--muted)}
+.cal-day.sel .dots i{box-shadow:0 0 0 1.5px #fff}
+.cal-day.od{box-shadow:inset 0 0 0 1.8px var(--ev-od);color:var(--ev-od);font-weight:800}
+.cal-day.od.sel{color:#fff;box-shadow:inset 0 0 0 2px #fff, 0 0 0 2px var(--ev-od)}
+.cal-day.od::after{content:'';position:absolute;top:4px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--ev-od)}
+.cal-day.od.sel::after{background:#fff}
+.cal-filters{display:flex;flex-wrap:wrap;gap:7px;padding:4px 1px 8px;margin:10px 0 2px}
+.cal-filters::-webkit-scrollbar{display:none}
+.cal-chip{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;background:var(--surface);color:var(--text);border:1.5px solid var(--border)}
+.cal-chip i{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.cal-chip b{font-size:11px;opacity:.75;font-weight:800}
+.cal-chip.t-vaccine i{background:var(--ev-vac)}.cal-chip.t-medication i{background:var(--ev-med)}.cal-chip.t-vet i{background:var(--ev-vet)}.cal-chip.t-pay i{background:var(--ev-pay)}
+.cal-chip.on{color:#fff;border-color:transparent;background:var(--dark)}
+.cal-chip.on i{box-shadow:0 0 0 2px rgba(255,255,255,.85)}
+.cal-chip.t-vaccine.on{background:var(--ev-vac)}.cal-chip.t-medication.on{background:var(--ev-med)}.cal-chip.t-vet.on{background:var(--ev-vet)}.cal-chip.t-pay.on{background:var(--ev-pay)}
+.cal-chip.on i{background:#fff}
+.cal-note{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);margin:2px 2px 0}
+.cal-note u{display:inline-block;width:14px;height:14px;border-radius:5px;box-shadow:inset 0 0 0 1.8px var(--ev-od);text-decoration:none}
+.evt{position:relative;border-left-width:1px!important;border-radius:16px;padding:11px 12px 11px 17px;overflow:hidden;box-shadow:0 2px 10px rgba(26,47,90,.06);align-items:center}
+.evt::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--evc,var(--muted))}
+.evt .ic{background:var(--evb,var(--bg))!important;width:40px;height:40px;border-radius:13px;font-size:19px}
+.evt .tp{display:inline-block;font-size:9.5px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;padding:2px 7px;border-radius:999px;color:var(--evc);background:var(--evb);margin-bottom:3px}
+.evt .t1{font-size:13.5px;font-weight:700}
+.evt .t2{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11.5px}
+.evt .sp{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.evt .sp.od{background:var(--ev-od);color:#fff}
+.evt .sp.today{background:var(--ev-pay-bg);color:var(--ev-pay);box-shadow:inset 0 0 0 1.2px var(--ev-pay)}
+.evt .sp.soon{background:var(--bg);color:var(--muted);box-shadow:inset 0 0 0 1px var(--border)}
+.evt .sp.done{background:var(--ev-med-bg);color:var(--ev-med)}
+.evt.is-od{background:linear-gradient(90deg,rgba(224,82,82,.10),var(--surface) 55%)}
+.evt.is-done{opacity:.8}.evt.is-done::before{background:var(--muted)}
+.evt .chev{color:var(--muted);font-size:18px;padding-left:2px}
 .tour-home-card{border:1.5px solid var(--primary);background:rgba(45,192,174,.08);margin-bottom:14px}
 </style>
 
@@ -3261,14 +3301,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '9.96';
+const APP_VER = '9.97';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '9.96',
+  ver: '9.97',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🎨','Agenda mais bonita e organizada por cores','Agora cada tipo tem a sua cor: Vacina (azul), Atendimento (roxo), Medicação (verde) e Pagamento (dourado). O vermelho ficou só para o que está VENCIDO, então nunca mais se confunde. Os pontinhos do calendário mostram a cor de cada compromisso do dia, os dias com item vencido ganham contorno vermelho, e os cartões da lista ficaram mais elegantes, com etiqueta do tipo e situação (atraso, hoje, em X dias). Novo: filtros por tipo logo abaixo do calendário, com a quantidade do mês.'],
     ['🎓','Aulas práticas muito melhores','As aulas agora guiam campo por campo: destacam o campo da vez, mostram "Passo 2 de 6" e avançam sozinhas conforme você preenche. Botões maiores e coloridos (Abrir formulário, Minimizar, Sair), a barra fica por cima de qualquer janela e funciona mesmo com o aviso do plano Pro aberto. Nova aula: lançar uma cobrança. Quem já tem cadastros (ou bateu o limite de 5 pacientes do plano grátis) pode marcar a aula como concluída. Em Ajustes → Ajuda agora há botões próprios para as Aulas práticas e para o Tour guiado.'],
     ['🧭','Tour guiado por botões e Aulas práticas','Novo jeito de aprender o app: o Tour guiado escurece a tela, destaca o botão de verdade e explica para que serve, módulo por módulo (instalar o app, Início, dados profissionais, tutores, pacientes, saúde, receitas, termos, agenda, financeiro, backup e mais). E as Aulas práticas ensinam fazendo, com os seus dados: preencher seus dados, cadastrar o primeiro tutor e paciente, registrar vacina, atendimento, receita e termo e fazer o backup. Abra em Ajustes → Ajuda. Substitui o tutorial antigo.'],
     ['🗂️','Pasta de Termos em cada paciente','Na aba Termos do paciente agora existe a pasta "Termos gerados deste paciente". Todo termo que você gerar fica guardado ali, com data e tutor, e você pode ver/imprimir de novo, enviar pelo WhatsApp, anexar a foto do termo assinado em papel e excluir. A aba mostra quantos termos existem, o PDF sai com nome organizado (ex.: Termo_Anestesico_Vicky_2026-10-10) e a busca 🔍 também encontra os termos.'],
@@ -3819,10 +3860,10 @@ function ringSVG(score, size, onDark){
 
 // ── Eventos: vacinas, medicações, consultas ─────
 const TYPE_CFG = {
-  vaccine:    {emo:'💉', label:'Vacina',    c:'var(--vac)', bg:'var(--vacbg)'},
-  medication: {emo:'💊', label:'Medicação', c:'var(--med)', bg:'var(--medbg)'},
-  vet:        {emo:'🩺', label:'Atendimento',  c:'var(--vet)', bg:'var(--vetbg)'},
-  pay:        {emo:'💰', label:'Pagamento',    c:'var(--warning)', bg:'rgba(240,165,0,.12)'}
+  vaccine:    {emo:'💉', label:'Vacina',    c:'var(--ev-vac)', bg:'var(--ev-vac-bg)'},
+  medication: {emo:'💊', label:'Medicação', c:'var(--ev-med)', bg:'var(--ev-med-bg)'},
+  vet:        {emo:'🩺', label:'Atendimento',  c:'var(--ev-vet)', bg:'var(--ev-vet-bg)'},
+  pay:        {emo:'💰', label:'Pagamento',    c:'var(--ev-pay)', bg:'var(--ev-pay-bg)'}
 };
 const PRI_CLR = {overdue:'var(--danger)', today:'var(--warning)', high:'var(--accent)', medium:'var(--primary)', low:'var(--muted)'};
 
@@ -5997,7 +6038,7 @@ const TOUR_MODS = [
   {sel:'[onclick*="abrirModalObito"]', title:'🕊️ Registrar óbito', text:'Em situações delicadas, registra o óbito com cuidado: o paciente sai da agenda, mas <b>todo o histórico clínico fica preservado</b>. Dá para reativar depois.', needPet:true}
  ]},
  {id:'agenda', icon:'📅', cat:'Rotina da clínica', title:'Agenda e rota do dia', desc:'Calendário, novo atendimento e rota de visitas.', steps:[
-  {go:_tg.agenda, sel:'.cal-day.today, .cal-day', title:'Calendário', text:'Os dias com atendimento ficam marcados (vermelho = vencido). Toque num dia para ver os compromissos dele.'},
+  {go:_tg.agenda, sel:'.cal-day.today, .cal-day', title:'Calendário', text:'Cada tipo tem a sua cor (vacina, atendimento, medicação, pagamento); o contorno vermelho marca dias com item vencido. Toque num dia para ver os compromissos dele.'},
   {sel:'[onclick*="openApptPicker"]', title:'➕ Novo atendimento', text:'Agenda um atendimento escolhendo o paciente, a data e o horário.'},
   {sel:'[onclick*="openRota"]', title:'🗺️ Rota do dia', text:'Para quem atende em domicílio: lista as visitas em ordem de horário, com o endereço do tutor, e abre no <b>Waze</b> ou no <b>Google Maps</b>. Também lança a <b>quilometragem</b>, que vira despesa no Financeiro.'}
  ]},
@@ -6684,21 +6725,25 @@ function renderScorecard(){
 }
 
 function evtRow(e){
+  const t = TYPE_CFG[e.type] || TYPE_CFG.vet;
+  const tp = `<span class="tp">${t.label}</span>`;
+  const style = `--evc:${t.c};--evb:${t.bg}`;
   if(e.done){
-    const d = e.due?e.due.split('-').reverse().join('/'):'';
-    return '<div class="card" style="border-left:4px solid #94A3B8;opacity:.85;padding:10px 12px"><div style="display:flex;align-items:center;gap:10px"><div style="font-size:20px">'+(e.emo||'🐾')+'</div><div style="flex:1"><div style="font-weight:700;color:#1E293B;font-size:13px">'+e.pet+' — '+e.title+'</div><div style="font-size:11px;color:#94A3B8">'+d+' &nbsp;·&nbsp; <span style="color:#22C55E;font-weight:700">✓ Concluído</span></div></div></div></div>';
+    const d = e.due ? fmtDate(e.due) : '';
+    return `<div class="evt is-done" style="${style}"><div class="ic">${t.emo}</div><div class="tx">${tp}<div class="t1">${e.emo||'🐾'} ${esc(e.pet)} — ${esc(e.title)}</div><div class="t2">${d} <span class="sp done">✓ Concluído</span></div></div></div>`;
   }
-  const t = TYPE_CFG[e.type], pc = PRI_CLR[e.priority];
-  const lbl = e.daysLeft<0?`${Math.abs(e.daysLeft)}d atraso`:e.daysLeft===0?'Hoje':`${e.daysLeft}d`;
+  const od = e.daysLeft<0, today = e.daysLeft===0 || (e.due===todayISO() && e.type==='medication');
+  const sp = od ? `<span class="sp od">⚠ ${Math.abs(e.daysLeft)}d de atraso</span>` : today ? `<span class="sp today">Hoje</span>` : `<span class="sp soon">em ${e.daysLeft}d</span>`;
   const isAppt = e.type==='vet';
   const aid = isAppt ? e.id.slice(2) : '';
-  return `<div class="evt" style="border-left-color:${pc}">
-    <div class="ic" style="background:${t.bg}" onclick="${e.type==='pay' ? 'goFinance()' : "openPet('"+e.petId+"')"}">${t.emo}</div>
-    <div class="tx" onclick="${e.type==='pay' ? 'goFinance()' : "openPet('"+e.petId+"')"}"><div class="t1">${e.emo} ${esc(e.pet)} — ${esc(e.title)}</div>
-    <div class="t2">${e.due===todayISO()&&e.type==='medication'?'Hoje':fmtDate(e.due)}</div></div>
+  const go = e.type==='pay' ? 'goFinance()' : "openPet('"+e.petId+"')";
+  return `<div class="evt ${od?'is-od':''}" style="${style}">
+    <div class="ic" onclick="${go}">${t.emo}</div>
+    <div class="tx" onclick="${go}">${tp}<div class="t1">${e.emo} ${esc(e.pet)} — ${esc(e.title)}</div>
+    <div class="t2">${e.due===todayISO()&&e.type==='medication'?'Hoje':fmtDate(e.due)} ${sp}</div></div>
     ${isAppt ? `<button class="btn sm outline" style="padding:5px 8px;flex-shrink:0" onclick="event.stopPropagation();openApptForm('${e.petId}','${aid}')" title="Editar">✏️</button>
       <button class="btn sm dangero" style="padding:5px 8px;flex-shrink:0" onclick="event.stopPropagation();delApptAgenda('${e.petId}','${aid}')" title="Excluir">🗑</button>`
-     : `<span class="bd" style="background:color-mix(in srgb, ${pc} 12%, transparent);color:${pc}">${lbl}</span>`}</div>`;
+     : `<span class="chev" onclick="${go}">›</span>`}</div>`;
 }
 // Excluir atendimento direto da agenda (com confirmação)
 function delApptAgenda(petId, aid){
@@ -8595,6 +8640,9 @@ function doDeletePet(id){
 // ═══════════ CALENDÁRIO ═══════════
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 function calShift(n){ calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+n, 1); calSelDay=null; render(); }
+let calTypeFilter = 'all';
+function calTypeOk(e){ return calTypeFilter==='all' || e.type===calTypeFilter; }
+function calSetType(k){ calTypeFilter = (calTypeFilter===k && k!=='all') ? 'all' : k; render(); }
 function calSelect(d){ calSelDay = calSelDay===d ? null : d; render(); }
 
 function openApptPicker(presetDate){
@@ -8645,12 +8693,17 @@ function renderCalendar(){
   for(let d=1;d<=days;d++){
     const isToday = d===now.getDate() && m===now.getMonth() && y===now.getFullYear();
     const isSel = d===calSelDay;
-    const de = byDay[d]||[];
+    const de = (byDay[d]||[]).filter(e=>calTypeOk(e));
     const hasOD = de.some(e=>e.priority==='overdue');
-    grid += `<button class="cal-day ${isToday?'today':''} ${isSel?'sel':''}" onclick="calSelect(${d})">${d}
-      <div class="dots">${de.slice(0,3).map(()=>`<i class="${hasOD?'od':''}"></i>`).join('')}</div></button>`;
+    const kinds = ['vaccine','vet','medication','pay'].filter(k=>de.some(e=>!e.done && e.type===k));
+    if(de.some(e=>e.done)) kinds.push('done');
+    grid += `<button class="cal-day ${isToday?'today':''} ${isSel?'sel':''} ${hasOD?'od':''}" onclick="calSelect(${d})">${d}
+      <div class="dots">${kinds.slice(0,4).map(k=>`<i class="t-${k}"></i>`).join('')}</div></button>`;
   }
-  const sel = calSelDay ? [...(byDay[calSelDay]||[])].sort((a,b)=>(a.done?1:0)-(b.done?1:0)||a.daysLeft-b.daysLeft) : evts.filter(e=>e.daysLeft>=0).slice(0,6);
+  const sel = calSelDay ? [...(byDay[calSelDay]||[])].filter(calTypeOk).sort((a,b)=>(a.done?1:0)-(b.done?1:0)||a.daysLeft-b.daysLeft) : evts.filter(e=>e.daysLeft>=0 && calTypeOk(e)).slice(0,6);
+  const cnt = k => Object.values(byDay).flat().filter(e=>!e.done && e.type===k).length;
+  const chips = [['all','Todos',''],['vaccine','Vacina',cnt('vaccine')],['vet','Atendimento',cnt('vet')],['medication','Medicação',cnt('medication')],['pay','Pagamento',cnt('pay')]]
+    .map(([k,l,n])=>`<button class="cal-chip ${k==='all'?'':'t-'+k} ${calTypeFilter===k?'on':''}" onclick="calSetType('${k}')">${k==='all'?'':'<i></i>'}${l}${n!==''?` <b>${n}</b>`:''}</button>`).join('');
   // "top" = calendário, botões de ação e o rótulo "Próximos eventos" — fica fixo no topo.
   // Só a lista de eventos abaixo (map evtRow) rola.
   const top = `<h2 style="margin-bottom:14px">Agenda</h2>
@@ -8658,17 +8711,13 @@ function renderCalendar(){
       <div class="cal-head">
         <button onclick="calShift(-1)">‹</button><b>${MONTHS[m]} ${y}</b><button onclick="calShift(1)">›</button></div>
       <div class="cal-grid">${grid}</div>
-      <div class="legend">
-        <span><i style="background:var(--vac)"></i>Vacina</span>
-        <span><i style="background:var(--med)"></i>Medicação</span>
-        <span><i style="background:var(--vet)"></i>Atendimento</span>
-        <span><i style="background:var(--warning)"></i>Pagamento</span>
-        <span><i style="background:var(--danger)"></i>Vencido</span></div>
+      <div class="cal-filters">${chips}</div>
+      <div class="cal-note"><u></u> Dia com contorno vermelho = tem item <b style="color:var(--ev-od)">vencido</b></div>
     </div>
     <div style="display:flex;gap:8px;margin-top:14px">
       <button class="btn" style="flex:1" onclick="openApptPicker(${calSelDay?`'${y}-${String(m+1).padStart(2,'0')}-${String(calSelDay).padStart(2,'0')}'`:'null'})">
         ➕ Novo Atendimento</button>
-      <button class="btn" style="flex:1;background:var(--vet)" onclick="openRota(${calSelDay?`'${y}-${String(m+1).padStart(2,'0')}-${String(calSelDay).padStart(2,'0')}'`:'null'})">
+      <button class="btn" style="flex:1;background:var(--dark)" onclick="openRota(${calSelDay?`'${y}-${String(m+1).padStart(2,'0')}-${String(calSelDay).padStart(2,'0')}'`:'null'})">
         🗺️ Rota do dia</button>
     </div>
     <div class="sec-h" style="margin-top:16px">
@@ -9018,7 +9067,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.96 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v9.97 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
