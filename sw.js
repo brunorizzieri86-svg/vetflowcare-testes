@@ -1,8 +1,8 @@
-// VetFlowCare — Service Worker v10.00
+// VetFlowCare — Service Worker v10.01
 // Estratégia: Network-First (busca atualização na rede; cache só responde offline)
 // B&G Systems | Todos os direitos reservados
 
-const CACHE = 'vetflowcare-v10.00';
+const CACHE = 'vetflowcare-v10.01';
 
 // 9.74: cadastro em tela única, sem fotos de animais — register-data-art.png e
 // register-security-art.png não são mais usados nessa tela e saíram do pré-cache.

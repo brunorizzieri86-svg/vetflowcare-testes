@@ -3301,14 +3301,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.00';
+const APP_VER = '10.01';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.00',
+  ver: '10.01',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['📎','Backup com anexos mais seguro','O backup agora mostra quantos anexos (PDFs e fotos) foram colocados dentro do arquivo. Se algum arquivo não estiver mais no aparelho, o app avisa antes em vez de travar o backup. Ao restaurar, ele avisa quais anexos não vieram, e na ficha do paciente aparece ⚠ nos arquivos ausentes. Também corrigimos um risco de perder o PDF ao abri-lo.'],
     ['⏳','Validade do orçamento você define','No Orçamento em PDF agora existe o campo "Dias de validade da proposta": digite 7, 15, 20, 30… o número que você usa. O PDF mostra os dias e a data limite, e o app lembra o último valor que você usou.'],
     ['📄','Botão de Orçamento sempre visível','O botão "Orçamento em PDF" agora fica sempre na tela de Novo Atendimento, logo abaixo dos valores. Se você tocar nele antes de preencher um serviço com valor, o app avisa o que falta.'],
     ['📄','Orçamento em PDF no Novo Atendimento','Na tela de Novo Atendimento, logo abaixo dos valores, apareceu o botão "Orçamento em PDF". Ele gera um documento com o título ORÇAMENTO, o seu timbre, tutor e paciente, a lista de serviços com valores, o desconto, o total, a forma de pagamento prevista e a validade de 7 dias, pronto para entregar ou enviar ao tutor. O orçamento não lança cobrança nem salva o atendimento: é só o documento.'],
@@ -7163,7 +7164,7 @@ async function viewTutorFicha(tid){
   const t = DB.tutors.find(x=>x.id===tid);
   if(!t?.ficha) return;
   const data = t.ficha.data || await idbGet(t.ficha.id);
-  if(!data){ toast('⚠ Arquivo não encontrado'); return; }
+  if(!data){ arquivoFaltandoAviso(t.ficha.name); return; }
   if(t.ficha.kind === 'pdf'){
     const b64 = data.split(',')[1], bytes = atob(b64);
     const arr = new Uint8Array(bytes.length);
@@ -8476,14 +8477,14 @@ function renderPetDocs(pet){
         <button class="btn sm outline" onclick="document.getElementById('docPdf').click()">📄 Enviar PDF</button>
       </div>
     </div></div>
-    ${pet.documents.map(d=>`<div class="card docrow">
+    ${pet.documents.map(d=>`<div class="card docrow" data-petid="${pet.id}" data-docid="${d.id}">
       <div class="di" style="background:${d.kind==='pdf'?'var(--vetbg)':'var(--vacbg)'}">${d.kind==='pdf'?'📄':'🖼️'}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.name)}</div>
-        <div style="color:var(--muted);font-size:11px">${fmtDate(d.date)}</div></div>
+        <div class="docsub" style="color:var(--muted);font-size:11px">${fmtDate(d.date)}</div></div>
       <button style="background:none;font-size:15px" onclick="viewDoc('${pet.id}','${d.id}')">👁️</button>
       <button style="background:none;color:var(--muted)" onclick="delRecord('${pet.id}','documents','${d.id}')">🗑</button></div>`).join('')}
-    ${!pet.documents.length?'<div class="empty" style="padding-top:14px">Nenhum arquivo enviado</div>':''}
+    ${!pet.documents.length?'<div class="empty" style="padding-top:14px">Nenhum arquivo enviado</div>':'<img alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="display:none" onload="marcarDocsFaltando()">'}
     ${pet.deceased
       ? '<div style="margin-top:18px;padding:14px 16px;background:#FEF2F2;border:1.5px solid #FECACA;border-radius:14px;display:flex;align-items:center;gap:12px"><span style="font-size:26px">🕊️</span><div style="flex:1"><div style="font-weight:800;color:#991B1B;font-size:13px">Paciente falecido</div><div style="font-size:11px;color:#B91C1C;margin-top:2px">' + (pet.deceased.date ? 'Em ' + fmtDate(pet.deceased.date) : 'Data não informada') + (pet.deceased.notes ? ' · ' + esc(pet.deceased.notes.slice(0,60)) : '') + '</div></div><button onclick="reativarPaciente(\'' + pet.id + '\')" style="background:none;border:1.5px solid #FECACA;color:#B91C1C;border-radius:10px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer">↩ Reativar</button></div>'
       : '<div style="margin-top:20px;padding-top:16px;border-top:1px dashed #E2E8F0;text-align:center"><button onclick="abrirModalObito(\'' + pet.id + '\')" style="background:#F5FAFA;border:1.5px solid #83ACB2;color:#476E78;border-radius:12px;padding:10px 20px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px">🕊️ Registrar óbito do paciente</button></div>'}
@@ -8575,11 +8576,35 @@ function uploadDoc(petId, input){
   };
   reader.readAsDataURL(file);
 }
+// v10.01 — arquivo que aparece na lista mas não está guardado neste aparelho
+function arquivoFaltandoAviso(nome){
+  vfcConfirm({icon:'📎', title:'Arquivo não está neste aparelho',
+    msg:`<b style="word-break:break-all">${esc(nome||'Arquivo')}</b><br>O registro do arquivo existe, mas o conteúdo não veio junto com o backup (provavelmente um backup feito numa versão antiga, antes dos anexos). Não dá para recuperar daqui.`,
+    note:'Envie o arquivo novamente (pelo celular de origem, e-mail ou WhatsApp) e depois exclua este item da lista.', noteColor:'var(--warning)',
+    single:true, yesLabel:'Entendi', yesBg:'var(--primary)'});
+}
+async function marcarDocsFaltando(){
+  const rows = document.querySelectorAll('.docrow[data-docid]');
+  for(const row of rows){
+    try{
+      const pid = row.dataset.petid, did = row.dataset.docid;
+      const d = DB.pets.find(p=>p.id===pid)?.documents.find(x=>x.id===did);
+      if(!d || d.data) continue;
+      if(!(await idbGet(d.id))){
+        row.querySelector('.docmiss')?.remove();
+        const sub = row.querySelector('.docsub');
+        if(sub) sub.insertAdjacentHTML('beforeend', ' <b class="docmiss" style="color:var(--danger)">· ⚠ arquivo não está neste aparelho</b>');
+      }
+    }catch(e){}
+  }
+}
 async function viewDoc(petId, docId){
   const d = DB.pets.find(p=>p.id===petId)?.documents.find(x=>x.id===docId);
   if(!d) return;
+  const tinhaInline = !!d.data;
   const data = d.data || await idbGet(d.id);
-  if(!data){ toast('⚠ Arquivo não encontrado'); return; }
+  if(!data){ arquivoFaltandoAviso(d.name); return; }
+  if(tinhaInline){ try{ await idbPut(d.id, data); }catch(e){} } // v10.01: nunca perde a única cópia
   d.data = data; // uso temporário abaixo
   if(d.kind === 'pdf'){
     // Converte para Blob (data: URL é bloqueada em novas abas)
@@ -8592,6 +8617,7 @@ async function viewDoc(petId, docId){
     a.href = url; a.download = d.name;
     a.click();
     delete d.data;
+    if(tinhaInline) save();
     toast('📄 PDF baixado — abra pela notificação ou pasta Downloads');
     return;
   }
@@ -9070,7 +9096,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.00 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.01 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -9508,20 +9534,40 @@ async function sharePendFile(){
 async function completeBackupSnapshot(){
   const snapshot=JSON.parse(JSON.stringify(DB));
   const documents=[...snapshot.pets.flatMap(p=>[...(p.documents||[]),...(p.termos||[]).map(t=>t.foto).filter(Boolean)]),...(snapshot.tutors||[]).filter(t=>t.ficha).map(t=>t.ficha)];
+  const faltando=[]; let incluidos=0;
   for(const doc of documents){
     if(!doc.data)doc.data=await idbGet(doc.id);
-    if(!doc.data)throw new Error('Anexo indisponível: '+(doc.name||doc.id));
+    if(!doc.data){ delete doc.data; faltando.push(doc.name||doc.id); } else incluidos++;
   }
+  window._bkInfo={incluidos, faltando};
   return snapshot;
+}
+// v10.01 — se algum anexo não está mais no aparelho, avisa ANTES (em vez de travar o backup inteiro)
+function bkConfirmarFaltando(){
+  return new Promise(res=>{
+    const f=(window._bkInfo&&window._bkInfo.faltando)||[];
+    if(!f.length){ res(true); return; }
+    window._bkResp=res;
+    vfcConfirm({icon:'⚠️', title:f.length+' arquivo(s) não estão neste aparelho',
+      msg:`O backup será feito com os dados e os <b>${window._bkInfo.incluidos}</b> anexo(s) disponíveis, mas <b>sem</b>:<br><span style="font-size:12px">${f.slice(0,4).map(esc).join('<br>')}${f.length>4?'<br>…e mais '+(f.length-4):''}</span>`,
+      note:'Esses arquivos não existem mais aqui. Envie-os novamente nas fichas dos pacientes.', noteColor:'var(--warning)',
+      noLabel:'Cancelar', no:'window._bkResp(false)', yesLabel:'Fazer backup mesmo assim', yesBg:'var(--primary)', yes:'window._bkResp(true)'});
+  });
+}
+function bkAvisoFinal(){
+  const i=window._bkInfo; if(!i) return;
+  setTimeout(()=>toast(`📎 ${i.incluidos} anexo(s) dentro do backup`+(i.faltando.length?` · ${i.faltando.length} sem arquivo`:'')), 2200);
 }
 async function exportEncBackup(){
   if(bloqueioTrial('Backup dos dados')) return;
   if(!getAuth() || !window._cryptoKey){toast('⚠ Ative a senha primeiro (Segurança)');return;}
   try{
     const snapshot=await completeBackupSnapshot();
+    if(!(await bkConfirmarFaltando())) return;
     const auth=getAuth(),blob=await encodeDatabase(window._cryptoKey,auth,snapshot);
     const pack=JSON.stringify({__vfcbak:2,exportedAt:todayISO(),auth:JSON.stringify(auth),blob});
     await saveFileSAF('vetflowcare_backup_criptografado_'+todayISO()+'.vfcbak',new Blob([pack],{type:'application/json'}));
+    bkAvisoFinal();
   }catch(e){if(e?.name!=='AbortError')toast('⚠ Backup não concluído. '+e.message);}
 }
 // ═══ TUTORIAL: como funcionam os backups ═══
@@ -9559,15 +9605,16 @@ async function doExportJSON(){
   gcEvent('backup-feito');
   let snapshot;
   try{snapshot=await completeBackupSnapshot();}catch(e){toast('⚠ Backup não concluído. '+e.message);return;}
+  if(!(await bkConfirmarFaltando())) return;
   const blob = new Blob([JSON.stringify(snapshot,null,2)], {type:'application/json'});
   try{
-    if(window.showSaveFilePicker){ await saveFileSAF('vetflowcare_backup_'+todayISO()+'.json', blob); toast('💾 Backup salvo!'); return; }
+    if(window.showSaveFilePicker){ await saveFileSAF('vetflowcare_backup_'+todayISO()+'.json', blob); bkAvisoFinal(); return; }
     throw new Error('unsupported');
   }catch(e){ if(e?.name==='AbortError') return; }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `vetflowcare_backup_${todayISO()}.json`;
-  a.click(); toast('📥 Backup exportado!');
+  a.click(); toast('📥 Backup exportado!'); bkAvisoFinal();
 }
 async function restoreJSONSnapshot(data){
   if(!data || !Array.isArray(data.pets))throw new Error('Backup inválido');
@@ -9575,7 +9622,9 @@ async function restoreJSONSnapshot(data){
   const added=[];
   try{
     const docs=[...candidate.pets.flatMap(p=>[...(p.documents||[]),...(p.termos||[]).map(t=>t.foto).filter(Boolean)]),...(candidate.tutors||[]).filter(t=>t.ficha).map(t=>t.ficha)];
-    for(const doc of docs){if(doc.data){const id='restore-'+uid();await idbPut(id,doc.data);added.push(id);doc.id=id;delete doc.data;}}
+    let semArq=0;
+    for(const doc of docs){if(doc.data){const id='restore-'+uid();await idbPut(id,doc.data);added.push(id);doc.id=id;delete doc.data;} else semArq++;}
+    window._restInfo={total:docs.length, semArquivo:semArq};
     clearTimeout(_saveTimer);
     await queueStorage(async()=>{
       const raw=await encodeDatabase(window._cryptoKey,getAuth(),candidate);
@@ -9603,6 +9652,10 @@ function importJSON(input){
       }
       await restoreJSONSnapshot(data);
       applyDark(); render(); toast('✅ Dados importados com sucesso!');
+      const ri=window._restInfo;
+      if(ri && ri.semArquivo){ setTimeout(()=>vfcConfirm({icon:'📎', title:ri.semArquivo+' de '+ri.total+' arquivo(s) sem conteúdo',
+        msg:'Os dados voltaram, mas este backup não trazia o conteúdo desses anexos (provavelmente foi feito numa versão antiga do app). Os itens aparecem na ficha com o aviso <b>⚠ arquivo não está neste aparelho</b>.',
+        note:'Reenvie esses arquivos nas fichas dos pacientes.', noteColor:'var(--warning)', single:true, yesLabel:'Entendi', yesBg:'var(--primary)'}), 1800); }
     }catch(err){ toast('⚠ Importação não concluída. Os dados anteriores foram mantidos. '+err.message); }
   };
   r.readAsText(f);
