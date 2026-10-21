@@ -819,10 +819,17 @@ window.VFCNotices=(()=>{
   // sem fazer nada.
   const splash = document.getElementById('splash');
   const precisaAtualizar = document.querySelector('.modal') || document.querySelector('.access-screen') || (splash && !splash.classList.contains('hidden'));
-  if(!precisaAtualizar) return;
+  if(!precisaAtualizar){
+    // v10.02: sem nada na tela que use as variáveis, descarta os valores antigos. Antes eles ficavam
+    // "congelados" (ex.: altura com teclado aberto) e o PRÓXIMO formulário abria cortado/bugado.
+    if(window._vfcVVSet){ const r=document.documentElement.style; r.removeProperty('--vfc-visual-height'); r.removeProperty('--vfc-offset'); window._vfcVVSet=false; }
+    return;
+  }
+  window._vfcVVSet=true;
   document.documentElement.style.setProperty('--vfc-visual-height',(viewport?viewport.height:window.innerHeight)+'px');
   document.documentElement.style.setProperty('--vfc-offset',(viewport?viewport.offsetTop:0)+'px');
  }
+ window.vfcFitViewport=size; // v10.02: chamado ao abrir cada formulário/diálogo, com a altura REAL naquele instante
  window.addEventListener('resize',size);window.visualViewport?.addEventListener('resize',size);window.visualViewport?.addEventListener('scroll',size);size();
 })();
 
@@ -3301,14 +3308,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.01';
+const APP_VER = '10.02';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.01',
+  ver: '10.02',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🛠️','Botão de novo tutor de volta e telas mais estáveis','Na lista de Tutores, o botão "Cadastrar novo tutor" voltou ao topo. Também corrigimos o formulário que às vezes abria cortado ou bugado (principalmente depois de usar o teclado): agora a altura é recalculada toda vez que um formulário abre.'],
     ['📎','Backup com anexos mais seguro','O backup agora mostra quantos anexos (PDFs e fotos) foram colocados dentro do arquivo. Se algum arquivo não estiver mais no aparelho, o app avisa antes em vez de travar o backup. Ao restaurar, ele avisa quais anexos não vieram, e na ficha do paciente aparece ⚠ nos arquivos ausentes. Também corrigimos um risco de perder o PDF ao abri-lo.'],
     ['⏳','Validade do orçamento você define','No Orçamento em PDF agora existe o campo "Dias de validade da proposta": digite 7, 15, 20, 30… o número que você usa. O PDF mostra os dias e a data limite, e o app lembra o último valor que você usou.'],
     ['📄','Botão de Orçamento sempre visível','O botão "Orçamento em PDF" agora fica sempre na tela de Novo Atendimento, logo abaixo dos valores. Se você tocar nele antes de preencher um serviço com valor, o app avisa o que falta.'],
@@ -6966,6 +6974,10 @@ function renderPetsList(q=''){
       <button class="chip ${pplView==='animais'?'on':''}" onclick="pplView='animais';render()">🐾 Animais (${DB.pets.length})</button>
       <button class="chip ${pplView==='tutores'?'on':''}" onclick="pplView='tutores';render()">👤 Tutores (${DB.tutors.length})</button>
     </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn sm" id="btnNovoPaciente" style="flex:1;min-width:0" onclick="openPetForm()">➕ Novo paciente</button>
+      <button class="btn sm outline" id="btnNovoTutor" style="flex:1;min-width:0" onclick="openTutorForm()">➕ Novo tutor</button>
+    </div>
     <input placeholder="🔍 Buscar por nome, raça ou tutor…" style="margin-bottom:10px"
       oninput="const q=this.value.toLowerCase();debQ(()=>{document.getElementById('mainContent').innerHTML=renderPetsList(q);
       const i=document.querySelector('#mainContent input');i.focus();i.setSelectionRange(i.value.length,i.value.length)})" value="${esc(q)}">
@@ -9096,7 +9108,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.01 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.02 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -9715,8 +9727,9 @@ function vfcConfirm(o){
         ${o.single?'':`<button class="btn gray" onclick="closeConfirm();${o.no||''}">${o.noLabel||'Cancelar'}</button>`}
         <button class="btn" style="background:${o.yesBg||'var(--danger)'}" onclick="closeConfirm();${o.yes||''}">${o.yesLabel||'Sim, confirmar'}</button>
       </div></div></div>`;
+  try{ window.vfcFitViewport && window.vfcFitViewport(); }catch(e){}
 }
-function closeConfirm(){ document.getElementById('modals2').innerHTML = ''; }
+function closeConfirm(){ document.getElementById('modals2').innerHTML = ''; try{ window.vfcFitViewport && window.vfcFitViewport(); }catch(e){} }
 // Confirmação de data no passado (financeiro): "digitou 2010? Confirma?"
 function confirmPastDate(dateISO, yesCall, ctx){
   const dias = Math.abs(daysUntil(dateISO));
@@ -10320,6 +10333,7 @@ function showSheet(title, bodyHTML, footHTML){
       <div class="scroll-hint" id="scrollHint" onclick="scrollSheetDown()">⌄ mais abaixo</div>
       ${footHTML?`<div class="mf">${footHTML}</div>`:''}
     </div></div>`;
+  try{ window.vfcFitViewport && window.vfcFitViewport(); }catch(e){}
   // verifica se precisa mostrar o indicador de rolagem (após a animação do sheet)
   setTimeout(() => { const mb = document.querySelector('.modal .mb'); if(mb) updateScrollHint(mb); }, 220);
 }
@@ -10335,7 +10349,7 @@ function scrollSheetDown(){
   const mb = document.querySelector('.modal .mb');
   if(mb) mb.scrollBy({ top: mb.clientHeight * 0.7, behavior: 'smooth' });
 }
-function closeSheet(){ voiceCancel(); document.getElementById('modals').innerHTML=''; }
+function closeSheet(){ voiceCancel(); document.getElementById('modals').innerHTML=''; try{ window.vfcFitViewport && window.vfcFitViewport(); }catch(e){} }
 const val = id => document.getElementById(id)?.value.trim() || '';
 // Envolve o "cabeçalho" de uma aba (título, busca, filtros) num bloco fixo no topo —
 // usado por Pacientes/Financeiro/Agenda/Alertas para que só a lista role.
