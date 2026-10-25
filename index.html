@@ -3308,14 +3308,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.02';
+const APP_VER = '10.03';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.02',
+  ver: '10.03',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🔎','Arquivos perdidos: o app agora procura e para de incomodar','O aviso "arquivos não estão neste aparelho" não aparece mais toda vez. Agora o app procura os anexos em todas as áreas do aparelho (inclusive cópias antigas) e recupera sozinho o que existir. O que realmente não existe mais é marcado uma única vez, e você pode removê-lo da lista (um por um, ou todos em Ajustes → Proteção de Dados → Limpar registros sem arquivo). Também dá para tocar em "Procurar arquivos perdidos" quando quiser.'],
     ['🛠️','Botão de novo tutor de volta e telas mais estáveis','Na lista de Tutores, o botão "Cadastrar novo tutor" voltou ao topo. Também corrigimos o formulário que às vezes abria cortado ou bugado (principalmente depois de usar o teclado): agora a altura é recalculada toda vez que um formulário abre.'],
     ['📎','Backup com anexos mais seguro','O backup agora mostra quantos anexos (PDFs e fotos) foram colocados dentro do arquivo. Se algum arquivo não estiver mais no aparelho, o app avisa antes em vez de travar o backup. Ao restaurar, ele avisa quais anexos não vieram, e na ficha do paciente aparece ⚠ nos arquivos ausentes. Também corrigimos um risco de perder o PDF ao abri-lo.'],
     ['⏳','Validade do orçamento você define','No Orçamento em PDF agora existe o campo "Dias de validade da proposta": digite 7, 15, 20, 30… o número que você usa. O PDF mostra os dias e a data limite, e o app lembra o último valor que você usou.'],
@@ -3792,6 +3793,160 @@ async function idbDel(id){
     t.objectStore('docs').delete(id);
     t.oncomplete = res; t.onerror = res;
   });
+}
+
+// ═══ v10.03 — LOCALIZAR ARQUIVOS PERDIDOS ═══
+// Anexos ficam no IndexedDB ('docs'), separados da ficha. Se o registro existe mas o
+// conteúdo não está lá, procuramos: (1) outros bancos do mesmo site (versões antigas/teste),
+// (2) pontos de restauração e cópia interna que ainda tinham o arquivo embutido.
+function todosDocsRegistro(db){
+  db = db || DB;
+  return [...(db.pets||[]).flatMap(p=>[...(p.documents||[]),...(p.termos||[]).map(t=>t.foto).filter(Boolean)]),...(db.tutors||[]).filter(t=>t.ficha).map(t=>t.ficha)];
+}
+function _abrirBancoExistente(nome){
+  return new Promise(res=>{
+    let r; try{ r = indexedDB.open(nome); }catch(e){ res(null); return; }
+    r.onupgradeneeded = () => { try{ r.transaction.abort(); }catch(e){} };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => res(null); r.onblocked = () => res(null);
+  });
+}
+function _idbReq(rq){ return new Promise(res=>{ rq.onsuccess=()=>res(rq.result); rq.onerror=()=>res(undefined); }); }
+async function _outrosBancos(){
+  try{ if(!indexedDB.databases) return []; return (await indexedDB.databases()).map(d=>d.name).filter(n=>n && n!=='vetflowcare'); }
+  catch(e){ return []; }
+}
+async function _textoSnapshot(v){
+  // v = string bruta, ou {raw}. Devolve objeto do banco (decifra se possível) ou null.
+  try{
+    let raw = (v && typeof v==='object') ? v.raw : v;
+    if(typeof raw!=='string') return null;
+    let o = JSON.parse(raw);
+    if(o && o.__enc){
+      if(!window._cryptoKey) return null;
+      const pt = await crypto.subtle.decrypt({name:'AES-GCM',iv:b64d(o.iv)}, window._cryptoKey, b64d(o.ct));
+      o = JSON.parse(new TextDecoder().decode(pt));
+    }
+    return o;
+  }catch(e){ return null; }
+}
+async function localizarArquivos(){
+  const info = {recuperados:0, aindaFaltam:0, soltos:[], procurou:0};
+  try{
+    const docs = todosDocsRegistro();
+    const faltam = new Map();
+    for(const d of docs){
+      if(!d || !d.id) continue;
+      if(d.data) continue;
+      let v = null; try{ v = await idbGet(d.id); }catch(e){}
+      if(!v) faltam.set(d.id, d);
+    }
+    const idsRef = new Set(docs.map(d=>d && d.id));
+    // (1) outros bancos do mesmo site
+    const outros = await _outrosBancos();
+    for(const nome of outros){
+      if(!faltam.size) break;
+      const db = await _abrirBancoExistente(nome); if(!db) continue;
+      info.procurou++;
+      try{
+        for(const st of Array.from(db.objectStoreNames)){
+          if(!faltam.size) break;
+          for(const id of Array.from(faltam.keys())){
+            let v; try{ v = await _idbReq(db.transaction(st,'readonly').objectStore(st).get(id)); }catch(e){}
+            if(typeof v==='string' && v.startsWith('data:')){ await idbPut(id, v); faltam.delete(id); info.recuperados++; }
+          }
+          // snapshots/espelho de outros bancos
+          if(faltam.size && /snap|mirror/i.test(st)){
+            let vals=[]; try{ vals = await _idbReq(db.transaction(st,'readonly').objectStore(st).getAll()) || []; }catch(e){}
+            for(const sv of vals){
+              const o = await _textoSnapshot(sv); if(!o) continue;
+              for(const dd of todosDocsRegistro(o)){
+                if(dd && dd.data && faltam.has(dd.id)){ await idbPut(dd.id, dd.data); faltam.delete(dd.id); info.recuperados++; }
+              }
+            }
+          }
+        }
+      }catch(e){}
+      try{ db.close(); }catch(e){}
+    }
+    // (2) pontos de restauração e cópia interna deste banco (anexos embutidos em versões antigas)
+    if(faltam.size){
+      for(const st of ['snap','mirror']){
+        if(!faltam.size) break;
+        let vals=[]; try{ vals = await idbStore(st,'readonly',s=>s.getAll()) || []; }catch(e){}
+        if(!Array.isArray(vals)) vals=[];
+        info.procurou++;
+        for(const sv of vals){
+          const o = await _textoSnapshot(sv); if(!o) continue;
+          for(const dd of todosDocsRegistro(o)){
+            if(dd && dd.data && faltam.has(dd.id)){ await idbPut(dd.id, dd.data); faltam.delete(dd.id); info.recuperados++; }
+          }
+        }
+      }
+    }
+    info.aindaFaltam = faltam.size;
+    // (3) arquivos soltos: existem no aparelho mas nenhuma ficha aponta para eles
+    try{
+      const chaves = await idbStore('docs','readonly',s=>s.getAllKeys()) || [];
+      for(const k of chaves){ if(!idsRef.has(k)) info.soltos.push(k); }
+    }catch(e){}
+  }catch(e){ console.warn('localizarArquivos', e); }
+  window._locInfo = info;
+  return info;
+}
+// Marca (uma vez) o que realmente não existe mais; desmarca se o arquivo aparecer.
+async function marcarSemArquivo(){
+  let mudou = 0;
+  for(const d of todosDocsRegistro()){
+    if(!d || !d.id) continue;
+    let tem = !!d.data; if(!tem){ try{ tem = !!(await idbGet(d.id)); }catch(e){ tem = true; } }
+    if(!tem && !d.semArquivo){ d.semArquivo = true; mudou++; }
+    else if(tem && d.semArquivo){ delete d.semArquivo; mudou++; }
+  }
+  if(mudou) save();
+  return mudou;
+}
+async function localizarArquivosAuto(){
+  try{
+    const antes = todosDocsRegistro().filter(d=>d && !d.data).length;
+    if(!antes) return;
+    const r = await localizarArquivos();
+    await marcarSemArquivo();
+    if(r.recuperados) setTimeout(()=>toast('📎 '+r.recuperados+' arquivo(s) recuperado(s)!'), 1500);
+  }catch(e){ console.warn('locAuto', e); }
+}
+async function procurarArquivosPerdidos(){
+  toast('🔎 Procurando arquivos…');
+  const r = await localizarArquivos();
+  const mudou = await marcarSemArquivo();
+  if(window.render) try{ render(); }catch(e){}
+  const semArq = todosDocsRegistro().filter(d=>d && d.semArquivo).length;
+  let msg = r.recuperados ? `Recuperei <b>${r.recuperados}</b> arquivo(s)!` : 'Não encontrei nenhuma cópia nova.';
+  msg += `<br><span style="font-size:12px">Procurei neste aparelho, nas cópias internas e em pontos de restauração.</span>`;
+  if(r.soltos.length) msg += `<br><br>Há <b>${r.soltos.length}</b> arquivo(s) guardados que não pertencem a nenhuma ficha.`;
+  vfcConfirm({icon:r.recuperados?'✅':'🔎', title:r.recuperados?'Arquivos recuperados':'Busca concluída', msg,
+    note: semArq ? semArq+' registro(s) continuam sem arquivo — o conteúdo não existe mais neste aparelho. Dá para limpá-los da lista (Ajustes → Proteção de Dados).' : '',
+    noteColor:'var(--warning)', single:true, yesLabel:'Entendi', yesBg:'var(--primary)'});
+}
+function limparSemArquivo(){
+  const n = todosDocsRegistro().filter(d=>d && d.semArquivo).length;
+  if(!n){ toast('Nenhum registro sem arquivo'); return; }
+  vfcConfirm({icon:'🧹', title:'Remover '+n+' registro(s) sem arquivo?',
+    msg:'Remove da lista apenas os anexos cujo <b>arquivo não existe mais</b> neste aparelho. Pacientes e demais dados não são alterados.',
+    note:'Se tiver o arquivo original, reenvie depois pela ficha do paciente.', noteColor:'var(--warning)',
+    noLabel:'Cancelar', yesLabel:'🧹 Remover da lista', yesBg:'var(--primary)', yes:'doLimparSemArquivo()'});
+}
+async function doLimparSemArquivo(){
+  await marcarSemArquivo();
+  let n = 0;
+  for(const p of DB.pets){
+    const a = (p.documents||[]).length;
+    p.documents = (p.documents||[]).filter(d=>!(d.semArquivo && !d.data));
+    n += a - p.documents.length;
+    (p.termos||[]).forEach(t=>{ if(t.foto && t.foto.semArquivo && !t.foto.data){ delete t.foto; n++; } });
+  }
+  (DB.tutors||[]).forEach(t=>{ if(t.ficha && t.ficha.semArquivo && !t.ficha.data){ t.ficha = null; n++; } });
+  save(); render(); toast('🧹 '+n+' registro(s) removido(s) da lista');
 }
 // Migra documentos antigos (base64 no testStorage) para o IndexedDB
 async function migrateDocsToIDB(){
@@ -8589,11 +8744,11 @@ function uploadDoc(petId, input){
   reader.readAsDataURL(file);
 }
 // v10.01 — arquivo que aparece na lista mas não está guardado neste aparelho
-function arquivoFaltandoAviso(nome){
+function arquivoFaltandoAviso(nome, petId, docId){
   vfcConfirm({icon:'📎', title:'Arquivo não está neste aparelho',
-    msg:`<b style="word-break:break-all">${esc(nome||'Arquivo')}</b><br>O registro do arquivo existe, mas o conteúdo não veio junto com o backup (provavelmente um backup feito numa versão antiga, antes dos anexos). Não dá para recuperar daqui.`,
-    note:'Envie o arquivo novamente (pelo celular de origem, e-mail ou WhatsApp) e depois exclua este item da lista.', noteColor:'var(--warning)',
-    single:true, yesLabel:'Entendi', yesBg:'var(--primary)'});
+    msg:`<b style="word-break:break-all">${esc(nome||'Arquivo')}</b><br>O app procurou em todas as áreas do aparelho (inclusive cópias antigas) e o conteúdo deste arquivo não existe mais aqui — provavelmente veio de um backup feito numa versão antiga, antes dos anexos.`,
+    note:'Se tiver o original, reenvie pela ficha do paciente. Dá para remover este item da lista.', noteColor:'var(--warning)',
+    ...(petId&&docId?{noLabel:'Manter', yesLabel:'🗑 Remover da lista', yesBg:'var(--danger)', yes:`doDelRecord('${petId}','documents','${docId}')`}:{single:true, yesLabel:'Entendi', yesBg:'var(--primary)'})});
 }
 async function marcarDocsFaltando(){
   const rows = document.querySelectorAll('.docrow[data-docid]');
@@ -8602,7 +8757,8 @@ async function marcarDocsFaltando(){
       const pid = row.dataset.petid, did = row.dataset.docid;
       const d = DB.pets.find(p=>p.id===pid)?.documents.find(x=>x.id===did);
       if(!d || d.data) continue;
-      if(!(await idbGet(d.id))){
+      if(await idbGet(d.id)){ if(d.semArquivo){ delete d.semArquivo; save(); } }
+      else {
         row.querySelector('.docmiss')?.remove();
         const sub = row.querySelector('.docsub');
         if(sub) sub.insertAdjacentHTML('beforeend', ' <b class="docmiss" style="color:var(--danger)">· ⚠ arquivo não está neste aparelho</b>');
@@ -8615,7 +8771,7 @@ async function viewDoc(petId, docId){
   if(!d) return;
   const tinhaInline = !!d.data;
   const data = d.data || await idbGet(d.id);
-  if(!data){ arquivoFaltandoAviso(d.name); return; }
+  if(!data){ arquivoFaltandoAviso(d.name, petId, docId); return; }
   if(tinhaInline){ try{ await idbPut(d.id, data); }catch(e){} } // v10.01: nunca perde a única cópia
   d.data = data; // uso temporário abaixo
   if(d.kind === 'pdf'){
@@ -9108,7 +9264,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.02 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.03 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -9544,14 +9700,22 @@ async function sharePendFile(){
   }catch(e){ if(e.name !== 'AbortError') dlPendFile(); }
 }
 async function completeBackupSnapshot(){
+  // v10.03: antes de dar o arquivo como perdido, procura em todas as áreas do aparelho
+  try{ if(todosDocsRegistro().some(d=>d&&!d.data)) await localizarArquivos(); }catch(e){}
   const snapshot=JSON.parse(JSON.stringify(DB));
   const documents=[...snapshot.pets.flatMap(p=>[...(p.documents||[]),...(p.termos||[]).map(t=>t.foto).filter(Boolean)]),...(snapshot.tutors||[]).filter(t=>t.ficha).map(t=>t.ficha)];
-  const faltando=[]; let incluidos=0;
+  const faltando=[]; let incluidos=0, conhecidos=0;
   for(const doc of documents){
     if(!doc.data)doc.data=await idbGet(doc.id);
-    if(!doc.data){ delete doc.data; faltando.push(doc.name||doc.id); } else incluidos++;
+    if(!doc.data){
+      delete doc.data;
+      if(doc.semArquivo) conhecidos++;          // já avisado antes: não interrompe de novo
+      else faltando.push(doc.name||doc.id);
+      doc.semArquivo=true;
+    } else { incluidos++; delete doc.semArquivo; }
   }
-  window._bkInfo={incluidos, faltando};
+  window._bkInfo={incluidos, faltando, conhecidos};
+  try{ await marcarSemArquivo(); }catch(e){}     // grava a marca: o aviso aparece no máximo uma vez por arquivo
   return snapshot;
 }
 // v10.01 — se algum anexo não está mais no aparelho, avisa ANTES (em vez de travar o backup inteiro)
@@ -9568,7 +9732,7 @@ function bkConfirmarFaltando(){
 }
 function bkAvisoFinal(){
   const i=window._bkInfo; if(!i) return;
-  setTimeout(()=>toast(`📎 ${i.incluidos} anexo(s) dentro do backup`+(i.faltando.length?` · ${i.faltando.length} sem arquivo`:'')), 2200);
+  setTimeout(()=>toast(`📎 ${i.incluidos} anexo(s) dentro do backup`+((i.faltando.length+(i.conhecidos||0))?` · ${i.faltando.length+(i.conhecidos||0)} sem arquivo`:'')), 2200);
 }
 async function exportEncBackup(){
   if(bloqueioTrial('Backup dos dados')) return;
@@ -9635,7 +9799,7 @@ async function restoreJSONSnapshot(data){
   try{
     const docs=[...candidate.pets.flatMap(p=>[...(p.documents||[]),...(p.termos||[]).map(t=>t.foto).filter(Boolean)]),...(candidate.tutors||[]).filter(t=>t.ficha).map(t=>t.ficha)];
     let semArq=0;
-    for(const doc of docs){if(doc.data){const id='restore-'+uid();await idbPut(id,doc.data);added.push(id);doc.id=id;delete doc.data;} else semArq++;}
+    for(const doc of docs){if(doc.data){const id='restore-'+uid();await idbPut(id,doc.data);added.push(id);doc.id=id;delete doc.data;} else {doc.semArquivo=true;semArq++;}}
     window._restInfo={total:docs.length, semArquivo:semArq};
     clearTimeout(_saveTimer);
     await queueStorage(async()=>{
@@ -9943,6 +10107,8 @@ function openCentralProtecao(){
 
     <button class="btn outline" style="margin-top:14px" onclick="makeSnapshotNow()">📸 Criar ponto agora</button>
     <button class="btn outline" style="margin-top:8px;border-color:var(--vac);color:var(--vac)" onclick="recuperarDoEspelho()">🔄 Recuperar da cópia interna</button>
+    <button class="btn outline" style="margin-top:8px" onclick="procurarArquivosPerdidos()">🔎 Procurar arquivos perdidos</button>
+    ${todosDocsRegistro().some(d=>d&&d.semArquivo&&!d.data)?`<button class="btn outline" style="margin-top:8px;border-color:var(--warning);color:var(--warning)" onclick="limparSemArquivo()">🧹 Limpar registros sem arquivo</button>`:''}
     ${testStorage.getItem('vetflowcare_rescue') ? `<button class="btn outline" style="margin-top:8px;border-color:var(--danger);color:var(--danger)" onclick="downloadRescue()">🚑 Baixar arquivo de resgate</button>` : ''}`,
     `<button class="btn gray" onclick="closeSheet()">Fechar</button>
      <button class="btn" onclick="closeSheet();exportJSON()">💾 Backup</button>`);
@@ -11997,6 +12163,7 @@ function bootApp(){
   scheduleLocalCheck();
   migrateDocsToIDB();
   initDataProtection();
+  setTimeout(localizarArquivosAuto, 2500);
   if(testStorage.getItem('vfc_entered')){
     document.getElementById('splash').classList.add('hidden');
     document.getElementById('appHeader').classList.remove('hidden');
