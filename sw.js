@@ -2,7 +2,7 @@
 // Estratégia: Network-First (busca atualização na rede; cache só responde offline)
 // B&G Systems | Todos os direitos reservados
 
-const CACHE = 'vetflowcare-v10.03';
+const CACHE = 'vetflowcare-v10.07';
 
 // 9.74: cadastro em tela única, sem fotos de animais — register-data-art.png e
 // register-security-art.png não são mais usados nessa tela e saíram do pré-cache.
@@ -62,6 +62,6 @@ self.addEventListener('fetch', e => {
         }
         return resp;
       })
-      .catch(async () => (await caches.match(e.request)) || (e.request.mode === 'navigate' ? await caches.match('./index.html') : Response.error())) // offline: serve do cache
+      .catch(async () => (await caches.match(e.request)) || (e.request.mode === 'navigate' ? await caches.match('./index.html') : new Response('<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>VetFlowCare</title><body style="font-family:sans-serif;text-align:center;padding:48px 24px;background:#1e3a5f;color:#fff"><h2>VetFlowCare</h2><p>Sem conexão e o app ainda não foi salvo neste aparelho.</p><p>Conecte-se à internet uma vez para liberar o uso offline.</p>', {headers:{'Content-Type':'text/html; charset=utf-8'}}))) // offline: serve do cache ou tela própria
   );
 });

@@ -3308,14 +3308,18 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.03';
+const APP_VER = '10.07';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.03',
+  ver: '10.07',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🧾','Receita de Controle Especial sem folha extra','A Receita de Controle Especial às vezes saía com uma terceira folha contendo apenas o rodapé "VetFlowCare". Isso foi corrigido: agora são só as duas vias.'],
+    ['🏷️','Timbre em todas as folhas, em todos os documentos','Quando uma receita (simples, assinada ou de controle especial), termo, orçamento, prontuário, ficha, relatório ou arquivo clínico tem mais de uma página, o seu timbre — logo, nome, CRMV, SIPEAGRO e e-mail — aparece no topo de TODAS as folhas, tanto no PDF quanto na impressão. O QR Code da assinatura continua só no final da última página.'],
+    ['🧾','Receita em PDF sem corte no meio','Quando a receita passava um pouco do tamanho de uma folha, o quadro da assinatura digital (com o QR Code) ficava partido entre duas páginas. Agora a receita é ajustada para caber numa página só e, quando realmente precisa de mais de uma, a quebra acontece entre os blocos — nunca no meio do quadro da assinatura.'],
+    ['📲','Atalhos no ícone do app','Ao segurar o ícone do VetFlowCare no celular, aparecem atalhos diretos para Pacientes, Agenda e Alertas. Também melhoramos a tela de quando o app abre sem internet.'],
     ['🔎','Arquivos perdidos: o app agora procura e para de incomodar','O aviso "arquivos não estão neste aparelho" não aparece mais toda vez. Agora o app procura os anexos em todas as áreas do aparelho (inclusive cópias antigas) e recupera sozinho o que existir. O que realmente não existe mais é marcado uma única vez, e você pode removê-lo da lista (um por um, ou todos em Ajustes → Proteção de Dados → Limpar registros sem arquivo). Também dá para tocar em "Procurar arquivos perdidos" quando quiser.'],
     ['🛠️','Botão de novo tutor de volta e telas mais estáveis','Na lista de Tutores, o botão "Cadastrar novo tutor" voltou ao topo. Também corrigimos o formulário que às vezes abria cortado ou bugado (principalmente depois de usar o teclado): agora a altura é recalculada toda vez que um formulário abre.'],
     ['📎','Backup com anexos mais seguro','O backup agora mostra quantos anexos (PDFs e fotos) foram colocados dentro do arquivo. Se algum arquivo não estiver mais no aparelho, o app avisa antes em vez de travar o backup. Ao restaurar, ele avisa quais anexos não vieram, e na ficha do paciente aparece ⚠ nos arquivos ausentes. Também corrigimos um risco de perder o PDF ao abri-lo.'],
@@ -3399,7 +3403,7 @@ function showWhatsNew(){
     👋 Olá! Aqui é o <b>Claudinho</b>, da equipe VetFlowCare.<br><br>
     Cada sugestão de vocês vira melhoria. A <b>versão ${NOVIDADES.ver}</b> trouxe
     <b>${esc(NOVIDADES.titulo)}</b>:</div>
-    ${NOVIDADES.itens.map(([e,t,d]) => `
+    ${NOVIDADES.itens.filter(([e,t,d]) => !(isPlayStore() && /plano|assinar|site/i.test(t+' '+d))).map(([e,t,d]) => `
       <div class="card" style="margin-top:10px;display:flex;gap:11px;align-items:flex-start">
         <span style="font-size:22px;flex-shrink:0">${e}</span>
         <div><b style="font-size:14px">${t}</b>
@@ -5731,13 +5735,11 @@ const TRIAL_AVISO_DIAS = 5; // avisa quando faltar 5 dias ou menos
 // Detecta se o app está rodando instalado pela Play Store (TWA/app) ou pelo navegador/site.
 // Na Play Store, escondemos venda direta (regra do Google); no site, mostramos tudo.
 function isPlayStore(){
+  // v10.04: detecção ESTRITA. Só vale quando o app foi aberto pela Play Store (TWA, referrer android-app://)
+  // — a marca fica gravada. Quem usa pelo navegador ou pelo ícone instalado do Chrome NÃO é afetado.
   try{
-    // TWA roda em modo standalone E com referrer android-app://
-    const standalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
-    const twaReferrer = document.referrer && document.referrer.startsWith('android-app://');
-    // marca manual pra testes/força (se algum dia precisar)
-    const forced = testStorage.getItem('vfc_is_playstore') === '1';
-    return !!(twaReferrer || forced || (standalone && /Android/i.test(navigator.userAgent)));
+    if(document.referrer && document.referrer.startsWith('android-app://')){ try{ testStorage.setItem('vfc_is_playstore','1'); }catch(e){} return true; }
+    return testStorage.getItem('vfc_is_playstore') === '1';
   }catch(e){ return false; }
 }
 
@@ -5899,7 +5901,7 @@ function openProModal(reason){
       ✅ <b>Logo e assinatura eletrônica</b> nos documentos<br>
       ✅ <b>Cobrança pelo WhatsApp</b> e resumo financeiro mensal<br>
       ✅ Todas as futuras atualizações Pro</div>
-    <label>Escolha seu plano</label>
+    ${isPlayStore()?'':`    <label>Escolha seu plano</label>
     <div class="chips" id="proPlan">
       <button class="chip on" data-m="1">1 mês</button>
       <button class="chip" style="opacity:.45" onclick="toast('✨ Novos planos em breve!')">6 meses · em breve</button>
@@ -5922,7 +5924,8 @@ function openProModal(reason){
            💬 Assinar pelo WhatsApp da VetFlowCare</button>
          <div style="background:var(--bg);border-radius:12px;padding:12px;margin-top:10px;font-size:12px;color:var(--muted)">
            Fale com a nossa equipe pelo botão acima — você recebe o código de ativação na hora e digita abaixo. O tempo do plano começa a contar na ativação, com os dias restantes visíveis em Ajustes.</div>`}
-    <label>Já tem um código? Digite aqui</label>
+`}
+    <label>${isPlayStore()?'Código de ativação':'Já tem um código? Digite aqui'}</label>
     <input id="proCode" placeholder="VFC-XXXX-0000" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:2px;text-align:center;font-weight:700" oninput="maskCode(this)">`,
     `<button class="btn gray" onclick="closeSheet()">Agora não</button>
      <button class="btn" style="background:var(--rx)" onclick="activatePro()">✨ Ativar Pro</button>`);
@@ -5985,9 +5988,9 @@ function openTrialExpirado(recurso){
         ✅ Cobrança pelo WhatsApp</div>
     </div>
     <div style="font-size:11.5px;color:var(--muted);text-align:center;margin-top:12px">
-      Conheça os planos no nosso site. Já recebeu seu código? Toque em "Já tenho código".
+      ${isPlayStore()?'Os recursos Pro estão bloqueados neste aparelho. Seus dados continuam salvos. Tem um código de ativação? Toque em "Já tenho código".':'Conheça os planos no nosso site. Já recebeu seu código? Toque em "Já tenho código".'}
     </div>`,
-    `<button class="btn" style="background:var(--primary)" onclick="window.open('https://vetflowcare.com.br/#planos','_blank')">🌐 Conheça os planos</button>
+    `${isPlayStore()?'':`<button class="btn" style="background:var(--primary)" onclick="window.open('https://vetflowcare.com.br/#planos','_blank')">🌐 Conheça os planos</button>`}
      <button class="btn" style="background:var(--rx)" onclick="closeSheet();openProModal()">🔑 Já tenho código</button>`);
 }
 function activatePro(){
@@ -6829,6 +6832,13 @@ function executarBusca(q){
 
   el.innerHTML = html;
 }
+// v10.04 — atalhos do ícone (manifest shortcuts): ?atalho=pets|calendar|alerts
+function aplicarAtalhoURL(){
+  try{
+    const a = new URLSearchParams(location.search).get('atalho');
+    if(a && ['pets','calendar','alerts','home','settings'].includes(a) && testStorage.getItem('vfc_entered')){ goTab(a); history.replaceState(null,'',location.pathname); }
+  }catch(e){}
+}
 function goTab(tab){
   currentTab = tab; currentPetId = null; currentTutorId = null; showFinance = false;
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab===tab));
@@ -7023,9 +7033,9 @@ function renderHome(){
           </div>
           <button style="background:none;color:var(--muted);font-size:15px;padding:2px" onclick="testStorage.setItem('vfc_pro_snooze','${todayISO()}');render()">✕</button>
         </div>
-        <button class="btn sm" style="background:#25D366;margin-top:10px;width:100%"
+        ${isPlayStore()?'':`<button class="btn sm" style="background:#25D366;margin-top:10px;width:100%"
           onclick="window.open('https://wa.me/5511912659906?text=' + encodeURIComponent('Oi! Meu plano Pro do VetFlowCare está vencendo e quero renovar. Pode me ajudar?'))">
-          💬 Renovar pelo WhatsApp da VetFlowCare</button>
+          💬 Renovar pelo WhatsApp da VetFlowCare</button>`}
       </div>`;
     }
   }
@@ -9213,8 +9223,8 @@ function renderSettings(){
       <div style="font-size:11px;color:var(--muted);margin:4px 0 12px">Aprenda fazendo: o app guia você, campo por campo, nos seus primeiros cadastros.</div>
       <button class="btn outline" onclick="tourOpenChooser('tour')">🧭 Tour guiado por botões</button>
       <div style="font-size:11px;color:var(--muted);margin:4px 0 12px">O app escurece a tela, destaca cada botão e explica para que serve.</div>
-      <button class="btn outline" onclick="window.open('https://vetflowcare.com.br/tutorial/','_blank')">📚 Tutorial Completo (manual detalhado)</button>
-      <div style="font-size:11px;color:var(--muted);margin:4px 0 12px">Manual completo com todos os recursos, dicas e perguntas frequentes.</div>
+      ${isPlayStore()?'':`<button class="btn outline" onclick="window.open('https://vetflowcare.com.br/tutorial/','_blank')">📚 Tutorial Completo (manual detalhado)</button>
+      <div style="font-size:11px;color:var(--muted);margin:4px 0 12px">Manual completo com todos os recursos, dicas e perguntas frequentes.</div>`}
       <button class="btn sm outline" style="width:100%;display:block;text-align:center" onclick="window.open('https://wa.me/5511912659906?text=' + encodeURIComponent('Oi! Preciso de ajuda com o VetFlowCare.'))">💬 Suporte e Dúvidas (WhatsApp)</button></div></div>
 
   <div class="sec"><div class="sec-h"><span>🛡️ Proteção de Dados</span></div>
@@ -9264,7 +9274,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.03 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.07 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -11345,7 +11355,7 @@ function vfcQrImgTag(cell, margin){
 }
 function letterheadHTML(){
   const v = DB.vet;
-  return `<div style="display:flex;align-items:center;gap:16px;background:linear-gradient(90deg,#EAF8F6,#F7FCFB);border-radius:12px;border-bottom:4px solid #2DC0AE;padding:14px 16px;margin-bottom:22px">
+  return `<div data-timbre="1" style="display:flex;align-items:center;gap:16px;background:linear-gradient(90deg,#EAF8F6,#F7FCFB);border-radius:12px;border-bottom:4px solid #2DC0AE;padding:14px 16px;margin-bottom:22px">
     ${v.logo?`<img src="${v.logo}" style="height:68px;max-width:120px;object-fit:contain">`:`<div style="width:60px;height:60px;border-radius:12px;background:linear-gradient(135deg,#1E3A6E,#2DC0AE);display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0">🐾</div>`}
     <div>
       <div style="font-size:20px;font-weight:900;color:#1E3A6E">${esc(v.name||'Profissional')}</div>
@@ -11451,6 +11461,37 @@ function printOrcamento(petId){
   const hoje = todayISO();
   printShell('Orçamento — ' + pet.name, orcamentoHTML(pet, o, hoje, dias), `Orcamento_${orcSlug(pet.name)||'Paciente'}_${hoje}`);
 }
+// v10.07 — impressão do navegador: o timbre ([data-timbre]) vira cabeçalho de tabela, que o
+// navegador repete no topo de TODAS as folhas. Em 1 folha o resultado é idêntico ao anterior.
+function vfcRepetirTimbre(d){
+  try{
+    // v10.07: a 2ª via da Receita de Controle Especial não força quebra depois dela (gerava uma folha extra só com o rodapé)
+    const _vs = d.querySelectorAll('.via'); if(_vs.length) _vs[_vs.length-1].style.pageBreakAfter = 'auto';
+    const body = d.body; if(!body || !body.querySelector('[data-timbre]')) return;
+    const css = d.createElement('style');
+    css.textContent = 'table.vfc-pg{width:100%;border-collapse:collapse;border-spacing:0}table.vfc-pg>thead{display:table-header-group}table.vfc-pg>thead>tr>td,table.vfc-pg>tbody>tr>td{padding:0;border:0;vertical-align:top}';
+    d.head.appendChild(css);
+    const wrap = cont => {
+      const kids = Array.from(cont.children);
+      const i = kids.findIndex(c => c.hasAttribute('data-timbre')); if(i < 0) return;
+      const t = kids[i];
+      const depois = kids.slice(i + 1).filter(c => !c.classList.contains('wmfree'));
+      // as margens não colapsam mais entre cabeçalho e corpo da tabela: compensa para manter o layout idêntico
+      try{ const cs = e => d.defaultView.getComputedStyle(e); const mb = parseFloat(cs(t).marginBottom) || 0;
+        const pr = depois[0]; if(pr){ const mt = parseFloat(cs(pr).marginTop) || 0; pr.style.marginTop = Math.max(0, mt - mb) + 'px'; } }catch(e){}
+      const ph = d.createComment('timbre'); cont.insertBefore(ph, t);
+      const table = d.createElement('table'); table.className = 'vfc-pg';
+      const th = d.createElement('thead'), trh = d.createElement('tr'), tdh = d.createElement('td');
+      tdh.appendChild(t); trh.appendChild(tdh); th.appendChild(trh);
+      const tb = d.createElement('tbody'), trb = d.createElement('tr'), tdb = d.createElement('td');
+      depois.forEach(k => tdb.appendChild(k)); trb.appendChild(tdb); tb.appendChild(trb);
+      table.appendChild(th); table.appendChild(tb);
+      cont.replaceChild(table, ph);
+    };
+    const vias = Array.from(body.querySelectorAll('.via')).filter(v => v.querySelector('[data-timbre]'));
+    if(vias.length) vias.forEach(wrap); else wrap(body);
+  }catch(e){ console.warn('timbre', e); }
+}
 function printShell(title, inner, fileName){
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${fileName||title}</title><style>
     *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;color-adjust:exact !important}
@@ -11462,6 +11503,7 @@ function printShell(title, inner, fileName){
     .box{border:1.5px solid #1A2F5A;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:12px}
     .box b.bt{display:block;font-size:10px;letter-spacing:1px;color:#6B7A8D;margin-bottom:6px}
     .fill{display:inline-block;border-bottom:1px solid #999;min-width:180px}
+    .box,.sigbox,.rxinfo{break-inside:avoid;page-break-inside:avoid}
     .via{page-break-after:always}
     .via:last-child{page-break-after:auto}
     .vialbl{text-align:right;font-size:10px;font-weight:800;color:#6B7A8D;letter-spacing:1px;margin-bottom:8px}
@@ -11479,6 +11521,7 @@ function printShell(title, inner, fileName){
   document.body.appendChild(f);
   const d = f.contentDocument || f.contentWindow.document;
   d.open(); d.write(html); d.close();
+  vfcRepetirTimbre(d);
   setTimeout(() => {
     // v9.94: o nome sugerido ao "Salvar como PDF" vem do título da página — usa o nome organizado
     const oldTitle = document.title;
@@ -11642,26 +11685,79 @@ async function gerarReceitaPdfReal(innerHTML, fileNameBase, assinarInfo, modo){
     const pageScale = A4W / canvas.width;
     const pxPerPage = A4H / pageScale;
     const totalPx = canvas.height;
-    if(totalPx <= pxPerPage){
+    // v10.05: posições (em px do canvas) dos blocos que NÃO podem ser cortados ao meio
+    const kf = canvas.width / holder.offsetWidth, hTop = holder.getBoundingClientRect().top;
+    const blocos = [];
+    Array.from(holder.children).forEach(el => {
+      if(el.tagName === 'STYLE') return;
+      const r = el.getBoundingClientRect();
+      blocos.push({ t: Math.round((r.top - hTop) * kf), b: Math.round((r.bottom - hTop) * kf), box: !el.classList.contains('content') });
+      // linhas do texto da prescrição (pode quebrar entre linhas)
+      if(el.classList.contains('content')){
+        const lh = parseFloat(getComputedStyle(el).lineHeight) * kf;
+        if(lh > 0) for(let y = blocos[blocos.length-1].t + lh; y < blocos[blocos.length-1].b - 1; y += lh) blocos.push({ t: Math.round(y), b: Math.round(y), box: false, linha: true });
+      }
+    });
+    window._lastRxBlocks = blocos; window._lastRxBreaks = [];
+    window._lastRxTotal = totalPx; window._lastRxPxPage = pxPerPage;
+    const caberUma = totalPx <= pxPerPage;
+    if(caberUma){
       const png = await pdfDoc.embedPng(canvas.toDataURL('image/png'));
       const scaledH = totalPx * pageScale;
       const page = pdfDoc.addPage([A4W, A4H]);
       page.drawImage(png, { x:0, y:A4H-scaledH, width:A4W, height:scaledH });
+    } else if(totalPx <= pxPerPage * 1.3){
+      // Passa só um pouco de uma página: reduz para caber INTEIRA numa folha (sem cortar nada)
+      const fit = pxPerPage / totalPx;
+      const png = await pdfDoc.embedPng(canvas.toDataURL('image/png'));
+      const w = A4W * fit, h = A4H;
+      const page = pdfDoc.addPage([A4W, A4H]);
+      page.drawImage(png, { x:(A4W - w) / 2, y:0, width:w, height:h });
     } else {
-      // Conteúdo mais alto que uma página A4: fatia o canvas e gera 1 página por fatia
+      // Conteúdo bem mais alto que uma página: quebra ENTRE blocos (nunca no meio de um quadro)
+      // v10.06: o TIMBRE (data-timbre) é repetido no topo de todas as folhas a partir da 2ª
+      const tEl = holder.querySelector('[data-timbre]');
+      let timbreCv = null, H2 = 0;
+      if(tEl){
+        const tr = tEl.getBoundingClientRect();
+        const tT = Math.max(0, Math.round((tr.top - hTop) * kf)), tH = Math.round(tr.height * kf);
+        timbreCv = document.createElement('canvas'); timbreCv.width = canvas.width; timbreCv.height = tH;
+        timbreCv.getContext('2d').drawImage(canvas, 0, tT, canvas.width, tH, 0, 0, canvas.width, tH);
+        H2 = tT + tH + Math.round(22 * kf); // margem superior + timbre + respiro
+      }
+      const cap = i => (i === 0 || !timbreCv) ? pxPerPage : pxPerPage - H2;
+      const cortes = [];
       let y = 0;
-      while(y < totalPx){
-        const sliceH = Math.min(pxPerPage, totalPx - y);
+      while(totalPx - y > cap(cortes.length)){
+        const c = cap(cortes.length), limite = y + c;
+        let melhor = -1;
+        for(const bl of blocos){
+          if(bl.t > y + c * 0.35 && bl.t <= limite){
+            const cortaBox = blocos.some(o => o.box && !o.linha && o.t < bl.t && o.b > bl.t && (o.b - o.t) < pxPerPage);
+            if(!cortaBox && bl.t > melhor) melhor = bl.t;
+          }
+        }
+        const fim = melhor > 0 ? melhor : limite;
+        cortes.push(fim); y = fim;
+      }
+      window._lastRxBreaks = cortes.slice();
+      window._lastRxTimbrePages = 0;
+      let ini = 0, pgIdx = 0;
+      for(const fim of [...cortes, totalPx]){
+        const sliceH = fim - ini;
+        const comTimbre = pgIdx > 0 && !!timbreCv;
         const sliceCanvas = document.createElement('canvas');
         sliceCanvas.width = canvas.width;
-        sliceCanvas.height = sliceH;
+        sliceCanvas.height = sliceH + (comTimbre ? H2 : 0);
         const ctx = sliceCanvas.getContext('2d');
         ctx.fillStyle = '#fff'; ctx.fillRect(0,0,sliceCanvas.width,sliceCanvas.height);
-        ctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+        if(comTimbre){ ctx.drawImage(timbreCv, 0, H2 - timbreCv.height - Math.round(22 * kf)); window._lastRxTimbrePages++; }
+        ctx.drawImage(canvas, 0, ini, canvas.width, sliceH, 0, comTimbre ? H2 : 0, canvas.width, sliceH);
         const slicePng = await pdfDoc.embedPng(sliceCanvas.toDataURL('image/png'));
         const page = pdfDoc.addPage([A4W, A4H]);
-        page.drawImage(slicePng, { x:0, y:A4H-(sliceH*pageScale), width:A4W, height:sliceH*pageScale });
-        y += sliceH;
+        const dh = sliceCanvas.height * pageScale;
+        page.drawImage(slicePng, { x:0, y:A4H-dh, width:A4W, height:dh });
+        ini = fim; pgIdx++;
       }
     }
     let bytes;
@@ -11836,7 +11932,7 @@ function printRx(petId, rxId){
     // Receita de Controle Especial — 2 vias
     const via = lbl => `<div class="via">
       <div class="vialbl">${lbl}</div>
-      <div class="box"><b class="bt">IDENTIFICAÇÃO DO EMITENTE</b>
+      <div class="box" data-timbre="1"><b class="bt">IDENTIFICAÇÃO DO EMITENTE</b>
         <b>Nome:</b> ${esc(DB.vet.name||'')}<br>
         <b>CRMV:</b> ${crmvFull()||''} &nbsp;·&nbsp; <b>SIPEAGRO/MAPA:</b> ${esc(DB.vet.sipeagro||'')}<br>
         ${DB.vet.email?`<b>E-mail:</b> ${esc(DB.vet.email)}`:''}</div>
@@ -12164,6 +12260,7 @@ function bootApp(){
   migrateDocsToIDB();
   initDataProtection();
   setTimeout(localizarArquivosAuto, 2500);
+  setTimeout(aplicarAtalhoURL, 600);
   if(testStorage.getItem('vfc_entered')){
     document.getElementById('splash').classList.add('hidden');
     document.getElementById('appHeader').classList.remove('hidden');
@@ -12442,6 +12539,7 @@ async function doEntryRegister(){
 }
 // Convida a pessoa a avisar a equipe B&G pelo WhatsApp que começou o teste (opcional)
 function avisarInicioTrial(){
+  if(isPlayStore()) return; // versão da loja: não aciona venda/contato comercial
   const p = DB.userProfile || {};
   const nome = (p.nome||'').split(' ')[0] || 'Veterinário(a)';
   const el = document.createElement('div');
