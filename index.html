@@ -3308,14 +3308,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.07';
+const APP_VER = '10.08';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.07',
+  ver: '10.08',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🧾','Receita em PDF: página 1 aproveitada até o fim','Corrigimos a quebra de página das receitas em PDF com texto longo: antes, a primeira folha podia sair quase vazia (ou cortar uma linha ao meio) e o texto pular cedo para a página 2. Agora a primeira folha é preenchida até onde cabe, a quebra acontece entre linhas, e as demais folhas repetem o timbre.'],
     ['🧾','Receita de Controle Especial sem folha extra','A Receita de Controle Especial às vezes saía com uma terceira folha contendo apenas o rodapé "VetFlowCare". Isso foi corrigido: agora são só as duas vias.'],
     ['🏷️','Timbre em todas as folhas, em todos os documentos','Quando uma receita (simples, assinada ou de controle especial), termo, orçamento, prontuário, ficha, relatório ou arquivo clínico tem mais de uma página, o seu timbre — logo, nome, CRMV, SIPEAGRO e e-mail — aparece no topo de TODAS as folhas, tanto no PDF quanto na impressão. O QR Code da assinatura continua só no final da última página.'],
     ['🧾','Receita em PDF sem corte no meio','Quando a receita passava um pouco do tamanho de uma folha, o quadro da assinatura digital (com o QR Code) ficava partido entre duas páginas. Agora a receita é ajustada para caber numa página só e, quando realmente precisa de mais de uma, a quebra acontece entre os blocos — nunca no meio do quadro da assinatura.'],
@@ -9274,7 +9275,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.07 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.08 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -11695,7 +11696,8 @@ async function gerarReceitaPdfReal(innerHTML, fileNameBase, assinarInfo, modo){
       // linhas do texto da prescrição (pode quebrar entre linhas)
       if(el.classList.contains('content')){
         const lh = parseFloat(getComputedStyle(el).lineHeight) * kf;
-        if(lh > 0) for(let y = blocos[blocos.length-1].t + lh; y < blocos[blocos.length-1].b - 1; y += lh) blocos.push({ t: Math.round(y), b: Math.round(y), box: false, linha: true });
+        const cT = blocos[blocos.length-1].t, cB = blocos[blocos.length-1].b; // v10.08: limites fixados ANTES do laço (bug: só 1 linha candidata)
+        if(lh > 0) for(let y = cT + lh; y < cB - 1; y += lh) blocos.push({ t: Math.round(y), b: Math.round(y), box: false, linha: true });
       }
     });
     window._lastRxBlocks = blocos; window._lastRxBreaks = [];
