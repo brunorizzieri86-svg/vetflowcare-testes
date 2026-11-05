@@ -3252,6 +3252,7 @@ buffer/index.js:
   <button data-tab="fin" onclick="goFinance()"><span class="nic">💰</span>Financeiro</button>
   <button data-tab="calendar" onclick="goTab('calendar')"><span class="nic">📅</span>Agenda</button>
   <button data-tab="alerts" onclick="goTab('alerts')"><span class="nic">🔔</span>Alertas<span class="nbadge hidden" id="alertBadge"></span></button>
+  <button data-tab="catalog" onclick="goTab('catalog')"><span class="nic">📚</span>Catálogo</button>
   <button data-tab="settings" onclick="goTab('settings')"><span class="nic">⚙️</span>Ajustes</button>
 </nav>
 
@@ -3308,14 +3309,18 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.08';
+const APP_VER = '10.10';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.08',
+  ver: '10.10',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['📚','Catálogo de serviços','Nova aba <b>Catálogo</b> no menu: cadastre o que você faz com preço de venda e custos (centro cirúrgico, materiais…). Itens com preço <b>por peso</b> (como anestesia, de 5 em 5 kg) e <b>pacotes</b> (ex.: castração completa). No Novo Atendimento, toque em “📚 Puxar do catálogo” e a linha já vem com valor e custo. Reajustou? Altere no catálogo e os próximos atendimentos já saem certos.'],
+    ['🧾','Orçamentos guardados na ficha do paciente','Cada orçamento em PDF fica salvo na nova aba <b>Orçam.</b> da ficha, com os preços da data. Dentro da validade nada muda. Vencido e com o catálogo diferente, o app avisa se houve <b>aumento</b> ou <b>redução</b> de preço e oferece “Atualizar para preços atuais”. Ao reimprimir um orçamento vencido, o PDF sai com a faixa de aviso.'],
+    ['⏸️','Pausar e retomar vacina','Na ficha do paciente, em cada vacina, um único botão alterna entre "⏸ Pausar vacina" e "▶ Retomar vacina". Enquanto estiver pausada, o app não mostra atraso, não conta nos Alertas nem na Agenda e não derruba a saúde do paciente. Ao retomar uma vacina cuja data já passou, o app pergunta a nova data.'],
+    ['🧾','Custo de cada item no atendimento','No Novo Atendimento, cada serviço ganhou o campo "🧾 Custo": o que VOCÊ gastou naquele item. Ao salvar, o custo entra sozinho em Financeiro → Despesas. Ele nunca aparece no orçamento em PDF. Enquanto o pagamento não for recebido, você pode editar o atendimento (mudar o custo, tirar o item) e a despesa acompanha; depois da baixa, os custos ficam travados.'],
     ['🧾','Receita em PDF: página 1 aproveitada até o fim','Corrigimos a quebra de página das receitas em PDF com texto longo: antes, a primeira folha podia sair quase vazia (ou cortar uma linha ao meio) e o texto pular cedo para a página 2. Agora a primeira folha é preenchida até onde cabe, a quebra acontece entre linhas, e as demais folhas repetem o timbre.'],
     ['🧾','Receita de Controle Especial sem folha extra','A Receita de Controle Especial às vezes saía com uma terceira folha contendo apenas o rodapé "VetFlowCare". Isso foi corrigido: agora são só as duas vias.'],
     ['🏷️','Timbre em todas as folhas, em todos os documentos','Quando uma receita (simples, assinada ou de controle especial), termo, orçamento, prontuário, ficha, relatório ou arquivo clínico tem mais de uma página, o seu timbre — logo, nome, CRMV, SIPEAGRO e e-mail — aparece no topo de TODAS as folhas, tanto no PDF quanto na impressão. O QR Code da assinatura continua só no final da última página.'],
@@ -3538,6 +3543,7 @@ function defaultDB(){
     license: { pro:false, code:'', activatedAt:null },
     charges: [],
     expenses: [],
+    catalogo: [],
     settings: { dark:false, alert7:true, alert3:true, alert1:true, nVac:true, nMed:true, nVet:true,
       taxas: { pix:0, dinheiro:0, debito:1.99, credito:3.49, creditoParc:4.5 } }
   };
@@ -3581,6 +3587,7 @@ function migrate(d){
   d.license = Object.assign(defaultDB().license, d.license||{});
   d.charges = d.charges || [];
   d.expenses = d.expenses || [];
+  d.catalogo = d.catalogo || [];
   // ID do Aparelho (licença Pro vinculada): 4 caracteres, criado uma única vez.
   // Vive dentro do DB — sobrevive a backup/restauração junto com os dados da clínica.
   // v9.9.2: geração blindada — no iPhone/Safari o crypto.getRandomValues pode falhar
@@ -4015,7 +4022,7 @@ function crmvFull(){
 // ── Health score (vacinas + consultas) ─────────
 function healthScore(pet){
   let s = 100;
-  pet.vaccines.filter(v => v.status !== 'aplicada').forEach(v => { const d = daysUntil(v.due); if(d<0) s-=12; else if(d<=7) s-=4; });
+  pet.vaccines.filter(v => v.status !== 'aplicada' && !v.pausada).forEach(v => { const d = daysUntil(v.due); if(d<0) s-=12; else if(d<=7) s-=4; });
   pet.appointments.forEach(a => { if(daysUntil(a.date)<0 && !a.done) s-=3; });
   return Math.max(0, Math.min(100, s));
 }
@@ -6027,7 +6034,7 @@ function allEvents(){
   for(const pet of DB.pets){
     if(pet.deceased) continue;
     const base = {petId:pet.id, pet:pet.name, emo:petEmoji(pet)};
-    pet.vaccines.filter(v => v.status !== 'aplicada').forEach(v => {
+    pet.vaccines.filter(v => v.status !== 'aplicada' && !v.pausada).forEach(v => {
       const d = daysUntil(v.due);
       evts.push({...base, id:'v-'+v.id, type:'vaccine', title:v.name, due:v.due, daysLeft:d, priority:priorityOf(d)});
     });
@@ -6878,6 +6885,7 @@ function render(){
   if(currentTab==='pets')     main.innerHTML = renderPetsList();
   if(currentTab==='calendar') main.innerHTML = renderCalendar();
   if(currentTab==='alerts')   main.innerHTML = renderAlerts('all');
+  if(currentTab==='catalog'){ main.innerHTML = renderCatalog(); catRedesenhar(); }
   if(currentTab==='settings') main.innerHTML = renderSettings();
 }
 function updateBadge(){
@@ -7224,7 +7232,7 @@ function renderPetsList(q=''){
   } else {
     list = pets.map(p => {
       const s = healthScore(p), c = petColor(p);
-      const issue = p.vaccines.some(v=>v.status!=='aplicada' && daysUntil(v.due)<0);
+      const issue = p.vaccines.some(v=>v.status!=='aplicada' && !v.pausada && daysUntil(v.due)<0);
       const tn = tutorName(p);
       // Pedido do Bruno: paciente com óbito registrado (p.deceased) some com o status "Em dia"/
       // "Vacina vencida" e mostra "Falecido" + a data (se preenchida) no lugar; o card inteiro fica
@@ -7459,6 +7467,7 @@ function renderPetHero(pet){
       <button class="${currentPetTab==='health'?'on':''}" onclick="currentPetTab='health';render()">Saúde</button>
       <button class="${currentPetTab==='rx'?'on':''}" onclick="currentPetTab='rx';render()">Receita</button>
       <button class="${currentPetTab==='termos'?'on':''}" onclick="currentPetTab='termos';render()">Termos${(pet.termos||[]).length?' ('+pet.termos.length+')':''}</button>
+      <button class="${currentPetTab==='orc'?'on':''}" onclick="currentPetTab='orc';render()">Orçam.${(pet.orcamentos||[]).length?' ('+pet.orcamentos.length+')':''}</button>
       <button class="${currentPetTab==='docs'?'on':''}" onclick="currentPetTab='docs';render()">Arquivos</button>
     </div>
   </div>`;
@@ -7469,6 +7478,7 @@ function renderPetTab(pet){
   if(currentPetTab==='health') return renderPetHealth(pet);
   if(currentPetTab==='rx')     return renderPetRx(pet);
   if(currentPetTab==='termos') return renderPetTerms(pet);
+  if(currentPetTab==='orc')    return renderPetOrcamentos(pet);
   return renderPetDocs(pet);
 }
 
@@ -7564,13 +7574,14 @@ function renderPetHealth(pet){
 
   h += secBlock('💉 Vacinas e Protocolos', `openVaccineForm('${pet.id}')`,
     gArr.map(g=>{
-      const late = g.next && daysUntil(g.next.due) < 0;
+      const pausada = !!(g.next && g.next.pausada);
+      const late = g.next && !pausada && daysUntil(g.next.due) < 0;
       return `<div class="card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div><b style="font-size:14px">${esc(g.name)}</b>
         <div style="color:var(--muted);font-size:11px;margin-top:1px">${protocolLabelFor(g)}</div></div>
         <span style="display:flex;gap:6px;align-items:center">
-        ${g.next ? (late?'<span class="st bad">⚠ Atrasada</span>':'<span class="st prog">📅 Programada</span>') : '<span class="st ok">✓ Em dia</span>'}
+        ${g.next ? (g.next.pausada ? '<span class="st" style="background:#E8EDF3;color:#55667A">⏸ Pausada</span>' : late?'<span class="st bad">⚠ Atrasada</span>':'<span class="st prog">📅 Programada</span>') : '<span class="st ok">✓ Em dia</span>'}
         <button style="background:none;color:var(--muted)" onclick="delVaccineGroup('${pet.id}','${escJS(g.name)}')" aria-label="Excluir vacina">🗑</button></span></div>
 
       ${g.applied.length ? `<div style="margin-top:9px;border-top:1px solid var(--border)">
@@ -7595,15 +7606,16 @@ function renderPetHealth(pet){
           </div>
         </div>`).join('')}</div>` : ''}
 
-      ${g.next ? `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:9px;background:${late?'rgba(224,82,82,.07)':'var(--vacbg)'};border-radius:10px;padding:9px 12px">
-        <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">Próxima dose</div>
-        <b style="font-size:13px;color:${late?'var(--danger)':'var(--vac)'}">${fmtDate(g.next.due)}</b></div>
+      ${g.next ? `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:9px;background:${pausada?'#EEF1F5':late?'rgba(224,82,82,.07)':'var(--vacbg)'};border-radius:10px;padding:9px 12px">
+        <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">${pausada?'Próxima dose · pausada'+(g.next.pausadaEm?' desde '+fmtDate(g.next.pausadaEm):''):'Próxima dose'}</div>
+        <b style="font-size:13px;color:${pausada?'var(--muted)':late?'var(--danger)':'var(--vac)'}">${fmtDate(g.next.due)}</b></div>
         <span style="display:flex;gap:6px">
           <button style="background:none;font-size:14px" onclick="openVacDoseEdit('${pet.id}','${g.next.id}')">✏️</button>
-          <button class="btn sm" style="background:#25D366" onclick="openAvisarTutor('${pet.id}','vacina','${g.next.id}')">💬 Avisar</button>
+          ${pausada?'':`<button class="btn sm" style="background:#25D366" onclick="openAvisarTutor('${pet.id}','vacina','${g.next.id}')">💬 Avisar</button>`}
           <button class="btn sm success" onclick="openApplyVaccineForm('${pet.id}','${g.next.id}')">✓ Aplicar</button>
         </span>
-      </div>` : ''}
+      </div>
+      <button class="btn sm gray" style="width:100%;margin-top:6px" data-vacpausa="1" onclick="toggleVacPausa('${pet.id}','${escJS(g.name)}')">${pausada?'▶ Retomar vacina':'⏸ Pausar vacina'}</button>` : ''}
       </div>`;}),
     'Nenhuma vacina registrada');
 
@@ -7872,7 +7884,7 @@ function gerarCarteirinha(petId){
 
   const aplicadas = pet.vaccines.filter(x=>x.status==='aplicada' && x.applied)
     .sort((a,b)=>(b.applied||'').localeCompare(a.applied||''));
-  const proximas = pet.vaccines.filter(x=>x.status==='programada' && x.due)
+  const proximas = pet.vaccines.filter(x=>x.status==='programada' && x.due && !x.pausada)
     .sort((a,b)=>(a.due||'').localeCompare(b.due||''));
 
   // cabeçalho do topo (colorido) — só na 1ª página
@@ -8819,6 +8831,7 @@ function delRecord(petId, coll, id){
 }
 function doDelRecord(petId, coll, id){
   const pet = DB.pets.find(p=>p.id===petId);
+  if(coll === 'appointments'){ const _a = pet.appointments.find(x=>x.id===id); if(_a && !apptRecebido(_a)) DB.expenses = DB.expenses.filter(e=>e.apptId !== id); } // v10.09: custo do atendimento não recebido some junto
   if(coll === 'documents') idbDel(id);
   pet[coll] = pet[coll].filter(x=>x.id!==id);
   save(); render(); toast('🗑️ Excluído!');
@@ -9275,7 +9288,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.08 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.10 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -10747,7 +10760,7 @@ function saveApplyVaccine(petId, vid){
   const v = pet.vaccines.find(x=>x.id===vid);
   if(!v) return;
   const dt = val('fAVDate') || todayISO();
-  v.status = 'aplicada'; v.applied = dt; v.due = dt; v.lot = val('fAVLot');
+  v.status = 'aplicada'; v.applied = dt; v.due = dt; v.lot = val('fAVLot'); delete v.pausada; delete v.pausadaEm;
   // Primovacinação (21 ou 30 dias): após a 2ª dose, o reforço passa a ser anual
   const nextProt = (v.protocol === 'primo' || v.protocol === 'primo30') ? 'anual' : v.protocol;
   const days = protocolDaysFor(nextProt, v.customDays);
@@ -10790,6 +10803,42 @@ function saveVacDose(petId, vid, aplicada){
   else { v.due = d; }
   save(); closeSheet(); render(); toast('✏️ Vacina corrigida!');
 }
+// v10.09 — pausar/retomar vacina (um único botão alterna). Pausada = sem atraso, sem alertas, sem agenda.
+function toggleVacPausa(petId, name){
+  const pet = DB.pets.find(p=>p.id===petId); if(!pet) return;
+  const doses = pet.vaccines.filter(v=>v.name===name && v.status==='programada');
+  if(!doses.length) return;
+  const pausada = doses.some(v=>v.pausada);
+  if(!pausada){
+    doses.forEach(v=>{ v.pausada = true; v.pausadaEm = todayISO(); });
+    save(); render(); toast('⏸ Vacina pausada — sem avisos de atraso. Toque em "Retomar vacina" quando quiser.');
+    return;
+  }
+  const prox = doses.slice().sort((a,b)=>(a.due||'').localeCompare(b.due||''))[0];
+  if(daysUntil(prox.due) < 0){
+    showSheet('▶ Retomar vacina', `
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px">💉 <b>${esc(name)}</b></div>
+      <div style="background:var(--vacbg);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--vac)">
+        A data da próxima dose (<b>${fmtDate(prox.due)}</b>) já passou. Informe a nova data para a vacina voltar sem aparecer como atrasada.</div>
+      <label>Nova data da próxima dose *</label>
+      <input id="vrDate" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10" value="${fmtDate(todayISO())}" oninput="maskDate(this)">`,
+      `<button class="btn gray" onclick="closeSheet()">Cancelar</button>
+       <button class="btn" onclick="confirmarRetomadaVacina('${petId}','${escJS(name)}')">▶ Retomar</button>`);
+    return;
+  }
+  doses.forEach(v=>{ delete v.pausada; delete v.pausadaEm; });
+  save(); render(); toast('▶ Vacina retomada!');
+}
+function confirmarRetomadaVacina(petId, name){
+  const d = parseBRDate(val('vrDate'));
+  if(!d){ toast('⚠ Data inválida — use DD/MM/AAAA'); return; }
+  const pet = DB.pets.find(p=>p.id===petId); if(!pet) return;
+  const doses = pet.vaccines.filter(v=>v.name===name && v.status==='programada').sort((a,b)=>(a.due||'').localeCompare(b.due||''));
+  if(!doses.length) return;
+  const delta = Math.round((new Date(d+'T12:00:00') - new Date(doses[0].due+'T12:00:00')) / 86400000);
+  doses.forEach((v,i)=>{ if(i===0) v.due = d; else v.due = addDays(v.due, delta); delete v.pausada; delete v.pausadaEm; });
+  save(); closeSheet(); render(); toast('▶ Vacina retomada! Próxima dose: '+fmtDate(d));
+}
 function delVaccineGroup(petId, name){
   askDel('💉 Excluir vacina', `Remover a vacina <b>"${esc(name)}"</b> e todo o histórico de doses?`, `doDelVaccineGroup('${petId}','${escJS(name)}')`);
 }
@@ -10828,8 +10877,9 @@ function saveMed(petId, medId){
 
 // ── Atendimento: Tipo, Resumo, Prontuário e Retorno ──
 function openApptForm(petId, editId){
-  window._apptEdit = editId || null;
+  window._apptEdit = editId || null; window._apptPetId = petId;
   const eA = editId ? DB.pets.find(p=>p.id===petId).appointments.find(x=>x.id===editId) : null;
+  window._custoLock = !!(eA && apptRecebido(eA));
   const types = ['Consulta','Retorno','Vacinação','Exame','Cirurgia','Emergência'];
   if(!editId) types.push('Orientações via Telefone');
   showSheet(eA ? '✏️ Editar Atendimento' : 'Novo Atendimento', `
@@ -10844,12 +10894,18 @@ function openApptForm(petId, editId){
     <label>Local / Clínica</label><input id="fPClinic" value="${esc(eA?.clinic||'')}" placeholder="Opcional">
     <label>💰 Serviços do atendimento</label>
     <div style="font-size:11px;color:var(--muted);margin:2px 0 6px">Descreva cada item (consulta, vacina, exame…) com seu valor — o total soma sozinho.</div>
-    <div id="fPItens">${eA?.itens?.length ? eA.itens.map((it,i)=>servItemRow(i, esc(it.desc), it.valor)).join('') : servItemRow(0)}</div>
+    <div style="font-size:11px;color:var(--vet);margin:0 0 4px;line-height:1.5">🧾 <b>Custo</b> (opcional): o que VOCÊ gastou em cada item. Entra sozinho em <b>Financeiro → Despesas</b> ao salvar e <b>não aparece</b> no orçamento em PDF.${window._custoLock?'<br>🔒 <b>Pagamento já recebido:</b> os custos estão travados. Para ajustar, use Financeiro → Despesas.':''}</div>
+    <button type="button" class="btn sm outline" id="fPCatBtn" style="width:100%;margin:2px 0 6px" onclick="catPainelToggle()">📚 Puxar do catálogo</button>
+    <div id="fPCatPanel" style="display:none;background:var(--vetbg);border-radius:12px;padding:8px 10px;margin-bottom:8px">
+      <input id="fPCatBusca" placeholder="🔎 Buscar no catálogo" oninput="catPainelLista()" style="margin:0">
+      <div id="fPCatLista" style="max-height:260px;overflow:auto"></div></div>
+    <div id="fPItens">${eA?.itens?.length ? eA.itens.map((it,i)=>servItemRow(i, esc(it.desc), it.valor, it.custo||'', it.id||'', it.despId||'', it)).join('') : servItemRow(0)}</div>
     <button type="button" class="btn sm outline" style="margin-top:8px" onclick="addServItem()">➕ Adicionar item</button>
     <div id="fPTotalBox" style="background:var(--medbg);border-radius:10px;padding:9px 12px;font-size:14px;margin-top:10px;display:none">
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>Subtotal dos serviços:</span><b id="fPSubTxt">R$ 0,00</b></div>
       <div id="fPDescBox" style="display:none;justify-content:space-between;font-size:12px;color:var(--danger);margin-top:2px"><span>Desconto aplicado:</span><b id="fPDescTxt">− R$ 0,00</b></div>
-      <div style="display:flex;justify-content:space-between;margin-top:4px;padding-top:4px;border-top:1px solid var(--border)">💰 Total: <b id="fPTotalTxt">R$ 0,00</b></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px;padding-top:4px;border-top:1px solid var(--border)">💰 Total: <b id="fPTotalTxt">R$ 0,00</b></div>
+      <div id="fPCustoLine" style="display:none;justify-content:space-between;font-size:12px;color:var(--vet);margin-top:4px"><span>🧾 Custos (não vão no PDF):</span><b id="fPCustoTxt">R$ 0,00</b></div></div>
     <div id="fPOrcValWrap" style="margin-top:10px;display:flex;align-items:center;gap:8px;background:var(--vetbg);border-radius:10px;padding:8px 12px">
       <label for="fPOrcDias" style="margin:0;font-size:12px;font-weight:800;flex:1;line-height:1.3">⏳ Dias de validade da proposta</label>
       <input id="fPOrcDias" type="number" inputmode="numeric" min="1" max="365" step="1" value="${orcDiasPadrao()}" style="width:76px;text-align:center;font-weight:800;margin:0">
@@ -10880,8 +10936,8 @@ function openApptForm(petId, editId){
 
     <label>Pagamento</label>
     <div class="chips" id="fPPay">
-      <button class="chip ${(!eA || eA.payStatus!=='pendente')?'on':''}" data-v="pago" onclick="this.parentElement.querySelectorAll('.chip[data-v]').forEach(c=>c.classList.remove('on'));this.classList.add('on');document.getElementById('fPPayDueWrap').style.display='none'">✓ Pago na hora</button>
-      <button class="chip" data-v="pendente" onclick="this.parentElement.querySelectorAll('.chip[data-v]').forEach(c=>c.classList.remove('on'));this.classList.add('on');document.getElementById('fPPayDueWrap').style.display='block'">📅 A receber</button>
+      <button class="chip ${(!eA || eA.payStatus!=='pendente' || eA.parcelas?.length)?'on':''}" data-v="pago" onclick="this.parentElement.querySelectorAll('.chip[data-v]').forEach(c=>c.classList.remove('on'));this.classList.add('on');document.getElementById('fPPayDueWrap').style.display='none'">✓ Pago na hora</button>
+      <button class="chip ${(eA && eA.payStatus==='pendente' && !eA.parcelas?.length)?'on':''}" data-v="pendente" onclick="this.parentElement.querySelectorAll('.chip[data-v]').forEach(c=>c.classList.remove('on'));this.classList.add('on');document.getElementById('fPPayDueWrap').style.display='block'">📅 A receber</button>
       ${eA?'':`<button class="chip" type="button" style="border-style:dashed" onclick="toggleApptDesp(this)">🧾 Despesas</button>`}
     </div>
     ${eA?'':`<div id="fPDespWrap" style="display:none;background:var(--vetbg);border:1.5px dashed var(--vet);border-radius:12px;padding:10px 12px;margin-top:8px">
@@ -10893,7 +10949,7 @@ function openApptForm(petId, editId){
       <button type="button" class="btn sm outline" style="margin-top:8px" onclick="addApptDesp('')">➕ Despesa manual</button>
       <div id="fPDespTot" style="font-size:12px;font-weight:800;margin-top:8px;display:none">Total de despesas: <span id="fPDespTotTxt"></span></div>
     </div>`}
-    <div id="fPPayDueWrap" style="display:none">
+    <div id="fPPayDueWrap" style="display:${(eA && eA.payStatus==='pendente' && !eA.parcelas?.length)?'block':'none'}">
       <label>Parcelamento</label>
       <select id="fPParc" onchange="buildParcelas()">
         <option value="1">À vista (1x)</option>
@@ -10902,7 +10958,7 @@ function openApptForm(petId, editId){
       </select>
       <div id="fPParc1" style="display:block">
         <label>Vencimento do pagamento *</label>
-        <input id="fPPayDue" type="date">
+        <input id="fPPayDue" type="date" value="${(eA && !eA.parcelas?.length && eA.payDue)||''}">
         <input id="fPPayDueTxt" placeholder="ou digite: DD/MM/AAAA" inputmode="numeric" maxlength="10"
           style="margin-top:6px" oninput="maskDate(this)">
       </div>
@@ -10923,14 +10979,63 @@ function openApptForm(petId, editId){
   voiceBind('fPRecord',eA?.recordReview,{patient:DB.pets.find(p=>p.id===petId)?.name,tutor:tutorName(DB.pets.find(p=>p.id===petId)),date:eA?.date});
   setTimeout(recalcServTotal, 50); // calcula o total já ao abrir (útil na edição)
 }
-function servItemRow(i, desc='', valor=''){
-  return `<div class="srow" style="display:flex;gap:8px;align-items:center;margin-top:6px">
-    <input class="sDesc" placeholder="Ex: Consulta · Vacina V10 · Hemograma" value="${desc}" style="flex:2">
-    <input class="sVal" inputmode="numeric" placeholder="R$ 0,00" value="${moedaInit(valor)}" data-valor="${parseFloat(valor)||0}" style="flex:1" oninput="maskMoeda(this);recalcServTotal()">
-    <button type="button" style="background:none;color:var(--muted);font-size:15px;flex-shrink:0" onclick="this.parentElement.remove();recalcServTotal()">✕</button></div>`;
+// v10.09: cada item pode ter um CUSTO (despesa do veterinário). Não vai no orçamento em PDF.
+// Entra em Financeiro → Despesas ao salvar e acompanha as edições até o pagamento ser recebido.
+function apptRecebido(a){
+  if(!a || !(a.valor > 0)) return false;
+  if(a.parcelas && a.parcelas.some(p=>p.status==='pago')) return true;
+  return a.payStatus === 'pago';
+}
+function servItemRow(i, desc='', valor='', custo='', iid='', despId='', cat=null){
+  const trava = !!window._custoLock;
+  cat = cat || {};
+  const _ci = cat.catId ? catItem(cat.catId) : null;
+  const catAttr = cat.catId ? `data-catid="${cat.catId}" ${cat.faixaI!=null?`data-faixa="${cat.faixaI}"`:''} ${cat.qtd&&cat.qtd!==1?`data-qtd="${cat.qtd}"`:''} ${cat.custoDet?`data-custodet="${esc(cat.custoDet)}"`:''}` : '';
+  const faixaSel = (_ci && _ci.tipo==='peso' && cat.faixaI!=null) ? `<div style="flex-basis:100%"><select class="sFaixa" style="margin:0;font-size:13px" onchange="catTrocaFaixa(this)">${_ci.faixas.map((f,k)=>`<option value="${k}" ${k===cat.faixaI?'selected':''}>🐾 ${catFaixaLabel(_ci,k)}</option>`).join('')}</select></div>` : '';
+  return `<div class="srow" ${iid?`data-iid="${iid}"`:''} ${despId?`data-desp="${despId}"`:''} ${catAttr} style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px">
+    <input class="sDesc" placeholder="Ex: Consulta · Vacina V10 · Hemograma" value="${desc}" style="flex:2;min-width:0">
+    <input class="sVal" inputmode="numeric" placeholder="R$ 0,00" value="${moedaInit(valor)}" data-valor="${parseFloat(valor)||0}" style="flex:1;min-width:0" oninput="maskMoeda(this);recalcServTotal()">
+    <button type="button" style="background:none;color:var(--muted);font-size:15px;flex-shrink:0" onclick="this.parentElement.remove();recalcServTotal()">✕</button>
+    ${faixaSel}
+    <div style="flex-basis:100%;display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;font-weight:800;color:var(--vet);flex-shrink:0">🧾 Custo</span>
+      <input class="sCusto" inputmode="numeric" placeholder="R$ 0,00 · sua despesa neste item" value="${moedaInit(custo)}" data-valor="${parseFloat(custo)||0}" style="flex:1;min-width:0;font-size:14px" ${trava?'disabled':''}
+        onfocus="if(!isPro()){this.blur();openProModal('O custo dos itens alimenta a aba Despesas do Financeiro — recurso Pro.')}" oninput="maskMoeda(this);recalcServTotal()">
+    </div></div>`;
 }
 function addServItem(){
   document.getElementById('fPItens').insertAdjacentHTML('beforeend', servItemRow(1));
+}
+// ── v10.09: custo por item → Financeiro → Despesas ──
+function catDespesaItem(desc){
+  const t = (desc||'').toLowerCase();
+  if(/vacin|v10|v8|v4|raiva|vermif|medic|soro|antibi|inje|dipirona|vitamina/.test(t)) return 'Medicamentos';
+  if(/exame|hemograma|laborat|ultra|raio|cultura|bioqu|sorolog|cito|histop/.test(t)) return 'Laboratório';
+  if(/material|fio|sutura|gaze|cateter|seringa|agulha/.test(t)) return 'Materiais';
+  return 'Serviços/Procedimentos';
+}
+function sincronizarCustosAtendimento(pet, a, antigos){
+  const r = {criadas:0, atualizadas:0, removidas:0};
+  const manter = new Set();
+  (a.itens||[]).forEach(it => {
+    if(!(it.custo > 0) || !it.id) return;
+    manter.add(it.id);
+    const desc = `${it.desc} — ${pet.name}`;
+    const e = it.despId ? DB.expenses.find(x=>x.id===it.despId) : null;
+    const old = (antigos||[]).find(o=>o.id===it.id);
+    if(e){ e.valor = it.custo; e.desc = desc; e.date = a.date; e.cat = e.cat || catDespesaItem(it.desc); r.atualizadas++; }
+    else if(it.despId && old && old.custo === it.custo){ /* excluída de propósito na aba Despesas: não recria */ }
+    else {
+      const ex = {id:uid(), desc, cat:catDespesaItem(it.desc), valor:it.custo, date:a.date,
+        obs:`Custo lançado no atendimento de ${fmtDate(a.date)}.${it.custoDet?' Composição: '+it.custoDet+'.':''} Edite o atendimento enquanto o pagamento não for recebido.`,
+        apptId:a.id, petId:pet.id, itemId:it.id};
+      DB.expenses.push(ex); it.despId = ex.id; r.criadas++;
+    }
+  });
+  const antes = DB.expenses.length;
+  DB.expenses = DB.expenses.filter(e => !(e.apptId === a.id && !manter.has(e.itemId)));
+  r.removidas = antes - DB.expenses.length;
+  return r;
 }
 // ── Despesas do atendimento (alimentam o Financeiro → Despesas) ──
 const DESP_CAT_MAP = {'Sala de cirurgia':'Serviços/Procedimentos','Anestesista':'Serviços/Procedimentos',
@@ -11001,6 +11106,9 @@ function recalcServTotal(){ if(!document.getElementById('fPValor'))return;
   const subEl = document.getElementById('fPSubTxt');
   if(subEl) subEl.textContent = fmtBRL(subtotal);
   document.getElementById('fPTotalTxt').textContent = fmtBRL(total);
+  let custos = 0; document.querySelectorAll('#fPItens .sCusto').forEach(el => { custos += moedaVal(el); });
+  const cl = document.getElementById('fPCustoLine');
+  if(cl){ cl.style.display = custos > 0 ? 'flex' : 'none'; const ct = document.getElementById('fPCustoTxt'); if(ct) ct.textContent = fmtBRL(custos) + ' · resultado ' + fmtBRL(total - custos); }
   recalcParcelas();
 }
 function parseBRDate(txt){
@@ -11133,10 +11241,18 @@ function saveAppt(petId, force){
   document.querySelectorAll('#fPItens .srow').forEach(row => {
     const d = row.querySelector('.sDesc').value.trim();
     const v = moedaVal(row.querySelector('.sVal'));
-    if(v < 0){ window._negServ = 1; }
-    if(d || v > 0) itens.push({desc: d||'Serviço', valor: v});
+    const c = row.querySelector('.sCusto') ? moedaVal(row.querySelector('.sCusto')) : 0;
+    if(v < 0 || c < 0){ window._negServ = 1; }
+    if(d || v > 0){
+      const it = {desc: d||'Serviço', valor: v};
+      if(c > 0) it.custo = c;
+      if(c > 0 || row.dataset.iid) it.id = row.dataset.iid || uid();
+      if(row.dataset.desp) it.despId = row.dataset.desp;
+      if(row.dataset.catid){ it.catId = row.dataset.catid; if(row.dataset.faixa!==undefined && row.dataset.faixa!=='') it.faixaI = parseInt(row.dataset.faixa); if(row.dataset.qtd && row.dataset.qtd!=='1') it.qtd = parseInt(row.dataset.qtd)||1; if(row.dataset.custodet) it.custoDet = row.dataset.custodet; }
+      itens.push(it);
+    }
   });
-  if(window._negServ){ window._negServ = 0; toast('⚠ Valor negativo em um serviço — corrija'); return; }
+  if(window._negServ){ window._negServ = 0; toast('⚠ Valor negativo em um serviço ou custo — corrija'); return; }
   const subtotal = itens.reduce((s,i)=>s+i.valor, 0);
   // Desconto em %
   let desconto = parseFloat((val('fPDesc')||'').replace(',','.')) || 0;
@@ -11176,6 +11292,7 @@ function saveAppt(petId, force){
     // Edição: atualiza no lugar, preservando parcelas e prontuário
     const a = pet.appointments.find(x=>x.id===window._apptEdit);
     if(a){
+      const antigosItens = (a.itens||[]).map(o=>({...o})); const travado = apptRecebido(a);
       const rec = val('fPRecord');
       Object.assign(a, {title, resumo:val('fPResumo'), date, time:val('fPTime')||'10:00',
         clinic:val('fPClinic'), valor, record: rec, recordReview:voiceMetadata('fPRecord'), desconto: desconto||null,
@@ -11188,8 +11305,10 @@ function saveAppt(petId, force){
         if(payStatus === 'pago' && !a.paidAt) a.paidAt = todayISO();
         if(payStatus === 'pendente') a.paidAt = null;
       }
+      // v10.09: despesas ligadas aos itens acompanham a edição — só até o pagamento ser recebido
+      if(!travado && isPro()) sincronizarCustosAtendimento(pet, a, antigosItens);
     }
-    window._apptEdit = null; window._parcelas = null;
+    window._apptEdit = null; window._parcelas = null; window._custoLock = false;
     save(); closeSheet(); render(); toast('✏️ Atendimento atualizado!');
     return;
   }
@@ -11197,16 +11316,19 @@ function saveAppt(petId, force){
   const dc = isPro() ? collectApptDesp(date, pet.name) : {list:[], bad:0};
   if(dc.bad){ toast(`⚠ Data inválida na despesa ${dc.bad} — use DD/MM/AAAA ou deixe em branco`); return; }
   const despesas = dc.list;
-  pet.appointments.push({
+  const novoAppt = {
     id:uid(), title, resumo:val('fPResumo'), date, time:val('fPTime')||'10:00',
     clinic:val('fPClinic'), record:val('fPRecord'), recordReview:voiceMetadata('fPRecord'),
     valor, payStatus, payDue, paidAt, meioPag: valor > 0 ? (meioPag||'pix') : null,
     desconto: desconto||null,
     done: date < todayISO() ? 1 : 0,
     itens: itens.length ? itens : null,
-    parcelas: (payStatus==='pendente' && window._parcelas?.length) ? window._parcelas : null});
+    parcelas: (payStatus==='pendente' && window._parcelas?.length) ? window._parcelas : null};
+  pet.appointments.push(novoAppt);
   window._parcelas = null;
   if(despesas.length) DB.expenses.push(...despesas);
+  // v10.09: custo por item → Financeiro → Despesas (só Pro, como as demais despesas)
+  let custoR = null; if(isPro()) custoR = sincronizarCustosAtendimento(pet, novoAppt, []);
   const retorno = val('fPRetorno');
   if(retorno){
     pet.appointments.push({
@@ -11216,7 +11338,8 @@ function saveAppt(petId, force){
   // Navega o calendário para o mês/dia do atendimento (retroativo ou futuro)
   if(date){ const _nav=new Date(date+'T12:00:00'); if(!isNaN(_nav)){ calMonth=new Date(_nav.getFullYear(),_nav.getMonth(),1); calSelDay=_nav.getDate(); } }
   save(); closeSheet(); render();
-  const dTxt = despesas.length ? ` · ${despesas.length} despesa${despesas.length>1?'s':''} → Financeiro` : '';
+  const nDesp = despesas.length + (custoR ? custoR.criadas : 0);
+  const dTxt = nDesp ? ` · ${nDesp} despesa${nDesp>1?'s':''} → Financeiro` : '';
   if(!window._apptEdit) gcEvent('atendimento-criado');
   const _passado = date && date < todayISO();
   toast(retorno ? `🩺 Salvo! Retorno agendado para ${fmtDate(retorno)}${dTxt}` : _passado ? `📋 Atendimento retroativo registrado!${dTxt}` : `🩺 Atendimento salvo!${dTxt}`);
@@ -11392,9 +11515,369 @@ function orcDiasLer(){ // devolve inteiro 1–365 ou 0 se inválido/vazio
   const n = parseInt(raw,10); return (n>=1 && n<=365) ? n : 0;
 }
 function orcSlug(t){ return String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,''); }
+// ═══════════ v10.10 — CATÁLOGO DE SERVIÇOS + ORÇAMENTOS NA FICHA ═══════════
+const CAT_GRUPOS = ['Consulta','Vacina','Cirurgia','Exame','Anestesia','Procedimento','Medicamento','Outros'];
+let catBusca = '', catGrupoSel = 'Todos', _catTipo = 'simples';
+const rnd2 = n => Math.round((Number(n)||0)*100)/100;
+function catLista(){ return (DB.catalogo = DB.catalogo || []); }
+function catItem(id){ return catLista().find(x=>x.id===id); }
+function catFaixaLabel(it, i){
+  const f = it.faixas[i]; if(!f) return '';
+  if(f.ate == null){ const prev = i>0 ? it.faixas[i-1].ate : 0; return 'Acima de '+prev+' kg'; }
+  return 'Até '+f.ate+' kg';
+}
+function catFaixaPorPeso(it, kg){
+  const fx = it.faixas || []; if(!fx.length) return -1;
+  kg = parseFloat(kg)||0; if(kg <= 0) return -1;
+  for(let i=0;i<fx.length;i++){ if(fx[i].ate != null && kg <= fx[i].ate) return i; }
+  return fx.length-1; // acima da última faixa
+}
+function catCustoTotal(it){ return rnd2((it.custos||[]).reduce((s,c)=>s+(Number(c.valor)||0),0)); }
+// Linhas que o item gera no atendimento (pacote gera várias). pesoKg decide a faixa; faixaI força uma faixa.
+function catResolver(it, pesoKg, faixaI, qtd){
+  qtd = qtd || 1; const q = qtd>1 ? qtd+'× ' : '';
+  if(it.tipo === 'pacote'){
+    let out = [];
+    (it.comps||[]).forEach(c => { const sub = catItem(c.itemId); if(sub && sub.tipo !== 'pacote') out = out.concat(catResolver(sub, pesoKg, null, (c.qtd||1))); });
+    return out;
+  }
+  if(it.tipo === 'peso'){
+    let i = (faixaI != null && faixaI >= 0) ? faixaI : catFaixaPorPeso(it, pesoKg);
+    const semFaixa = i < 0; if(semFaixa) i = 0;
+    const f = (it.faixas||[])[i] || {venda:0, custo:0};
+    return [{desc: q+it.nome+' ('+catFaixaLabel(it,i)+')', venda: rnd2((f.venda||0)*qtd), custo: rnd2((f.custo||0)*qtd), custoDet: '',
+      catId: it.id, faixaI: i, qtd, semFaixa}];
+  }
+  const det = (it.custos||[]).filter(c=>c.valor>0).map(c=>(c.desc||'Custo')+' '+fmtBRL(c.valor)).join(' + ');
+  return [{desc: q+it.nome, venda: rnd2((it.venda||0)*qtd), custo: rnd2(catCustoTotal(it)*qtd), custoDet: det, catId: it.id, qtd}];
+}
+function catPrecoTxt(it){
+  if(it.tipo === 'peso'){ const v = (it.faixas||[]).map(f=>f.venda).filter(x=>x>0); return v.length ? 'de '+fmtBRL(Math.min(...v))+' a '+fmtBRL(Math.max(...v))+' (por peso)' : 'preencha as faixas de peso'; }
+  if(it.tipo === 'pacote'){ const l = catResolver(it, 0); return fmtBRL(l.reduce((s,x)=>s+x.venda,0))+' (pacote de '+(it.comps||[]).length+')'; }
+  return it.venda > 0 ? fmtBRL(it.venda) : 'sem preço';
+}
+// Preço ATUAL no catálogo para um item já gravado num atendimento/orçamento (null = item do catálogo não existe mais)
+function catPrecoAtual(i){
+  const it = i.catId ? catItem(i.catId) : null; if(!it) return null;
+  if(it.tipo === 'peso'){
+    let fi = i.faixaI; if(fi == null || !it.faixas[fi]) return null;
+    return {venda: rnd2((it.faixas[fi].venda||0)*(i.qtd||1))};
+  }
+  if(it.tipo === 'pacote') return null;
+  return {venda: rnd2((it.venda||0)*(i.qtd||1))};
+}
+
+// ── Tela do catálogo ──
+function renderCatalog(){
+  const lista = catLista();
+  const grupos = ['Todos'].concat(CAT_GRUPOS.filter(g => lista.some(x=>x.grupo===g)));
+  return `<div class="sec"><div class="sec-h"><span>📚 Catálogo de serviços</span>
+      <button class="btn sm" onclick="catForm()">➕ Novo item</button></div>
+    <div class="card" style="font-size:12px;color:var(--muted);margin-bottom:10px">
+      Cadastre uma vez o que você faz: preço de venda e quanto custa. No <b>Novo Atendimento</b> é só tocar em <b>📚 Puxar do catálogo</b>. Reajustou o preço? Altere aqui — os novos atendimentos já saem com o valor certo.</div>
+    ${lista.length ? `<input id="catBusca" placeholder="🔎 Buscar no catálogo" value="${esc(catBusca)}" oninput="catBusca=this.value;catRedesenhar()" style="margin-bottom:8px">
+    <div class="chips" id="catChips">${grupos.map(g=>`<button class="chip ${catGrupoSel===g?'on':''}" onclick="catGrupoSel='${g}';render()">${g}</button>`).join('')}</div>
+    <div id="catLista"></div>` : `<div class="card" style="text-align:center;padding:22px 14px;font-size:13px;color:var(--muted)">
+      Seu catálogo está vazio.<br><br>
+      <button class="btn" onclick="catForm()">➕ Cadastrar o primeiro item</button><br><br>
+      <button class="btn sm outline" onclick="catModelos()">📋 Começar com modelos prontos</button></div>`}
+  </div>${lista.length ? `<div style="text-align:center;margin:8px 0 90px"><button class="btn sm outline" onclick="catModelos()">📋 Adicionar modelos prontos</button></div>` : ''}`;
+}
+function catRedesenhar(){
+  const box = document.getElementById('catLista'); if(!box) return;
+  const q = (catBusca||'').toLowerCase().trim();
+  const itens = catLista().filter(x => (catGrupoSel==='Todos' || x.grupo===catGrupoSel) && (!q || x.nome.toLowerCase().includes(q)))
+    .sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  box.innerHTML = itens.length ? itens.map(it => {
+    const venda = it.tipo==='simples' ? it.venda : null;
+    const custo = it.tipo==='simples' ? catCustoTotal(it) : null;
+    const lucro = (venda>0 && custo!=null) ? ` · lucro ${fmtBRL(venda-custo)}` : '';
+    const inativo = it.ativo === false;
+    return `<div class="card catrec" data-catid="${it.id}" style="${inativo?'opacity:.55':''}">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+        <div style="min-width:0"><b style="font-size:14px">${esc(it.nome)}</b>
+          <div style="font-size:11px;color:var(--muted)">${esc(it.grupo||'Outros')}${it.tipo==='peso'?' · 🐾 por peso':''}${it.tipo==='pacote'?' · 📦 pacote':''}${inativo?' · desativado':''}</div></div>
+        <div style="text-align:right;font-weight:800;color:var(--vet);font-size:13px;flex-shrink:0">${catPrecoTxt(it)}</div></div>
+      ${it.tipo==='simples' && custo>0 ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">🧾 custo ${fmtBRL(custo)}${lucro}</div>`:''}
+      <div style="display:flex;gap:6px;margin-top:8px"><button class="btn sm outline" onclick="catForm('${it.id}')">✏️ Editar</button>
+        <button class="btn sm gray" onclick="catDuplicar('${it.id}')">⧉ Duplicar</button>
+        <button class="btn sm gray" style="margin-left:auto" onclick="catExcluir('${it.id}')">🗑</button></div></div>`;
+  }).join('') : '<div style="text-align:center;color:var(--muted);font-size:12px;padding:16px">Nada encontrado.</div>';
+}
+function catModelos(){
+  const mk = (nome,grupo,extra) => Object.assign({id:uid(), nome, grupo, tipo:'simples', venda:0, custos:[], ativo:true, obs:''}, extra||{});
+  const fx = () => { const a=[]; for(let k=5;k<=30;k+=5) a.push({ate:k,venda:0,custo:0}); a.push({ate:null,venda:0,custo:0}); return a; };
+  const base = [mk('Consulta','Consulta'), mk('Retorno','Consulta'), mk('Atendimento de emergência','Consulta'),
+    mk('Vacina V10','Vacina'), mk('Vacina antirrábica','Vacina'), mk('Vermífugo','Medicamento'), mk('Hemograma','Exame'),
+    mk('Centro cirúrgico','Cirurgia'), mk('Castração','Cirurgia'),
+    mk('Anestesia','Anestesia',{tipo:'peso', faixas:fx()})];
+  let n = 0; base.forEach(b => { if(!catLista().some(x=>x.nome.toLowerCase()===b.nome.toLowerCase())){ DB.catalogo.push(b); n++; } });
+  save(); render(); toast(n ? '📋 '+n+' modelos adicionados — abra cada um e preencha os preços' : 'Os modelos já estão no catálogo');
+}
+function catDuplicar(id){
+  const it = catItem(id); if(!it) return;
+  const c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.nome = it.nome+' (cópia)';
+  (c.custos||[]).forEach(x=>x.id=uid()); DB.catalogo.push(c); save(); render(); toast('⧉ Item duplicado');
+}
+function catExcluir(id){
+  const it = catItem(id); if(!it) return;
+  askDel('📚 Excluir do catálogo', `Remover <b>${esc(it.nome)}</b> do catálogo? Atendimentos e orçamentos já feitos não mudam.`, `catDoExcluir('${id}')`);
+}
+function catDoExcluir(id){
+  DB.catalogo = catLista().filter(x=>x.id!==id);
+  DB.catalogo.forEach(x=>{ if(x.comps) x.comps = x.comps.filter(c=>c.itemId!==id); });
+  save(); render(); toast('🗑️ Removido do catálogo');
+}
+// ── Formulário do item ──
+function catCustoRow(c){ c = c||{};
+  return `<div class="crow" style="display:flex;gap:6px;margin-top:6px"><input class="cfCDesc" placeholder="Ex: Centro cirúrgico" value="${esc(c.desc||'')}" style="flex:2;min-width:0">
+    <input class="cfCVal" inputmode="numeric" placeholder="R$ 0,00" value="${moedaInit(c.valor)}" data-valor="${c.valor||0}" style="flex:1;min-width:0" oninput="maskMoeda(this);catRecalc()">
+    <button type="button" style="background:none;color:var(--muted);font-size:15px" onclick="this.parentElement.remove();catRecalc()">✕</button></div>`;
+}
+function catFaixaRow(f, label){
+  return `<div class="frow" data-ate="${f.ate==null?'':f.ate}" style="display:flex;gap:6px;align-items:center;margin-top:6px">
+    <span style="flex:1.1;font-size:12px;font-weight:700">${label}</span>
+    <input class="cfFVenda" inputmode="numeric" placeholder="Venda" value="${moedaInit(f.venda)}" data-valor="${f.venda||0}" style="flex:1;min-width:0" oninput="maskMoeda(this)">
+    <input class="cfFCusto" inputmode="numeric" placeholder="Custo" value="${moedaInit(f.custo)}" data-valor="${f.custo||0}" style="flex:1;min-width:0" oninput="maskMoeda(this)"></div>`;
+}
+function catFaixasHTML(arr){
+  return arr.map((f,i)=> catFaixaRow(f, f.ate==null ? 'Acima de '+(i>0?arr[i-1].ate:0)+' kg' : 'Até '+f.ate+' kg')).join('');
+}
+function catGerarFaixas(){
+  let max = parseInt(document.getElementById('cfMax').value)||0;
+  if(max < 5 || max > 200){ toast('⚠ Informe o peso máximo entre 5 e 200 kg'); return; }
+  max = Math.ceil(max/5)*5; document.getElementById('cfMax').value = max;
+  const antes = {}; document.querySelectorAll('#cfFaixas .frow').forEach(r => { antes[r.dataset.ate] = {venda: moedaVal(r.querySelector('.cfFVenda')), custo: moedaVal(r.querySelector('.cfFCusto'))}; });
+  const arr = []; for(let k=5;k<=max;k+=5) arr.push(Object.assign({ate:k,venda:0,custo:0}, antes[k]||{}));
+  arr.push(Object.assign({ate:null,venda:0,custo:0}, antes[''] || {}));
+  document.getElementById('cfFaixas').innerHTML = catFaixasHTML(arr);
+}
+function catRecalc(){
+  let c = 0; document.querySelectorAll('#cfCustos .cfCVal').forEach(e=>c+=moedaVal(e));
+  const v = moedaVal(document.getElementById('cfVenda'));
+  const box = document.getElementById('cfResumo'); if(!box) return;
+  box.innerHTML = c>0 || v>0 ? `Custo total <b>${fmtBRL(c)}</b> · Lucro <b style="color:${v-c>=0?'var(--success)':'var(--danger)'}">${fmtBRL(v-c)}</b>` : '';
+}
+function catTipoSel(t){
+  _catTipo = t;
+  document.querySelectorAll('#cfTipo .chip').forEach(c=>c.classList.toggle('on', c.dataset.t===t));
+  ['simples','peso','pacote'].forEach(k => { const e = document.getElementById('cfB_'+k); if(e) e.style.display = k===t?'block':'none'; });
+  if(t==='peso' && !document.querySelector('#cfFaixas .frow')) catGerarFaixas();
+}
+function catCompRow(itemId, qtd){
+  const sub = catItem(itemId); if(!sub) return '';
+  return `<div class="comp" data-item="${sub.id}" style="display:flex;gap:6px;align-items:center;margin-top:6px">
+    <span style="flex:1;font-size:13px;font-weight:700;min-width:0">${esc(sub.nome)}<span style="font-size:10px;color:var(--muted);font-weight:400"> · ${catPrecoTxt(sub)}</span></span>
+    <input class="cfQtd" type="number" min="1" max="99" value="${qtd||1}" style="width:58px;text-align:center;margin:0"><button type="button" style="background:none;color:var(--muted);font-size:15px" onclick="this.parentElement.remove()">✕</button></div>`;
+}
+function catAddComp(){
+  const id = document.getElementById('cfCompSel').value; if(!id) return;
+  if(document.querySelector('#cfComps .comp[data-item="'+id+'"]')){ toast('Este item já está no pacote'); return; }
+  document.getElementById('cfComps').insertAdjacentHTML('beforeend', catCompRow(id,1));
+}
+function catForm(id){
+  const it = id ? catItem(id) : null;
+  _catTipo = it ? it.tipo : 'simples'; window._catEditId = id || null;
+  const outros = catLista().filter(x=>x.tipo!=='pacote' && x.id!==id);
+  const faixas = it && it.tipo==='peso' ? it.faixas : null;
+  const maxKg = faixas ? Math.max(...faixas.filter(f=>f.ate!=null).map(f=>f.ate), 5) : 30;
+  showSheet(it ? '✏️ Editar item' : '📚 Novo item do catálogo', `
+    <label>Nome do serviço *</label><input id="cfNome" value="${esc(it?.nome||'')}" placeholder="Ex: Castração de cadela">
+    <label>Grupo</label><select id="cfGrupo">${CAT_GRUPOS.map(g=>`<option ${(it?.grupo||'Consulta')===g?'selected':''}>${g}</option>`).join('')}</select>
+    <label>Como é o preço?</label>
+    <div class="chips" id="cfTipo">
+      <button type="button" class="chip ${_catTipo==='simples'?'on':''}" data-t="simples" onclick="catTipoSel('simples')">💲 Preço fixo</button>
+      <button type="button" class="chip ${_catTipo==='peso'?'on':''}" data-t="peso" onclick="catTipoSel('peso')">🐾 Varia por peso</button>
+      <button type="button" class="chip ${_catTipo==='pacote'?'on':''}" data-t="pacote" onclick="catTipoSel('pacote')">📦 Pacote</button></div>
+    <div id="cfB_simples" style="display:${_catTipo==='simples'?'block':'none'}">
+      <label>Preço de venda (o que o tutor paga)</label><input id="cfVenda" inputmode="numeric" placeholder="R$ 0,00" value="${moedaInit(it?.venda)}" data-valor="${it?.venda||0}" oninput="maskMoeda(this);catRecalc()">
+      <label>🧾 Custos (o que VOCÊ gasta — não aparece para o tutor)</label>
+      <div id="cfCustos">${(it?.custos||[]).map(catCustoRow).join('')}</div>
+      <button type="button" class="btn sm outline" style="margin-top:8px" onclick="document.getElementById('cfCustos').insertAdjacentHTML('beforeend',catCustoRow());">➕ Adicionar custo</button>
+      <div id="cfResumo" style="font-size:12px;margin-top:8px"></div></div>
+    <div id="cfB_peso" style="display:${_catTipo==='peso'?'block':'none'}">
+      <div style="font-size:11px;color:var(--muted);margin:4px 0">Faixas de 5 em 5 kg. Preencha o preço de venda e o custo de cada faixa.</div>
+      <div style="display:flex;gap:8px;align-items:center"><span style="font-size:12px;flex-shrink:0">Peso máximo</span><input id="cfMax" type="number" inputmode="numeric" value="${maxKg}" style="width:80px;margin:0"><span style="font-size:12px">kg</span>
+        <button type="button" class="btn sm outline" onclick="catGerarFaixas()">Gerar faixas</button></div>
+      <div style="display:flex;gap:6px;margin-top:8px;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase"><span style="flex:1.1">Faixa</span><span style="flex:1">Venda</span><span style="flex:1">Custo</span></div>
+      <div id="cfFaixas">${faixas ? catFaixasHTML(faixas) : ''}</div></div>
+    <div id="cfB_pacote" style="display:${_catTipo==='pacote'?'block':'none'}">
+      <div style="font-size:11px;color:var(--muted);margin:4px 0">Ao escolher o pacote no atendimento, todos os itens abaixo entram de uma vez (item por peso já vem na faixa do paciente).</div>
+      <div id="cfComps">${(it?.comps||[]).map(c=>catCompRow(c.itemId,c.qtd)).join('')}</div>
+      ${outros.length ? `<div style="display:flex;gap:6px;margin-top:8px"><select id="cfCompSel" style="flex:1;margin:0"><option value="">Escolha um item…</option>${outros.map(o=>`<option value="${o.id}">${esc(o.nome)}</option>`).join('')}</select>
+        <button type="button" class="btn sm outline" onclick="catAddComp()">➕ Incluir</button></div>` : '<div style="font-size:12px;color:var(--danger);margin-top:8px">Cadastre antes os itens simples ou por peso que fazem parte do pacote.</div>'}</div>
+    <label>Observação (opcional)</label><input id="cfObs" value="${esc(it?.obs||'')}" placeholder="Só você vê">
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="cfAtivo" style="width:auto;margin:0" ${it?.ativo===false?'':'checked'}> Item ativo (aparece ao puxar no atendimento)</label>`,
+    `<button class="btn gray" onclick="closeSheet()">Cancelar</button><button class="btn" onclick="catSalvar()">💾 Salvar</button>`);
+  catRecalc();
+}
+function catSalvar(){
+  const nome = val('cfNome').trim(); if(!nome){ toast('⚠ Informe o nome do serviço'); return; }
+  const base = {id: window._catEditId || uid(), nome, grupo: val('cfGrupo'), tipo: _catTipo, obs: val('cfObs').trim(), ativo: document.getElementById('cfAtivo').checked};
+  if(_catTipo === 'simples'){
+    base.venda = moedaVal(document.getElementById('cfVenda')); base.custos = [];
+    document.querySelectorAll('#cfCustos .crow').forEach(r => { const v = moedaVal(r.querySelector('.cfCVal')); const d = r.querySelector('.cfCDesc').value.trim(); if(v < 0){ base._neg = 1; } if(v > 0) base.custos.push({id:uid(), desc:d||'Custo', valor:v}); });
+    if(base.venda < 0 || base._neg){ toast('⚠ Valor negativo — corrija'); return; }
+  } else if(_catTipo === 'peso'){
+    base.faixas = [];
+    document.querySelectorAll('#cfFaixas .frow').forEach(r => base.faixas.push({ate: r.dataset.ate===''?null:parseFloat(r.dataset.ate), venda: moedaVal(r.querySelector('.cfFVenda')), custo: moedaVal(r.querySelector('.cfFCusto'))}));
+    if(!base.faixas.length){ toast('⚠ Toque em "Gerar faixas" e preencha os preços'); return; }
+    if(!base.faixas.some(f=>f.venda>0)){ toast('⚠ Preencha o preço de venda de pelo menos uma faixa'); return; }
+  } else {
+    base.comps = [...document.querySelectorAll('#cfComps .comp')].map(c=>({itemId:c.dataset.item, qtd: Math.max(1, parseInt(c.querySelector('.cfQtd').value)||1)}));
+    if(!base.comps.length){ toast('⚠ Inclua pelo menos um item no pacote'); return; }
+  }
+  delete base._neg;
+  const lista = catLista(); const i = lista.findIndex(x=>x.id===base.id);
+  if(i >= 0) lista[i] = base; else lista.push(base);
+  window._catEditId = null; save(); closeSheet(); render(); toast('📚 Catálogo atualizado!');
+}
+// ── Painel "Puxar do catálogo" dentro do Novo Atendimento ──
+function catPainelToggle(){
+  const p = document.getElementById('fPCatPanel'); if(!p) return;
+  const abre = p.style.display === 'none'; p.style.display = abre ? 'block' : 'none';
+  if(abre) catPainelLista();
+}
+function catPainelLista(){
+  const q = (document.getElementById('fPCatBusca')?.value||'').toLowerCase().trim();
+  const pet = DB.pets.find(p=>p.id===window._apptPetId);
+  const itens = catLista().filter(x=>x.ativo!==false && (!q || x.nome.toLowerCase().includes(q))).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const box = document.getElementById('fPCatLista'); if(!box) return;
+  if(!catLista().length){ box.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px">Seu catálogo está vazio. Cadastre os serviços na aba <b>📚 Catálogo</b> do menu.</div>'; return; }
+  box.innerHTML = itens.map(it => {
+    let sel = '';
+    if(it.tipo === 'peso'){
+      const pre = catFaixaPorPeso(it, pet?.weight);
+      sel = `<select id="catF_${it.id}" style="margin:6px 0 0;font-size:13px">${pre<0?'<option value="">Escolha a faixa de peso…</option>':''}${it.faixas.map((f,i)=>`<option value="${i}" ${i===pre?'selected':''}>${catFaixaLabel(it,i)} — ${f.venda>0?fmtBRL(f.venda):'sem preço'}</option>`).join('')}</select>`
+        + (pre>=0 ? `<div style="font-size:10px;color:var(--muted)">Faixa sugerida pelo peso do paciente (${pet.weight} kg) — confira.</div>` : `<div style="font-size:10px;color:var(--danger)">Paciente sem peso cadastrado — escolha a faixa.</div>`);
+    }
+    return `<div class="card" style="padding:8px 10px;margin:6px 0"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
+      <div style="min-width:0"><b style="font-size:13px">${esc(it.nome)}</b><div style="font-size:10px;color:var(--muted)">${esc(it.grupo||'')} · ${catPrecoTxt(it)}</div></div>
+      <button type="button" class="btn sm" onclick="catAdicionar('${it.id}')">➕ Usar</button></div>${sel}</div>`;
+  }).join('') || '<div style="font-size:12px;color:var(--muted);padding:8px">Nada encontrado.</div>';
+}
+function catAdicionar(id){
+  const it = catItem(id); if(!it) return;
+  const pet = DB.pets.find(p=>p.id===window._apptPetId);
+  let faixaI = null;
+  if(it.tipo === 'peso'){
+    const s = document.getElementById('catF_'+id); if(!s || s.value === ''){ toast('⚠ Escolha a faixa de peso'); return; }
+    faixaI = parseInt(s.value);
+  }
+  const linhas = catResolver(it, pet?.weight, faixaI);
+  if(!linhas.length){ toast('⚠ Este item não tem linhas para lançar'); return; }
+  const box = document.getElementById('fPItens');
+  const rows = [...box.querySelectorAll('.srow')];
+  if(rows.length === 1 && !rows[0].querySelector('.sDesc').value.trim() && !moedaVal(rows[0].querySelector('.sVal'))) rows[0].remove();
+  const pode = isPro() && !window._custoLock;
+  linhas.forEach(l => {
+    box.insertAdjacentHTML('beforeend', servItemRow(0, esc(l.desc), l.venda, pode ? l.custo : '', '', '', {catId:l.catId, faixaI:l.faixaI, qtd:l.qtd, custoDet: pode ? l.custoDet : ''}));
+  });
+  recalcServTotal();
+  const semPreco = linhas.some(l=>!(l.venda>0));
+  const semPeso = it.tipo==='pacote' && linhas.some(l=>l.semFaixa);
+  toast(semPreco ? '⚠ Adicionado, mas há item sem preço no catálogo' : semPeso ? '📦 Pacote adicionado — confira a faixa de peso' : '📚 Adicionado ao atendimento');
+}
+function catTrocaFaixa(sel){
+  const row = sel.closest('.srow'); const it = catItem(row.dataset.catid); if(!it) return;
+  const fi = parseInt(sel.value); const f = it.faixas[fi]; if(!f) return;
+  const qtd = parseInt(row.dataset.qtd)||1;
+  row.dataset.faixa = fi;
+  row.querySelector('.sDesc').value = (qtd>1?qtd+'× ':'') + it.nome + ' (' + catFaixaLabel(it,fi) + ')';
+  const v = row.querySelector('.sVal'); v.value = ''; v.dataset.valor = String(rnd2((f.venda||0)*qtd)); v.value = moedaInit(rnd2((f.venda||0)*qtd));
+  const c = row.querySelector('.sCusto');
+  if(c && !c.disabled && isPro()){ c.dataset.valor = String(rnd2((f.custo||0)*qtd)); c.value = moedaInit(rnd2((f.custo||0)*qtd)); }
+  recalcServTotal();
+}
+
+// ── Orçamentos guardados na ficha do paciente ──
+function orcMeioLabelObj(k){ return (typeof MEIOS_PAG !== 'undefined' && MEIOS_PAG[k]) ? MEIOS_PAG[k] : null; }
+function orcSalvarNaFicha(pet, o, dias, hoje){
+  pet.orcamentos = pet.orcamentos || [];
+  const sig = JSON.stringify(o.itens.map(i=>[i.desc,i.valor])) + '|' + o.pct;
+  const ja = pet.orcamentos.find(r => r.emitido === hoje && r.dias === dias && JSON.stringify(r.itens.map(i=>[i.desc,i.valor])) + '|' + r.pct === sig);
+  if(ja) return ja;
+  const v = new Date(hoje+'T12:00:00'); v.setDate(v.getDate()+dias);
+  const meioKey = document.querySelector('#fPMeio .chip.on')?.dataset.meio || '';
+  const rec = {id:uid(), emitido:hoje, dias, validoAte:v.toISOString().slice(0,10), tipo:o.tipo, resumo:o.resumo,
+    itens:o.itens.map(i=>{ const x={desc:i.desc, valor:i.valor}; if(i.catId){ x.catId=i.catId; if(i.faixaI!=null) x.faixaI=i.faixaI; if(i.qtd&&i.qtd!==1) x.qtd=i.qtd; } return x; }),
+    subtotal:o.subtotal, pct:o.pct, descV:o.descV, total:o.total, meioKey, dateISO:o.dateISO, time:o.time, clinic:o.clinic};
+  pet.orcamentos.push(rec); save(); return rec;
+}
+function orcStatus(rec){
+  const vencido = todayISO() > rec.validoAte;
+  const diffs = [];
+  let subAtual = 0;
+  rec.itens.forEach(i => {
+    const cur = i.catId ? catPrecoAtual(i) : null;
+    const atual = cur ? cur.venda : i.valor; subAtual += atual;
+    if(cur && Math.abs(atual - i.valor) >= 0.005) diffs.push({desc:i.desc, antigo:i.valor, atual, dif:rnd2(atual-i.valor)});
+  });
+  const totalAtual = rnd2(subAtual * (1 - (rec.pct||0)/100));
+  const difTotal = rnd2(totalAtual - rec.total);
+  return {vencido, diffs, totalAtual, difTotal, sentido: !diffs.length ? 'igual' : difTotal>0 ? 'aumento' : difTotal<0 ? 'reducao' : 'misto'};
+}
+function orcAvisoHTML(rec, st, pdf){
+  if(!st.vencido) return '';
+  const cor = st.sentido==='reducao' ? ['#E8F7EE','#1E8E4E'] : st.sentido==='igual' ? ['#F1F3F6','#4A5568'] : ['#FDECEC','#C0392B'];
+  const palavra = st.sentido==='aumento' ? 'AUMENTO' : st.sentido==='reducao' ? 'REDUÇÃO' : 'ALTERAÇÃO';
+  if(!st.diffs.length) return `<div data-orcaviso="1" style="border:1.5px solid ${cor[1]};background:${cor[0]};color:${cor[1]};border-radius:8px;padding:9px 12px;margin:6px 0 12px;font-size:12px;line-height:1.5"><b>ORÇAMENTO VENCIDO</b> em ${fmtDate(rec.validoAte)}. Confirme os valores antes de fechar o serviço.</div>`;
+  const sinal = st.difTotal>0 ? '+' : st.difTotal<0 ? '−' : '';
+  return `<div data-orcaviso="1" style="border:1.5px solid ${cor[1]};background:${cor[0]};color:${cor[1]};border-radius:8px;padding:9px 12px;margin:6px 0 12px;font-size:12px;line-height:1.5">
+    <b>⚠ ORÇAMENTO VENCIDO — PREÇO DESATUALIZADO (${palavra} DE PREÇO)</b><br>
+    Validade encerrada em ${fmtDate(rec.validoAte)}. Os valores abaixo eram da época da emissão; hoje o total seria <b>${fmtBRL(st.totalAtual)}</b> (${sinal}${fmtBRL(Math.abs(st.difTotal))}).
+    ${st.diffs.map(d=>`<div>${d.dif>0?'▲':'▼'} ${esc(d.desc)}: ${fmtBRL(d.antigo)} → <b>${fmtBRL(d.atual)}</b></div>`).join('')}
+    ${pdf ? '<div style="margin-top:4px">Solicite um novo orçamento para confirmar os valores.</div>' : ''}</div>`;
+}
+function renderPetOrcamentos(pet){
+  const lista = (pet.orcamentos||[]).slice().sort((a,b)=>(b.emitido+b.id).localeCompare(a.emitido+a.id));
+  const head = `<div class="sec"><div class="sec-h"><span>🧾 Orçamentos deste paciente (${lista.length})</span></div>
+    <div class="card" style="font-size:12px;color:var(--muted);margin-bottom:10px">Todo orçamento em PDF que você gera fica guardado aqui, com os preços da data. Dentro da validade o valor combinado não muda. Depois que vence, se o catálogo tiver mudado, o app avisa se houve <b>aumento</b> ou <b>redução</b> de preço.</div>`;
+  if(!lista.length) return head + `<div class="card" style="text-align:center;font-size:12px;color:var(--muted);padding:18px 14px">Nenhum orçamento gerado ainda.<br>No <b>Novo Atendimento</b>, toque em “📄 Orçamento em PDF”.</div></div>`;
+  return head + lista.map(r => {
+    const st = orcStatus(r);
+    const badge = st.vencido ? '<span style="color:var(--danger);font-weight:800">⛔ Vencido</span>' : '<span style="color:var(--success);font-weight:800">✅ Vigente até '+fmtDate(r.validoAte)+'</span>';
+    const nota = !st.vencido && st.diffs.length ? `<div style="font-size:11px;color:var(--muted);margin-top:6px">ℹ O catálogo mudou depois da emissão, mas este orçamento mantém o preço combinado até ${fmtDate(r.validoAte)}.</div>` : '';
+    return `<div class="card orcrec" data-orcid="${r.id}">
+      <div style="display:flex;justify-content:space-between;gap:8px"><div style="min-width:0"><b style="font-size:13px">${esc(r.tipo||'Orçamento')}${r.resumo?' · '+esc(r.resumo):''}</b>
+        <div style="font-size:11px;color:var(--muted)">Emitido ${fmtDate(r.emitido)} · validade ${r.dias} dias</div></div><b style="color:var(--vet);flex-shrink:0">${fmtBRL(r.total)}</b></div>
+      <div style="font-size:11px;margin-top:4px">${badge}${r.substituidoPor?' · substituído por um orçamento novo':''}</div>
+      ${orcAvisoHTML(r, st, false).replace('margin:6px 0 12px','margin:8px 0 0')}${nota}
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+        <button class="btn sm rx" onclick="orcReimprimir('${pet.id}','${r.id}')">🖨️ Ver / Imprimir</button>
+        ${st.diffs.length && st.vencido ? `<button class="btn sm success" onclick="orcAtualizarPrecos('${pet.id}','${r.id}')">🔄 Atualizar para preços atuais</button>` : ''}
+        <button class="btn sm gray" style="margin-left:auto" onclick="orcExcluir('${pet.id}','${r.id}')">🗑</button></div></div>`;
+  }).join('') + '</div>';
+}
+function orcReimprimir(petId, id){
+  const pet = DB.pets.find(p=>p.id===petId); const rec = pet && (pet.orcamentos||[]).find(r=>r.id===id); if(!rec) return;
+  const st = orcStatus(rec);
+  const o = Object.assign({}, rec, {meio: orcMeioLabelObj(rec.meioKey)});
+  printShell('Orçamento — ' + pet.name, orcamentoHTML(pet, o, rec.emitido, rec.dias, orcAvisoHTML(rec, st, true)), `Orcamento_${orcSlug(pet.name)||'Paciente'}_${rec.emitido}`);
+}
+function orcAtualizarPrecos(petId, id){
+  const pet = DB.pets.find(p=>p.id===petId); const rec = pet && (pet.orcamentos||[]).find(r=>r.id===id); if(!rec) return;
+  const hoje = todayISO();
+  const itens = rec.itens.map(i => { const cur = i.catId ? catPrecoAtual(i) : null; return Object.assign({}, i, {valor: cur ? cur.venda : i.valor}); });
+  const subtotal = rnd2(itens.reduce((s,i)=>s+i.valor,0)); const descV = rnd2(subtotal*(rec.pct||0)/100);
+  const v = new Date(hoje+'T12:00:00'); v.setDate(v.getDate()+rec.dias);
+  const novo = Object.assign({}, rec, {id:uid(), emitido:hoje, validoAte:v.toISOString().slice(0,10), itens, subtotal, descV, total:rnd2(subtotal-descV), substituidoPor:undefined});
+  delete novo.substituidoPor; rec.substituidoPor = novo.id; pet.orcamentos.push(novo);
+  save(); render(); toast('🔄 Novo orçamento criado com os preços atuais — válido por '+rec.dias+' dias');
+}
+function orcExcluir(petId, id){
+  askDel('🧾 Excluir orçamento', 'Remover este orçamento da ficha do paciente?', `orcDoExcluir('${petId}','${id}')`);
+}
+function orcDoExcluir(petId, id){
+  const pet = DB.pets.find(p=>p.id===petId); if(!pet) return;
+  pet.orcamentos = (pet.orcamentos||[]).filter(r=>r.id!==id); save(); render(); toast('🗑️ Orçamento removido');
+}
+
 function orcamentoColetar(){
   const itens = [...document.querySelectorAll('#fPItens .srow')].map(r => ({
-    desc: (r.querySelector('.sDesc')?.value||'').trim(), valor: moedaVal(r.querySelector('.sVal')) || 0
+    desc: (r.querySelector('.sDesc')?.value||'').trim(), valor: moedaVal(r.querySelector('.sVal')) || 0,
+    catId: r.dataset.catid || undefined, faixaI: (r.dataset.faixa!==undefined && r.dataset.faixa!=='') ? parseInt(r.dataset.faixa) : undefined,
+    qtd: r.dataset.qtd ? (parseInt(r.dataset.qtd)||1) : undefined
   })).filter(i => i.desc || i.valor);
   const subtotal = itens.reduce((a,i)=>a+i.valor, 0);
   let pct = parseFloat(String(document.getElementById('fPDesc')?.value||'').replace(',','.')) || 0;
@@ -11407,7 +11890,7 @@ function orcamentoColetar(){
     tipo: document.getElementById('fPTitle')?.value || '', resumo: (document.getElementById('fPResumo')?.value||'').trim(),
     dateISO, time: document.getElementById('fPTime')?.value || '', clinic: (document.getElementById('fPClinic')?.value||'').trim() };
 }
-function orcamentoHTML(pet, o, hoje, dias){
+function orcamentoHTML(pet, o, hoje, dias, aviso){
   dias = dias || ORC_VALIDADE_DIAS;
   const v = DB.vet, t = tutorOf(pet);
   const tutor = t?.name || tutorName(pet) || '';
@@ -11419,7 +11902,7 @@ function orcamentoHTML(pet, o, hoje, dias){
       <td style="padding:10px 12px;font-size:13px;color:#6B7A8D;width:34px">${k+1}</td>
       <td style="padding:10px 12px;font-size:14px">${esc(i.desc||'Serviço')}</td>
       <td style="padding:10px 12px;font-size:14px;text-align:right;white-space:nowrap;font-weight:700">${fmtBRL(i.valor)}</td></tr>`).join('');
-  return `${letterheadHTML()}
+  return `${letterheadHTML()}${aviso||''}
   <div style="display:flex;justify-content:space-between;align-items:flex-end;margin:4px 0 14px">
     <div class="doctitle" style="margin:0;text-align:left;font-size:26px;letter-spacing:6px">ORÇAMENTO</div>
     <div style="text-align:right;font-size:11px;color:#6B7A8D;line-height:1.6"><b style="color:#1E3A6E">Nº ${num}</b><br>Emitido em ${fmtDate(hoje)}<br>Válido até ${fmtDate(validoAte)}</div></div>
@@ -11460,6 +11943,7 @@ function printOrcamento(petId){
   if(!dias){ toast('⚠ Informe os dias de validade (de 1 a 365)'); document.getElementById('fPOrcDias')?.focus(); return; }
   DB.vet = DB.vet || {}; if(DB.vet.orcValidadeDias !== dias){ DB.vet.orcValidadeDias = dias; save(); }
   const hoje = todayISO();
+  orcSalvarNaFicha(pet, o, dias, hoje);
   printShell('Orçamento — ' + pet.name, orcamentoHTML(pet, o, hoje, dias), `Orcamento_${orcSlug(pet.name)||'Paciente'}_${hoje}`);
 }
 // v10.07 — impressão do navegador: o timbre ([data-timbre]) vira cabeçalho de tabela, que o
