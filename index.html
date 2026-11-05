@@ -3211,7 +3211,20 @@ buffer/index.js:
 */
 </script>
 <style>.voice-tools{margin:12px 0;padding:14px;border:1px solid #b9dedb;border-radius:14px;background:#f3fbfa;color:var(--text);max-width:100%;overflow-wrap:anywhere}.voice-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.voice-tools .btn{min-height:42px;white-space:normal;flex:none}.voice-actions>span{font-size:12px;flex:1;min-width:130px;line-height:1.5}.voice-tools label{font-size:12px;letter-spacing:0;text-transform:none}.voice-tools select,.voice-tools textarea{max-width:100%;box-sizing:border-box}.voice-tools summary{padding:12px 0;font-size:13px;font-weight:700;cursor:pointer}.voice-live{border-left:3px solid #008d8b;padding:10px;background:white;font-size:14px}.voice-help,.voice-review p{font-size:12px;line-height:1.6;color:var(--muted);margin:10px 0 0}.voice-review{margin-top:12px;border-top:1px solid #c5dfdd;padding-top:12px}.voice-review h4{margin:0 0 8px;font-size:16px}.voice-review h5{font-size:13px;margin:14px 0 6px}.voice-review ul{padding-left:20px;font-size:14px;line-height:1.7}.voice-review textarea{font-size:16px;line-height:1.5}.voice-tools [hidden]{display:none!important}.voice-review-actions{margin-top:10px}.voice-tools button:disabled{opacity:.55}textarea[readonly]{background:#f3f8f8}.voice-pending-textarea{font-size:16px;line-height:1.6;min-height:160px}.voice-tools .btn[aria-pressed="true"]{background:var(--primary)!important;color:#fff!important;border-color:var(--primary)!important;box-shadow:inset 0 0 0 2px #ffffff55}.voice-tools .btn{transition:background-color .15s ease,color .15s ease,border-color .15s ease}.voice-tools .btn.tap{background:var(--primary)!important;color:#fff!important;border-color:var(--primary)!important}.voice-engine-group{display:inline-flex;gap:8px;flex-wrap:wrap;align-items:center} @media(max-width:360px){.voice-tools{padding:10px}.voice-review-actions>.btn{font-size:12px;padding:8px}}
-</style></head>
+</style><style data-v1011>
+.btn,.chip,nav button,.ptabs button,.x{transition:transform .08s ease,filter .08s ease,background-color .15s ease,box-shadow .15s ease;-webkit-tap-highlight-color:rgba(45,192,174,.25);touch-action:manipulation}
+.btn:active,.chip:active,.ptabs button:active,.x:active{transform:scale(.95);filter:brightness(.88)}
+nav button:active{transform:scale(.9)}
+.btn.outline:active,.chip:active{background:rgba(45,192,174,.22)}
+.btn.outline.on{background:var(--primary);color:#fff}
+.btn.pulou{animation:vfcPulou .35s ease}
+@keyframes vfcPulou{0%{transform:scale(1)}40%{transform:scale(.93);filter:brightness(.85)}100%{transform:scale(1)}}
+.btn.feito{background:var(--success)!important;color:#fff!important;border-color:var(--success)!important}
+.srow.catlinha{border-left:3px solid var(--primary);padding-left:8px;border-radius:2px}
+.srow.novo{animation:vfcNovo 1.4s ease}
+@keyframes vfcNovo{0%{background:rgba(45,192,174,.35)}100%{background:transparent}}
+</style>
+</head>
 <body>
 
 <div id="splash">
@@ -3309,14 +3322,19 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.10';
+const APP_VER = '10.13';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.10',
+  ver: '10.13',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['💾','Backups grandes (100 MB ou mais) agora funcionam','O backup e a restauração passaram a trabalhar em pedaços, sem carregar o arquivo inteiro na memória do celular. Clínicas com muitos anexos (PDFs, fotos, termos) conseguem fazer e restaurar o backup completo. Durante a restauração aparece o andamento em porcentagem.'],
+    ['🛟','Restaurar backup mais forte','Se a restauração falhar, o app agora mostra o motivo completo (com botão “Copiar detalhes”) e mantém seus dados atuais. Um anexo com problema não derruba mais a restauração inteira: os dados voltam e o app avisa quais arquivos ficaram de fora. Também tratamos memória cheia e arquivo de backup incompleto.'],
+    ['👆','Botões que respondem ao toque','Todos os botões e opções agora dão um efeito ao serem tocados (afundam, mudam de cor e vibram de leve), para você ter certeza de que o toque funcionou.'],
+    ['📚','Catálogo do atendimento em tela própria','“Puxar do catálogo” agora abre uma tela cheia por cima do atendimento: busque, filtre por grupo, toque em ➕ Usar quantas vezes quiser (o botão confirma “✓ Adicionado”) e finalize em “Concluir”. Sem subir e descer a tela. O botão muda de cor quando há itens do catálogo no atendimento.'],
+    ['💚','Lucro mais claro e sempre à vista','No atendimento, os custos e o “Lucro total” aparecem em linhas separadas (lucro em verde) e um resumo com total e lucro fica fixo acima do botão Salvar. Itens por peso mostram faixa e custo na mesma linha.'],
     ['📚','Catálogo de serviços','Nova aba <b>Catálogo</b> no menu: cadastre o que você faz com preço de venda e custos (centro cirúrgico, materiais…). Itens com preço <b>por peso</b> (como anestesia, de 5 em 5 kg) e <b>pacotes</b> (ex.: castração completa). No Novo Atendimento, toque em “📚 Puxar do catálogo” e a linha já vem com valor e custo. Reajustou? Altere no catálogo e os próximos atendimentos já saem certos.'],
     ['🧾','Orçamentos guardados na ficha do paciente','Cada orçamento em PDF fica salvo na nova aba <b>Orçam.</b> da ficha, com os preços da data. Dentro da validade nada muda. Vencido e com o catálogo diferente, o app avisa se houve <b>aumento</b> ou <b>redução</b> de preço e oferece “Atualizar para preços atuais”. Ao reimprimir um orçamento vencido, o PDF sai com a faixa de aviso.'],
     ['⏸️','Pausar e retomar vacina','Na ficha do paciente, em cada vacina, um único botão alterna entre "⏸ Pausar vacina" e "▶ Retomar vacina". Enquanto estiver pausada, o app não mostra atraso, não conta nos Alertas nem na Agenda e não derruba a saúde do paciente. Ao retomar uma vacina cuja data já passou, o app pergunta a nova data.'],
@@ -9288,7 +9306,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.10 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.13 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -9723,7 +9741,8 @@ async function sharePendFile(){
     toast('💾 Backup enviado ao destino escolhido!');
   }catch(e){ if(e.name !== 'AbortError') dlPendFile(); }
 }
-async function completeBackupSnapshot(){
+async function completeBackupSnapshot(opt){
+  opt = opt || {}; const blobs = [];
   // v10.03: antes de dar o arquivo como perdido, procura em todas as áreas do aparelho
   try{ if(todosDocsRegistro().some(d=>d&&!d.data)) await localizarArquivos(); }catch(e){}
   const snapshot=JSON.parse(JSON.stringify(DB));
@@ -9731,6 +9750,7 @@ async function completeBackupSnapshot(){
   const faltando=[]; let incluidos=0, conhecidos=0;
   for(const doc of documents){
     if(!doc.data)doc.data=await idbGet(doc.id);
+    if(opt.lazy && doc.data){ blobs.push(new Blob([JSON.stringify(doc.data)])); doc.data='@@VFCDATA'+(blobs.length-1)+'@@'; }
     if(!doc.data){
       delete doc.data;
       if(doc.semArquivo) conhecidos++;          // já avisado antes: não interrompe de novo
@@ -9738,6 +9758,7 @@ async function completeBackupSnapshot(){
       doc.semArquivo=true;
     } else { incluidos++; delete doc.semArquivo; }
   }
+  window._bkBlobs = blobs;
   window._bkInfo={incluidos, faltando, conhecidos};
   try{ await marcarSemArquivo(); }catch(e){}     // grava a marca: o aviso aparece no máximo uma vez por arquivo
   return snapshot;
@@ -9801,12 +9822,21 @@ function exportJSON(){
   }
   doExportJSON();
 }
+// v10.13: monta o arquivo em partes (texto pequeno + um Blob por anexo) — nunca existe um texto gigante único
+function bkMontarBlob(snapshot){
+  const txt = JSON.stringify(snapshot, null, 2), blobs = window._bkBlobs || [], parts = [];
+  const re = /"@@VFCDATA(\d+)@@"/g; let last = 0, m;
+  while((m = re.exec(txt))){ parts.push(txt.slice(last, m.index)); parts.push(blobs[+m[1]]); last = m.index + m[0].length; }
+  parts.push(txt.slice(last)); window._bkBlobs = null;
+  return new Blob(parts, {type:'application/json'});
+}
 async function doExportJSON(){
   gcEvent('backup-feito');
   let snapshot;
-  try{snapshot=await completeBackupSnapshot();}catch(e){toast('⚠ Backup não concluído. '+e.message);return;}
+  try{snapshot=await completeBackupSnapshot({lazy:true});}catch(e){toast('⚠ Backup não concluído. '+e.message);return;}
   if(!(await bkConfirmarFaltando())) return;
-  const blob = new Blob([JSON.stringify(snapshot,null,2)], {type:'application/json'});
+  let blob;
+  try{ blob = bkMontarBlob(snapshot); }catch(e){ toast('⚠ Backup não concluído. '+e.message); return; }
   try{
     if(window.showSaveFilePicker){ await saveFileSAF('vetflowcare_backup_'+todayISO()+'.json', blob); bkAvisoFinal(); return; }
     throw new Error('unsupported');
@@ -9816,49 +9846,192 @@ async function doExportJSON(){
   a.download = `vetflowcare_backup_${todayISO()}.json`;
   a.click(); toast('📥 Backup exportado!'); bkAvisoFinal();
 }
-async function restoreJSONSnapshot(data){
-  if(!data || !Array.isArray(data.pets))throw new Error('Backup inválido');
-  const candidate=data.version>=4?migrate(data):migrateV3(data);
-  const added=[];
+// v10.12 — restauração blindada: erro completo na tela, anexo com problema não derruba tudo, memória cheia tratada
+// ═══ v10.13 — BACKUP GRANDE: leitura em pedaços (streaming) sem carregar o arquivo inteiro na memória ═══
+// Parser de JSON incremental. Texto longo em chave "data" (anexo em base64) é entregue a onBig() e NÃO fica na árvore.
+function vfcJsonStream(onBig){
+  const st = {stack:[], cur:null, key:null, root:undefined, mode:'v', inStr:false, isKey:false, parts:[], carry:'', done:false};
+  const reStr = /[^"\\]+/y, reLit = /[^\s,\]\}\[\{:"]+/y;
+  const ESC = {n:'\n', t:'\t', r:'\r', b:'\b', f:'\f', '/':'/', '\\':'\\', '"':'"'};
+  function emit(v){
+    if(!st.cur){ st.root = v; return; }
+    if(Array.isArray(st.cur)) st.cur.push(v);
+    else if(st.key === 'data' && typeof v === 'string' && v.length > 200) onBig(st.cur, v);
+    else st.cur[st.key] = v;
+    st.mode = 'n';
+  }
+  function feed(chunk, final){
+    const text = st.carry + chunk; st.carry = ''; const n = text.length; let i = 0;
+    while(i < n){
+      if(st.inStr){
+        reStr.lastIndex = i; const m = reStr.exec(text);
+        if(m){ st.parts.push(m[0]); i += m[0].length; continue; }
+        const c = text[i];
+        if(c === '"'){
+          i++; st.inStr = false;
+          const s = st.parts.length === 1 ? st.parts[0] : st.parts.join(''); st.parts = [];
+          if(st.isKey){ st.key = s; st.mode = 'c'; } else emit(s);
+          continue;
+        }
+        if(i + 1 >= n){ st.carry = text.slice(i); break; }
+        const e = text[i+1];
+        if(e === 'u'){ if(i + 6 > n){ st.carry = text.slice(i); break; } st.parts.push(String.fromCharCode(parseInt(text.substr(i+2,4),16))); i += 6; continue; }
+        st.parts.push(ESC[e] !== undefined ? ESC[e] : e); i += 2; continue;
+      }
+      const c = text[i];
+      if(c === ' ' || c === '\n' || c === '\r' || c === '\t' || c === '\uFEFF'){ i++; continue; }
+      if(c === '"'){ st.inStr = true; st.isKey = (st.mode === 'k'); i++; continue; }
+      if(c === ':'){ st.mode = 'v'; i++; continue; }
+      if(c === ','){ st.mode = Array.isArray(st.cur) ? 'v' : 'k'; i++; continue; }
+      if(c === '{' || c === '['){
+        const o = c === '{' ? {} : [];
+        emit(o); st.stack.push([st.cur, st.key]); st.cur = o; st.key = null; st.mode = c === '{' ? 'k' : 'v'; i++; continue;
+      }
+      if(c === '}' || c === ']'){
+        if(!st.stack.length) throw new Error('JSON inválido: fechamento inesperado');
+        const p = st.stack.pop(); st.cur = p[0]; st.key = p[1]; st.mode = 'n'; i++; continue;
+      }
+      reLit.lastIndex = i; const m = reLit.exec(text);
+      if(!m) throw new Error('JSON inválido perto do caractere '+i);
+      if(i + m[0].length >= n && !final){ st.carry = text.slice(i); break; }
+      const w = m[0]; let v;
+      if(w === 'true') v = true; else if(w === 'false') v = false; else if(w === 'null') v = null;
+      else { v = Number(w); if(Number.isNaN(v)) throw new Error('JSON inválido: "'+w.slice(0,20)+'"'); }
+      emit(v); i += w.length;
+    }
+  }
+  function finish(){ feed('', true); if(st.inStr || st.stack.length) throw new Error('arquivo cortado antes do fim (JSON incompleto)'); return st.root; }
+  return {feed, finish};
+}
+// Lê o arquivo em fatias de 4 MB; anexos grandes vão direto para o IndexedDB, um de cada vez.
+async function vfcLerBackupEmPedacos(file, added, progresso){
+  const pend = [];
+  const parser = vfcJsonStream((obj, s) => pend.push([obj, s]));
+  const dec = new TextDecoder('utf-8'); const FAT = 4*1048576; let falhas = 0;
+  for(let off = 0; off < file.size; off += FAT){
+    const buf = await file.slice(off, Math.min(off+FAT, file.size)).arrayBuffer();
+    parser.feed(dec.decode(buf, {stream: off + FAT < file.size}), false);
+    while(pend.length){
+      const [obj, s] = pend.shift(); const id = 'restore-'+uid();
+      try{ await idbPut(id, s); added.push(id); obj.__rid = id; } catch(e){ obj.__falhou = 1; falhas++; }
+    }
+    if(progresso) progresso(Math.min(100, Math.round((off+FAT)*100/file.size)));
+  }
+  const data = parser.finish();
+  return {data, falhas};
+}
+
+function bkErroDialog(titulo, err, extra){
+  const nome = (err && err.name && err.name!=='Error') ? err.name+': ' : '';
+  const det = `VetFlowCare ${APP_VER} · etapa: ${window._restStep||'leitura'} · ${nome}${(err && err.message) || err}${extra?' · '+extra:''}`;
+  window._bkErrDet = det;
+  try{ console.warn('restauração', det); }catch(e){}
+  vfcConfirm({icon:'⚠️', title:titulo,
+    msg:`Seus dados atuais foram <b>mantidos</b>.<br><span style="font-size:12px;word-break:break-word;user-select:text;display:block;margin-top:8px;text-align:left">${esc(det)}</span>`,
+    note:'Toque em “Copiar detalhes” e envie ao suporte.', noteColor:'var(--warning)',
+    noLabel:'Fechar', yesLabel:'📋 Copiar detalhes', yesBg:'var(--primary)', yes:'bkCopiarErro()'});
+}
+function bkCopiarErro(){ try{ navigator.clipboard.writeText(window._bkErrDet||'').then(()=>toast('📋 Detalhes copiados'),()=>toast('Não foi possível copiar')); }catch(e){ toast('Não foi possível copiar'); } }
+function bkLiberarEspaco(){
+  // chaves auxiliares que podem ser refeitas; os dados e a senha NUNCA são tocados
+  ['vfc_sig','vfc_last_sig','vetflowcare_rescue'].forEach(k=>{ try{ testStorage.removeItem(k); }catch(e){} });
+}
+async function restoreJSONSnapshot(data, opt){
+  opt = opt || {};
+  window._restStep = 'validar arquivo';
+  if(!data || typeof data !== 'object' || !Array.isArray(data.pets)) throw new Error('O arquivo não parece ser um backup do VetFlowCare (sem a lista de pacientes).');
+  window._restStep = 'organizar dados';
+  data.pets = data.pets.filter(x=>x && typeof x === 'object');
+  if(Array.isArray(data.tutors)) data.tutors = data.tutors.filter(x=>x && typeof x === 'object'); else delete data.tutors;
+  ['charges','expenses','catalogo'].forEach(k=>{ if(!Array.isArray(data[k])) delete data[k]; else data[k] = data[k].filter(Boolean); });
+  data.pets.forEach(p=>{ ['vaccines','medications','appointments','prescriptions','documents','termos','weightHistory','orcamentos'].forEach(k=>{ if(p[k] == null) return; if(!Array.isArray(p[k])) delete p[k]; else p[k] = p[k].filter(Boolean); }); });
+  const candidate = data.version>=4 ? migrate(data) : migrateV3(data);
+  const added = opt.added || [];
   try{
-    const docs=[...candidate.pets.flatMap(p=>[...(p.documents||[]),...(p.termos||[]).map(t=>t.foto).filter(Boolean)]),...(candidate.tutors||[]).filter(t=>t.ficha).map(t=>t.ficha)];
-    let semArq=0;
-    for(const doc of docs){if(doc.data){const id='restore-'+uid();await idbPut(id,doc.data);added.push(id);doc.id=id;delete doc.data;} else {doc.semArquivo=true;semArq++;}}
-    window._restInfo={total:docs.length, semArquivo:semArq};
+    window._restStep = 'anexos';
+    const docs=[...candidate.pets.flatMap(p=>[...(p.documents||[]),...(p.termos||[]).map(t=>t&&t.foto).filter(Boolean)]),...(candidate.tutors||[]).filter(t=>t.ficha).map(t=>t.ficha)];
+    let semArq=0, falhou=0;
+    for(const doc of docs){
+      if(doc.__rid){ doc.id = doc.__rid; delete doc.__rid; delete doc.semArquivo; continue; }
+      if(doc.__falhou){ delete doc.__falhou; falhou++; semArq++; doc.semArquivo=true; continue; }
+      if(doc.data && !opt.semAnexos){
+        try{ const id='restore-'+uid(); await idbPut(id,doc.data); added.push(id); doc.id=id; delete doc.data; }
+        catch(e){ falhou++; semArq++; delete doc.data; doc.semArquivo=true; }
+      } else { delete doc.data; doc.semArquivo=true; semArq++; }
+    }
+    window._restInfo={total:docs.length, semArquivo:semArq, falhou};
+    window._restStep = 'gravar dados';
     clearTimeout(_saveTimer);
     await queueStorage(async()=>{
       const raw=await encodeDatabase(window._cryptoKey,getAuth(),candidate);
-      testStorage.setItem(LS_KEY,raw);
+      try{ testStorage.setItem(LS_KEY,raw); }
+      catch(e){
+        bkLiberarEspaco();
+        try{ testStorage.setItem(LS_KEY,raw); }
+        catch(e2){ throw new Error('Memória do navegador cheia para guardar estes dados ('+(raw.length/1048576).toFixed(1)+' MB). Libere espaço no aparelho ou use o backup criptografado (.vfcbak). Detalhe: '+(e2&&e2.message||e2)); }
+      }
       DB=candidate;agendarEspelho(raw);
     });
     return true;
-  }catch(e){await Promise.all(added.map(id=>idbDel(id)));throw e;}
+  }catch(e){await Promise.all(added.map(id=>idbDel(id).catch(()=>{})));throw e;}
+}
+function bkVfcbakConfirmar(data, mb){
+  if(!data.auth || !data.blob){ bkErroDialog('Backup incompleto', new Error('Arquivo .vfcbak sem credenciais ou sem dados.'), mb); return; }
+  window._pendBak = data;
+  vfcConfirm({icon:'🔐', title:'Restaurar backup criptografado?',
+    msg:'Os dados atuais deste aparelho serão <b>substituídos</b> pelos do backup.<br>Ao reabrir, será pedida a <b>senha da época do backup</b>.',
+    note:'✅ Pacientes, financeiro, receitas e licença Pro do backup voltam junto.', noteColor:'var(--success)',
+    noLabel:'Cancelar', yesLabel:'🔐 Sim, restaurar', yesBg:'var(--primary)', yes:'doRestoreVfcbak()'});
+}
+function bkAvisoRestauracao(){
+  const ri=window._restInfo;
+  if(ri && ri.semArquivo){ setTimeout(()=>vfcConfirm({icon:'📎', title:ri.semArquivo+' de '+ri.total+' arquivo(s) sem conteúdo',
+    msg: ri.falhou ? 'Os dados voltaram, mas '+ri.falhou+' anexo(s) não puderam ser gravados neste aparelho (falta de espaço?). Os demais itens aparecem na ficha com o aviso <b>⚠ arquivo não está neste aparelho</b>.' : 'Os dados voltaram, mas este backup não trazia o conteúdo desses anexos (provavelmente foi feito numa versão antiga do app). Os itens aparecem na ficha com o aviso <b>⚠ arquivo não está neste aparelho</b>.',
+    note:'Reenvie esses arquivos nas fichas dos pacientes.', noteColor:'var(--warning)', single:true, yesLabel:'Entendi', yesBg:'var(--primary)'}), 1800); }
 }
 function importJSON(input){
   const f = input.files[0]; if(!f) return;
-  const r = new FileReader();
-  r.onload = async e => {
+  const mb = (f.size/1048576).toFixed(1)+' MB';
+  window._restStep = 'ler o arquivo';
+  (async()=>{
     try{
-      const data = JSON.parse(e.target.result);
-      // Backup criptografado (.vfcbak): restaura credenciais + dados cifrados
-      if(data.__vfcbak){
-        if(!data.auth || !data.blob){ toast('⚠ Arquivo de backup incompleto'); return; }
-        window._pendBak = data;
-        vfcConfirm({icon:'🔐', title:'Restaurar backup criptografado?',
-          msg:'Os dados atuais deste aparelho serão <b>substituídos</b> pelos do backup.<br>Ao reabrir, será pedida a <b>senha da época do backup</b>.',
-          note:'✅ Pacientes, financeiro, receitas e licença Pro do backup voltam junto.', noteColor:'var(--success)',
-          noLabel:'Cancelar', yesLabel:'🔐 Sim, restaurar', yesBg:'var(--primary)', yes:'doRestoreVfcbak()'});
-        return;
+      let txt, data;
+      const GRANDE = f.size > 8*1048576;
+      if(GRANDE){
+        // v10.13: arquivo grande -> lê em pedaços (sem texto gigante na memória)
+        window._restStep = 'ler o arquivo em pedaços';
+        window._restAdded = [];
+        const barra = p => { try{ toast('📥 Lendo backup… '+p+'%'); }catch(e){} };
+        let r;
+        try{ r = await vfcLerBackupEmPedacos(f, window._restAdded, barra); }
+        catch(e){ await Promise.all(window._restAdded.map(id=>idbDel(id).catch(()=>{}))); throw new Error((/cortado|inválido/i.test(e.message)?'O arquivo está incompleto ou corrompido (cópia interrompida) — '+mb+'. ':'')+e.message); }
+        data = r.data;
+        if(data && data.__vfcbak){ bkVfcbakConfirmar(data, mb); return; }
+        window._restStep = 'gravar dados';
+        await restoreJSONSnapshot(data, {added: window._restAdded});
+        window._restAdded = null;
+        window._restStep = 'atualizar a tela';
+        try{ applyDark(); render(); }catch(e){ console.warn('render pós-restauração', e); }
+        toast('✅ Dados importados com sucesso!'); bkAvisoRestauracao(); return;
       }
+      try{ txt = await f.text(); }
+      catch(e1){ txt = await new Promise((ok,no)=>{ const r=new FileReader(); r.onload=()=>ok(r.result); r.onerror=()=>no(r.error||new Error('leitura falhou')); r.readAsText(f); }); }
+      if(typeof txt !== 'string' || !txt.trim()) throw new Error('O arquivo está vazio ou não pôde ser lido ('+mb+'). Se ele está no Google Drive/WhatsApp, baixe para o aparelho e tente de novo.');
+      window._restStep = 'interpretar o arquivo';
+      try{ data = JSON.parse(txt.charCodeAt(0)===0xFEFF ? txt.slice(1) : txt); }
+      catch(e){ throw new Error('O arquivo está incompleto ou corrompido (provável cópia interrompida) — '+mb+'. '+e.message); }
+      txt = null;
+      // Backup criptografado (.vfcbak): restaura credenciais + dados cifrados
+      if(data && data.__vfcbak){ bkVfcbakConfirmar(data, mb); return; }
       await restoreJSONSnapshot(data);
-      applyDark(); render(); toast('✅ Dados importados com sucesso!');
-      const ri=window._restInfo;
-      if(ri && ri.semArquivo){ setTimeout(()=>vfcConfirm({icon:'📎', title:ri.semArquivo+' de '+ri.total+' arquivo(s) sem conteúdo',
-        msg:'Os dados voltaram, mas este backup não trazia o conteúdo desses anexos (provavelmente foi feito numa versão antiga do app). Os itens aparecem na ficha com o aviso <b>⚠ arquivo não está neste aparelho</b>.',
-        note:'Reenvie esses arquivos nas fichas dos pacientes.', noteColor:'var(--warning)', single:true, yesLabel:'Entendi', yesBg:'var(--primary)'}), 1800); }
-    }catch(err){ toast('⚠ Importação não concluída. Os dados anteriores foram mantidos. '+err.message); }
-  };
-  r.readAsText(f);
+      window._restStep = 'atualizar a tela';
+      try{ applyDark(); render(); }catch(e){ console.warn('render pós-restauração', e); }
+      toast('✅ Dados importados com sucesso!'); bkAvisoRestauracao();
+    }catch(err){
+      try{ if(window._restAdded) await Promise.all(window._restAdded.map(id=>idbDel(id).catch(()=>{}))); window._restAdded = null; }catch(e){}
+      bkErroDialog('Importação não concluída', err, mb);
+    }
+  })();
   input.value = '';
 }
 function doRestoreVfcbak(){
@@ -10894,18 +11067,16 @@ function openApptForm(petId, editId){
     <label>Local / Clínica</label><input id="fPClinic" value="${esc(eA?.clinic||'')}" placeholder="Opcional">
     <label>💰 Serviços do atendimento</label>
     <div style="font-size:11px;color:var(--muted);margin:2px 0 6px">Descreva cada item (consulta, vacina, exame…) com seu valor — o total soma sozinho.</div>
-    <div style="font-size:11px;color:var(--vet);margin:0 0 4px;line-height:1.5">🧾 <b>Custo</b> (opcional): o que VOCÊ gastou em cada item. Entra sozinho em <b>Financeiro → Despesas</b> ao salvar e <b>não aparece</b> no orçamento em PDF.${window._custoLock?'<br>🔒 <b>Pagamento já recebido:</b> os custos estão travados. Para ajustar, use Financeiro → Despesas.':''}</div>
-    <button type="button" class="btn sm outline" id="fPCatBtn" style="width:100%;margin:2px 0 6px" onclick="catPainelToggle()">📚 Puxar do catálogo</button>
-    <div id="fPCatPanel" style="display:none;background:var(--vetbg);border-radius:12px;padding:8px 10px;margin-bottom:8px">
-      <input id="fPCatBusca" placeholder="🔎 Buscar no catálogo" oninput="catPainelLista()" style="margin:0">
-      <div id="fPCatLista" style="max-height:260px;overflow:auto"></div></div>
+    <div style="font-size:11px;color:var(--muted);margin:0 0 4px;line-height:1.5">🧾 <b>Custo</b> (opcional): o que VOCÊ gastou em cada item. Entra sozinho em <b>Financeiro → Despesas</b> ao salvar e <b>não aparece</b> no orçamento em PDF.${window._custoLock?'<br>🔒 <b>Pagamento já recebido:</b> os custos estão travados. Para ajustar, use Financeiro → Despesas.':''}</div>
+    <button type="button" class="btn outline" id="fPCatBtn" style="width:100%;margin:2px 0 6px" onclick="catPainelToggle()">📚 Puxar do catálogo</button>
     <div id="fPItens">${eA?.itens?.length ? eA.itens.map((it,i)=>servItemRow(i, esc(it.desc), it.valor, it.custo||'', it.id||'', it.despId||'', it)).join('') : servItemRow(0)}</div>
     <button type="button" class="btn sm outline" style="margin-top:8px" onclick="addServItem()">➕ Adicionar item</button>
     <div id="fPTotalBox" style="background:var(--medbg);border-radius:10px;padding:9px 12px;font-size:14px;margin-top:10px;display:none">
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>Subtotal dos serviços:</span><b id="fPSubTxt">R$ 0,00</b></div>
       <div id="fPDescBox" style="display:none;justify-content:space-between;font-size:12px;color:var(--danger);margin-top:2px"><span>Desconto aplicado:</span><b id="fPDescTxt">− R$ 0,00</b></div>
       <div style="display:flex;justify-content:space-between;margin-top:4px;padding-top:4px;border-top:1px solid var(--border)">💰 Total: <b id="fPTotalTxt">R$ 0,00</b></div>
-      <div id="fPCustoLine" style="display:none;justify-content:space-between;font-size:12px;color:var(--vet);margin-top:4px"><span>🧾 Custos (não vão no PDF):</span><b id="fPCustoTxt">R$ 0,00</b></div></div>
+      <div id="fPCustoLine" style="display:none;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px"><span>🧾 Custos (não vão no PDF):</span><b id="fPCustoTxt">R$ 0,00</b></div>
+      <div id="fPLucroLine" style="display:none;justify-content:space-between;font-size:15px;font-weight:800;color:var(--success);margin-top:4px"><span id="fPLucroLbl">💚 Lucro total</span><b id="fPLucroTxt">R$ 0,00</b></div></div>
     <div id="fPOrcValWrap" style="margin-top:10px;display:flex;align-items:center;gap:8px;background:var(--vetbg);border-radius:10px;padding:8px 12px">
       <label for="fPOrcDias" style="margin:0;font-size:12px;font-weight:800;flex:1;line-height:1.3">⏳ Dias de validade da proposta</label>
       <input id="fPOrcDias" type="number" inputmode="numeric" min="1" max="365" step="1" value="${orcDiasPadrao()}" style="width:76px;text-align:center;font-weight:800;margin:0">
@@ -10974,8 +11145,10 @@ function openApptForm(petId, editId){
     <input id="fPRetorno" type="date">`}
     <div style="background:var(--vetbg);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--vet);margin-top:12px">
       Se informar a data, um atendimento "Retorno" será criado automaticamente na linha do tempo e na agenda.</div>`,
-    `<button class="btn gray" onclick="closeSheet()">Cancelar</button>
-     <button class="btn" onclick="saveAppt('${petId}')">💾 Salvar</button>`);
+    `<div style="flex:1;min-width:0"><div id="fPFootSum" style="display:none;justify-content:space-between;gap:8px;font-size:12px;margin:0 2px 8px"></div>
+     <div style="display:flex;gap:10px"><button class="btn gray" onclick="closeSheet()">Cancelar</button>
+     <button class="btn" onclick="saveAppt('${petId}')">💾 Salvar</button></div></div>`);
+  setTimeout(catAtualizaBotao, 60);
   voiceBind('fPRecord',eA?.recordReview,{patient:DB.pets.find(p=>p.id===petId)?.name,tutor:tutorName(DB.pets.find(p=>p.id===petId)),date:eA?.date});
   setTimeout(recalcServTotal, 50); // calcula o total já ao abrir (útil na edição)
 }
@@ -10991,15 +11164,15 @@ function servItemRow(i, desc='', valor='', custo='', iid='', despId='', cat=null
   cat = cat || {};
   const _ci = cat.catId ? catItem(cat.catId) : null;
   const catAttr = cat.catId ? `data-catid="${cat.catId}" ${cat.faixaI!=null?`data-faixa="${cat.faixaI}"`:''} ${cat.qtd&&cat.qtd!==1?`data-qtd="${cat.qtd}"`:''} ${cat.custoDet?`data-custodet="${esc(cat.custoDet)}"`:''}` : '';
-  const faixaSel = (_ci && _ci.tipo==='peso' && cat.faixaI!=null) ? `<div style="flex-basis:100%"><select class="sFaixa" style="margin:0;font-size:13px" onchange="catTrocaFaixa(this)">${_ci.faixas.map((f,k)=>`<option value="${k}" ${k===cat.faixaI?'selected':''}>🐾 ${catFaixaLabel(_ci,k)}</option>`).join('')}</select></div>` : '';
-  return `<div class="srow" ${iid?`data-iid="${iid}"`:''} ${despId?`data-desp="${despId}"`:''} ${catAttr} style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px">
+  const faixaSel = (_ci && _ci.tipo==='peso' && cat.faixaI!=null) ? `<select class="sFaixa" style="margin:0;font-size:13px;flex:1.3;min-width:0" onchange="catTrocaFaixa(this)">${_ci.faixas.map((f,k)=>`<option value="${k}" ${k===cat.faixaI?'selected':''}>🐾 ${catFaixaLabel(_ci,k)}</option>`).join('')}</select>` : '';
+  return `<div class="srow${cat.catId?' catlinha':''}" ${iid?`data-iid="${iid}"`:''} ${despId?`data-desp="${despId}"`:''} ${catAttr} style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px">
     <input class="sDesc" placeholder="Ex: Consulta · Vacina V10 · Hemograma" value="${desc}" style="flex:2;min-width:0">
     <input class="sVal" inputmode="numeric" placeholder="R$ 0,00" value="${moedaInit(valor)}" data-valor="${parseFloat(valor)||0}" style="flex:1;min-width:0" oninput="maskMoeda(this);recalcServTotal()">
-    <button type="button" style="background:none;color:var(--muted);font-size:15px;flex-shrink:0" onclick="this.parentElement.remove();recalcServTotal()">✕</button>
-    ${faixaSel}
+    <button type="button" style="background:none;color:var(--muted);font-size:15px;flex-shrink:0" onclick="this.parentElement.remove();recalcServTotal();catAtualizaBotao()">✕</button>
     <div style="flex-basis:100%;display:flex;align-items:center;gap:8px">
-      <span style="font-size:11px;font-weight:800;color:var(--vet);flex-shrink:0">🧾 Custo</span>
-      <input class="sCusto" inputmode="numeric" placeholder="R$ 0,00 · sua despesa neste item" value="${moedaInit(custo)}" data-valor="${parseFloat(custo)||0}" style="flex:1;min-width:0;font-size:14px" ${trava?'disabled':''}
+      ${faixaSel}
+      <span style="font-size:11px;font-weight:800;color:var(--muted);flex-shrink:0">🧾${faixaSel?'':' Custo'}</span>
+      <input class="sCusto" inputmode="numeric" placeholder="${faixaSel?'Custo':'R$ 0,00 · sua despesa neste item'}" value="${moedaInit(custo)}" data-valor="${parseFloat(custo)||0}" style="flex:1;min-width:0;font-size:14px" ${trava?'disabled':''}
         onfocus="if(!isPro()){this.blur();openProModal('O custo dos itens alimenta a aba Despesas do Financeiro — recurso Pro.')}" oninput="maskMoeda(this);recalcServTotal()">
     </div></div>`;
 }
@@ -11108,7 +11281,16 @@ function recalcServTotal(){ if(!document.getElementById('fPValor'))return;
   document.getElementById('fPTotalTxt').textContent = fmtBRL(total);
   let custos = 0; document.querySelectorAll('#fPItens .sCusto').forEach(el => { custos += moedaVal(el); });
   const cl = document.getElementById('fPCustoLine');
-  if(cl){ cl.style.display = custos > 0 ? 'flex' : 'none'; const ct = document.getElementById('fPCustoTxt'); if(ct) ct.textContent = fmtBRL(custos) + ' · resultado ' + fmtBRL(total - custos); }
+  if(cl){ cl.style.display = custos > 0 ? 'flex' : 'none'; const ct = document.getElementById('fPCustoTxt'); if(ct) ct.textContent = fmtBRL(custos); }
+  const lucro = total - custos;
+  const ll = document.getElementById('fPLucroLine');
+  if(ll){ ll.style.display = custos > 0 ? 'flex' : 'none'; ll.style.color = lucro >= 0 ? 'var(--success)' : 'var(--danger)';
+    const lt = document.getElementById('fPLucroLbl'); if(lt) lt.textContent = lucro >= 0 ? '💚 Lucro total' : '⚠ Prejuízo';
+    const lv = document.getElementById('fPLucroTxt'); if(lv) lv.textContent = fmtBRL(Math.abs(lucro)); }
+  const fs = document.getElementById('fPFootSum');
+  if(fs){ const n = document.querySelectorAll('#fPItens .sVal').length && [...document.querySelectorAll('#fPItens .srow')].filter(r=>moedaVal(r.querySelector('.sVal'))>0||r.querySelector('.sDesc').value.trim()).length;
+    fs.style.display = subtotal > 0 ? 'flex' : 'none';
+    fs.innerHTML = `<span>📋 ${n} ${n===1?'item':'itens'}</span><span>💰 <b>${fmtBRL(total)}</b></span>` + (custos>0 ? `<span style="color:${lucro>=0?'var(--success)':'var(--danger)'}">${lucro>=0?'💚 Lucro':'⚠ Prejuízo'} <b>${fmtBRL(Math.abs(lucro))}</b></span>` : ''); }
   recalcParcelas();
 }
 function parseBRDate(txt){
@@ -11733,28 +11915,67 @@ function catSalvar(){
   window._catEditId = null; save(); closeSheet(); render(); toast('📚 Catálogo atualizado!');
 }
 // ── Painel "Puxar do catálogo" dentro do Novo Atendimento ──
+// v10.11: o catálogo abre em tela própria POR CIMA do atendimento (sem subir/descer a tela do formulário)
+window._catPG = 'Todos'; window._catUsados = {};
 function catPainelToggle(){
-  const p = document.getElementById('fPCatPanel'); if(!p) return;
-  const abre = p.style.display === 'none'; p.style.display = abre ? 'block' : 'none';
-  if(abre) catPainelLista();
+  if(!document.getElementById('fPItens')) return;
+  window._catUsados = {}; window._catPG = 'Todos';
+  document.getElementById('modals2').innerHTML = `
+  <div class="modal" style="z-index:150" onclick="if(event.target===this)catPickerFechar()">
+    <div class="sheet" style="height:92%;max-height:92%" role="dialog" aria-modal="true" aria-label="Catálogo de serviços">
+      <div class="mh"><h2>📚 Catálogo de serviços</h2><button class="x" onclick="catPickerFechar()" aria-label="Fechar">✕</button></div>
+      <div style="padding:10px 18px 0;flex-shrink:0">
+        <input id="fPCatBusca" placeholder="🔎 Buscar no catálogo" oninput="catPainelLista()" style="margin:0">
+        <div class="chips" id="fPCatChips" style="margin-top:8px"></div></div>
+      <div class="mb" id="fPCatLista"></div>
+      <div class="mf"><div id="fPCatResumo" style="flex:1;font-size:12px;color:var(--muted);align-self:center;line-height:1.4"></div>
+        <button class="btn" style="width:auto;flex:1" onclick="catPickerFechar()">✓ Concluir</button></div>
+    </div></div>`;
+  try{ window.vfcFitViewport && window.vfcFitViewport(); }catch(e){}
+  catPainelLista();
+}
+function catPickerResumo(){
+  const el = document.getElementById('fPCatResumo'); if(!el) return;
+  const rows = [...document.querySelectorAll('#fPItens .srow')].filter(r=>moedaVal(r.querySelector('.sVal'))>0||r.querySelector('.sDesc').value.trim());
+  const tot = rows.reduce((t,r)=>t+moedaVal(r.querySelector('.sVal')),0);
+  el.innerHTML = rows.length ? `No atendimento: <b>${rows.length} ${rows.length===1?'item':'itens'}</b><br>Total <b style="color:var(--text,#1A2F5A)">${fmtBRL(tot)}</b>` : 'Nenhum item ainda';
+}
+function catPickerFechar(){
+  const novo = document.querySelector('#fPItens .srow.novo');
+  document.getElementById('modals2').innerHTML = ''; try{ window.vfcFitViewport && window.vfcFitViewport(); }catch(e){}
+  catAtualizaBotao();
+  const alvo = novo || document.getElementById('fPItens');
+  if(alvo) setTimeout(()=>{ try{ alvo.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){} }, 80);
+}
+function catAtualizaBotao(){
+  const b = document.getElementById('fPCatBtn'); if(!b) return;
+  const n = document.querySelectorAll('#fPItens .srow[data-catid]').length;
+  b.classList.toggle('on', n > 0);
+  b.innerHTML = n ? `✓ Catálogo · ${n} ${n===1?'item':'itens'} — toque para puxar mais` : '📚 Puxar do catálogo';
 }
 function catPainelLista(){
   const q = (document.getElementById('fPCatBusca')?.value||'').toLowerCase().trim();
   const pet = DB.pets.find(p=>p.id===window._apptPetId);
-  const itens = catLista().filter(x=>x.ativo!==false && (!q || x.nome.toLowerCase().includes(q))).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const todos = catLista().filter(x=>x.ativo!==false);
   const box = document.getElementById('fPCatLista'); if(!box) return;
-  if(!catLista().length){ box.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px">Seu catálogo está vazio. Cadastre os serviços na aba <b>📚 Catálogo</b> do menu.</div>'; return; }
+  const chips = document.getElementById('fPCatChips');
+  if(chips){ const gs = ['Todos'].concat(CAT_GRUPOS.filter(g=>todos.some(x=>x.grupo===g)));
+    chips.innerHTML = gs.length>2 ? gs.map(g=>`<button type="button" class="chip ${window._catPG===g?'on':''}" onclick="window._catPG='${g}';catPainelLista()">${g}</button>`).join('') : ''; }
+  if(!catLista().length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:14px;text-align:center">Seu catálogo está vazio.<br>Cadastre os serviços na aba <b>📚 Catálogo</b> do menu.</div>'; catPickerResumo(); return; }
+  const itens = todos.filter(x=>(window._catPG==='Todos'||x.grupo===window._catPG) && (!q || x.nome.toLowerCase().includes(q))).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   box.innerHTML = itens.map(it => {
     let sel = '';
     if(it.tipo === 'peso'){
       const pre = catFaixaPorPeso(it, pet?.weight);
-      sel = `<select id="catF_${it.id}" style="margin:6px 0 0;font-size:13px">${pre<0?'<option value="">Escolha a faixa de peso…</option>':''}${it.faixas.map((f,i)=>`<option value="${i}" ${i===pre?'selected':''}>${catFaixaLabel(it,i)} — ${f.venda>0?fmtBRL(f.venda):'sem preço'}</option>`).join('')}</select>`
-        + (pre>=0 ? `<div style="font-size:10px;color:var(--muted)">Faixa sugerida pelo peso do paciente (${pet.weight} kg) — confira.</div>` : `<div style="font-size:10px;color:var(--danger)">Paciente sem peso cadastrado — escolha a faixa.</div>`);
+      sel = `<select id="catF_${it.id}" style="margin:8px 0 0;font-size:14px">${pre<0?'<option value="">Escolha a faixa de peso…</option>':''}${it.faixas.map((f,i)=>`<option value="${i}" ${i===pre?'selected':''}>${catFaixaLabel(it,i)} — ${f.venda>0?fmtBRL(f.venda):'sem preço'}</option>`).join('')}</select>`
+        + (pre>=0 ? `<div style="font-size:10px;color:var(--muted);margin-top:2px">Faixa sugerida pelo peso do paciente (${pet.weight} kg) — confira.</div>` : `<div style="font-size:10px;color:var(--danger);margin-top:2px">Paciente sem peso cadastrado — escolha a faixa.</div>`);
     }
-    return `<div class="card" style="padding:8px 10px;margin:6px 0"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
-      <div style="min-width:0"><b style="font-size:13px">${esc(it.nome)}</b><div style="font-size:10px;color:var(--muted)">${esc(it.grupo||'')} · ${catPrecoTxt(it)}</div></div>
-      <button type="button" class="btn sm" onclick="catAdicionar('${it.id}')">➕ Usar</button></div>${sel}</div>`;
-  }).join('') || '<div style="font-size:12px;color:var(--muted);padding:8px">Nada encontrado.</div>';
+    const n = window._catUsados[it.id] || 0;
+    return `<div class="card" style="padding:10px 12px;margin:0 0 8px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
+      <div style="min-width:0"><b style="font-size:14px">${esc(it.nome)}</b><div style="font-size:11px;color:var(--muted)">${esc(it.grupo||'')} · ${catPrecoTxt(it)}</div></div>
+      <button type="button" id="catU_${it.id}" class="btn sm ${n?'feito':''}" style="flex-shrink:0" onclick="catAdicionar('${it.id}')">${n?'✓ Adicionado'+(n>1?' ×'+n:''):'➕ Usar'}</button></div>${sel}</div>`;
+  }).join('') || '<div style="font-size:13px;color:var(--muted);padding:14px;text-align:center">Nada encontrado.</div>';
+  catPickerResumo();
 }
 function catAdicionar(id){
   const it = catItem(id); if(!it) return;
@@ -11772,11 +11993,16 @@ function catAdicionar(id){
   const pode = isPro() && !window._custoLock;
   linhas.forEach(l => {
     box.insertAdjacentHTML('beforeend', servItemRow(0, esc(l.desc), l.venda, pode ? l.custo : '', '', '', {catId:l.catId, faixaI:l.faixaI, qtd:l.qtd, custoDet: pode ? l.custoDet : ''}));
+    const nr = box.lastElementChild; if(nr) nr.classList.add('novo');
   });
   recalcServTotal();
+  window._catUsados[id] = (window._catUsados[id]||0) + 1;
+  const btn = document.getElementById('catU_'+id);
+  if(btn){ const n = window._catUsados[id]; btn.classList.add('feito','pulou'); btn.textContent = '✓ Adicionado'+(n>1?' ×'+n:''); setTimeout(()=>btn.classList.remove('pulou'), 400); }
+  catPickerResumo(); catAtualizaBotao();
   const semPreco = linhas.some(l=>!(l.venda>0));
   const semPeso = it.tipo==='pacote' && linhas.some(l=>l.semFaixa);
-  toast(semPreco ? '⚠ Adicionado, mas há item sem preço no catálogo' : semPeso ? '📦 Pacote adicionado — confira a faixa de peso' : '📚 Adicionado ao atendimento');
+  if(semPreco) toast('⚠ Adicionado, mas há item sem preço no catálogo'); else if(semPeso) toast('📦 Pacote adicionado — confira a faixa de peso');
 }
 function catTrocaFaixa(sel){
   const row = sel.closest('.srow'); const it = catItem(row.dataset.catid); if(!it) return;
@@ -13078,5 +13304,9 @@ function afterLGPD(){
 if(!testStorage.getItem('vfc_lgpd'))showLGPD();else afterLGPD();
 </script>
 
+<script>
+// v10.11: vibração leve ao tocar em botões/opções (quando o aparelho permite)
+document.addEventListener('click',function(e){try{var t=e.target&&e.target.closest&&e.target.closest('.btn,.chip,nav button,.ptabs button');if(t&&navigator.vibrate)navigator.vibrate(8)}catch(x){}},true);
+</script>
 </body>
 </html>
