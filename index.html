@@ -3324,14 +3324,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.18';
+const APP_VER = '10.19';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.18',
+  ver: '10.19',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🔁','Restaurar backup sem pedir cadastro de novo','Corrigido: depois de restaurar um backup antigo, o app voltava a mostrar “Crie seu acesso” ao reabrir. Agora ele reconhece seus dados e abre direto. Quem já estava nesse problema é reconhecido automaticamente ao atualizar.'],
     ['📥','Restaurar backup ficou mais fácil','Na tela de cadastro, toque em “Já tenho cadastro — entrar ou restaurar backup” e depois em “Restaurar backup agora” para trazer seus dados de volta com um arquivo de backup, sem refazer tudo. O aviso de backup também ficou mais firme, e na Central de Proteção há um guia de como limpar o Chrome sem apagar o VetFlowCare.'],
     ['🛡️','Proteção de dados reforçada','O lembrete de backup ficou mais firme (aviso ao abrir o app e faixa que não some quando o risco é alto). Novo guia na Central de Proteção: como limpar o histórico do Chrome SEM apagar o VetFlowCare. O app também tenta de novo travar o armazenamento contra limpeza automática do Android.'],
     ['🗄️','Restaurar backup grande da clínica funciona','Fotos, logo e assinatura agora ficam no armazenamento grande do aparelho, e não mais na gaveta pequena dos dados principais. Isso resolve o erro "Memória do navegador cheia" ao restaurar backups de clínicas com muitos pacientes.'],
@@ -9339,7 +9340,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.18 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.19 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -10051,6 +10052,10 @@ function bkLiberarEspaco(){
   // chaves auxiliares que podem ser refeitas; os dados e a senha NUNCA são tocados
   ['vfc_sig','vfc_last_sig','vetflowcare_rescue'].forEach(k=>{ try{ testStorage.removeItem(k); }catch(e){} });
 }
+function perfilDeRestauracao(d){
+  const v = (d && d.vet) || {};
+  return { nome: v.name || 'Veterinário(a)', email: v.email || '', user: '', restaurado: true, createdAt: todayISO() };
+}
 async function restoreJSONSnapshot(data, opt){
   opt = opt || {};
   window._restStep = 'validar arquivo';
@@ -10061,6 +10066,8 @@ async function restoreJSONSnapshot(data, opt){
   ['charges','expenses','catalogo'].forEach(k=>{ if(!Array.isArray(data[k])) delete data[k]; else data[k] = data[k].filter(Boolean); });
   data.pets.forEach(p=>{ ['vaccines','medications','appointments','prescriptions','documents','termos','weightHistory','orcamentos'].forEach(k=>{ if(p[k] == null) return; if(!Array.isArray(p[k])) delete p[k]; else p[k] = p[k].filter(Boolean); }); });
   const candidate = data.version>=4 ? migrate(data) : migrateV3(data);
+  // v10.19: backups antigos não trazem o perfil de cadastro -> sem ele o app pedia cadastro de novo ao reabrir
+  if(!candidate.userProfile){ candidate.userProfile = (DB && DB.userProfile) || perfilDeRestauracao(candidate); }
   const added = opt.added || [];
   try{
     window._restStep = 'anexos';
@@ -10086,6 +10093,7 @@ async function restoreJSONSnapshot(data, opt){
         catch(e2){ throw new Error('Memória do navegador cheia para guardar estes dados ('+(raw.length/1048576).toFixed(1)+' MB). Libere espaço no aparelho ou use o backup criptografado (.vfcbak). Detalhe: '+(e2&&e2.message||e2)); }
       }
       DB=candidate;agendarEspelho(raw);
+      try{ testStorage.setItem('vfc_entered','1'); }catch(e){}
     });
     return true;
   }catch(e){await Promise.all(added.map(id=>idbDel(id).catch(()=>{})));throw e;}
@@ -13451,6 +13459,14 @@ function doAvisarInicioTrial(){
 }
 function afterLGPD(){
   if(window._LOCKED){showLockScreen();return;}
+  // v10.19: autocura — há pacientes salvos mas faltou o perfil (backup antigo restaurado): não pede cadastro de novo
+  try{
+    if(!getAuth() && !DB.userProfile && DB.pets && DB.pets.length){
+      DB.userProfile = perfilDeRestauracao(DB);
+      testStorage.setItem('vfc_entered','1');
+      persistDB();
+    }
+  }catch(e){ console.warn('autocura perfil', e); }
   if(getAuth() || DB.userProfile || testStorage.getItem('vfc_skip_lock')){bootApp();return;}
   showEntryRegister();
   setTimeout(nativeOferecerRestauracao, 1200);
