@@ -3324,14 +3324,17 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.14';
+const APP_VER = '10.17';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.14',
+  ver: '10.17',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['📱','Preparado para o app Android de verdade','Na versão instalável (APK/AAB), os dados ficam na pasta privada do app — limpar o Chrome não apaga mais nada. O backup é salvo em Documentos/VetFlowCare e o app faz um backup automático a cada 3 dias. Na tela de cadastro agora há “Restaurar backup agora” para quem perdeu os dados.'],
+    ['🛡️','Proteção de dados reforçada','O lembrete de backup ficou mais firme (aviso ao abrir o app e faixa que não some quando o risco é alto). Novo guia na Central de Proteção: como limpar o histórico do Chrome SEM apagar o VetFlowCare. O app também tenta de novo travar o armazenamento contra limpeza automática do Android.'],
+    ['🗄️','Restaurar backup grande da clínica funciona','Fotos, logo e assinatura agora ficam no armazenamento grande do aparelho, e não mais na gaveta pequena dos dados principais. Isso resolve o erro "Memória do navegador cheia" ao restaurar backups de clínicas com muitos pacientes.'],
     ['🧾','Custos em vermelho, “Lucro total” sem ícone','No Novo Atendimento, os custos agora aparecem em vermelho (no item e no total) e o “Lucro total” ficou só com o texto em verde, sem o coração.'],
     ['💾','Backups grandes (100 MB ou mais) agora funcionam','O backup e a restauração passaram a trabalhar em pedaços, sem carregar o arquivo inteiro na memória do celular. Clínicas com muitos anexos (PDFs, fotos, termos) conseguem fazer e restaurar o backup completo. Durante a restauração aparece o andamento em porcentagem.'],
     ['🛟','Restaurar backup mais forte','Se a restauração falhar, o app agora mostra o motivo completo (com botão “Copiar detalhes”) e mantém seus dados atuais. Um anexo com problema não derruba mais a restauração inteira: os dados voltam e o app avisa quais arquivos ficaram de fora. Também tratamos memória cheia e arquivo de backup incompleto.'],
@@ -3745,10 +3748,36 @@ let _saveTimer = null;
 function save(){ clearTimeout(_saveTimer); _saveTimer = setTimeout(persistDB, 80); }
 let _storageQueue=Promise.resolve();
 function queueStorage(fn){const job=_storageQueue.then(fn,fn);_storageQueue=job.catch(()=>{});return job;}
+// v10.15: textos enormes (fotos, logo, assinatura, certificado) saem da "gaveta" pequena (localStorage, ~2,5 MB no celular)
+// e vão para o IndexedDB. No lugar fica um marcador '@big:ID'. Em memória o app continua com o conteúdo completo.
+const BIG_MIN = 12000, BIG_PFX = '@big:';
+const _bigOk = new Set();
+function h53(s){ let h1=0xdeadbeef,h2=0x41c6ce57; for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677);} h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909); h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909); return (4294967296*(2097151&h2)+(h1>>>0)).toString(36); }
+async function serializarLeve(source){
+  const found=new Map();
+  const txt=JSON.stringify(source,(k,v)=>{ if(typeof v==='string' && v.length>=BIG_MIN && v.indexOf(BIG_PFX)!==0){ const id='big-'+h53(v)+'-'+v.length; found.set(id,v); return BIG_PFX+id; } return v; });
+  if(!found.size) return txt;
+  try{ for(const [id,v] of found){ if(!_bigOk.has(id)){ await idbPut(id,v); _bigOk.add(id); } } return txt; }
+  catch(e){ console.warn('big->idb falhou, grava inline', e); return JSON.stringify(source); }
+}
+let _hidrP = null;
+function hidratarGrandes(){
+  if(_hidrP) return _hidrP;
+  _hidrP = (async()=>{
+    let n=0; const falt=[];
+    const walk=async(o)=>{ if(!o||typeof o!=='object') return;
+      for(const k of Object.keys(o)){ const v=o[k];
+        if(typeof v==='string'){ if(v.indexOf(BIG_PFX)===0){ const id=v.slice(BIG_PFX.length); let d=null; try{ d=await idbGet(id); }catch(e){} if(typeof d==='string'){ o[k]=d; _bigOk.add(id); n++; } else falt.push(id); } }
+        else if(v&&typeof v==='object') await walk(v); } };
+    await walk(DB); window._bigFalt=falt; return n;
+  })();
+  _hidrP.then(()=>{_hidrP=null;},()=>{_hidrP=null;});
+  return _hidrP;
+}
 async function encodeDatabase(key,auth,source=DB){
-  if(!key)return JSON.stringify({...source,__auth:null});
+  if(!key)return (await serializarLeve({...source,__auth:null}));
   const iv=crypto.getRandomValues(new Uint8Array(12));
-  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(source)));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(await serializarLeve(source)));
   return JSON.stringify({__enc:1,__auth:auth,iv:b64e(iv),ct:b64e(new Uint8Array(ct))});
 }
 async function commitProtection(key,auth){
@@ -3921,7 +3950,7 @@ async function localizarArquivos(){
     // (3) arquivos soltos: existem no aparelho mas nenhuma ficha aponta para eles
     try{
       const chaves = await idbStore('docs','readonly',s=>s.getAllKeys()) || [];
-      for(const k of chaves){ if(!idsRef.has(k)) info.soltos.push(k); }
+      for(const k of chaves){ if(String(k).indexOf('big-')===0) continue; if(!idsRef.has(k)) info.soltos.push(k); }
     }catch(e){}
   }catch(e){ console.warn('localizarArquivos', e); }
   window._locInfo = info;
@@ -5767,6 +5796,7 @@ function isPlayStore(){
   // v10.04: detecção ESTRITA. Só vale quando o app foi aberto pela Play Store (TWA, referrer android-app://)
   // — a marca fica gravada. Quem usa pelo navegador ou pelo ícone instalado do Chrome NÃO é afetado.
   try{
+    if(typeof isNativeApp==='function' && isNativeApp()) return true;
     if(document.referrer && document.referrer.startsWith('android-app://')){ try{ testStorage.setItem('vfc_is_playstore','1'); }catch(e){} return true; }
     return testStorage.getItem('vfc_is_playstore') === '1';
   }catch(e){ return false; }
@@ -7070,7 +7100,7 @@ function renderHome(){
     }
   }
   const _risco = DB.pets.length ? nivelRisco() : 0;
-  if(_risco >= 2 && testStorage.getItem('vfc_bk_snooze') !== todayISO()){
+  if(_risco >= 2 && (_risco >= 3 || testStorage.getItem('vfc_bk_snooze') !== todayISO())){
     const _cor = _risco === 3 ? 'var(--danger)' : 'var(--warning)';
     const _alt = altsSemBackup(), _d = daysSinceBackup();
     h += `<div class="card" style="border-color:${_cor};margin-bottom:12px;padding:13px 14px">
@@ -7083,7 +7113,7 @@ function renderHome(){
             : _d>999 ? `Você ainda não fez nenhum backup e já tem <b>${_alt}</b> alterações registradas.`
             : `Último backup há <b>${_d} dias</b>${_alt?` · <b>${_alt}</b> alterações desde então`:''}. Se perder o celular, isso não volta.`}</span>
         </div>
-        <button style="background:none;color:var(--muted);font-size:15px;padding:2px" onclick="testStorage.setItem('vfc_bk_snooze','${todayISO()}');render()">✕</button>
+        ${_risco>=3?'':`<button style="background:none;color:var(--muted);font-size:15px;padding:2px" onclick="testStorage.setItem('vfc_bk_snooze','${todayISO()}');render()">✕</button>`}
       </div>
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="btn sm" style="flex:1;background:${_cor}" onclick="exportJSON()">💾 Fazer backup</button>
@@ -9309,7 +9339,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.14 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.17 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -9704,7 +9734,88 @@ async function doImport(){
   window._imp = null;
 }
 
+// ═══ v10.17 — APP NATIVO (Capacitor): arquivos em Documentos/VetFlowCare, backup automático, compartilhar ═══
+function isNativeApp(){ try{ return !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()); }catch(e){ return false; } }
+function nPlug(n){ try{ return window.Capacitor.Plugins[n] || null; }catch(e){ return null; } }
+async function nativeGravar(path, blob){
+  const FS = nPlug('Filesystem'); if(!FS) throw new Error('Gravação de arquivos indisponível neste aparelho.');
+  try{ await FS.requestPermissions(); }catch(e){}
+  try{ await FS.deleteFile({path, directory:'DOCUMENTS'}); }catch(e){}
+  const CH = 3*1024*1024; let primeiro = true;
+  for(let o=0; o<Math.max(blob.size,1); o+=CH){
+    const u8 = new Uint8Array(await blob.slice(o, o+CH).arrayBuffer()); let t = '';
+    for(let i=0;i<u8.length;i+=8192) t += String.fromCharCode.apply(null, u8.subarray(i, i+8192));
+    const data = btoa(t);
+    if(primeiro){ await FS.writeFile({path, data, directory:'DOCUMENTS', recursive:true}); primeiro = false; }
+    else await FS.appendFile({path, data, directory:'DOCUMENTS'});
+  }
+  const r = await FS.getUri({path, directory:'DOCUMENTS'}); return r.uri;
+}
+async function nativeCompartilhar(){
+  try{ const S = nPlug('Share'); if(S && window._nativeUri) await S.share({title:'Backup VetFlowCare', url:window._nativeUri, dialogTitle:'Enviar cópia do backup'}); }catch(e){ console.warn('share', e); }
+}
+async function nativeBackupAuto(){
+  try{
+    if(!isNativeApp() || window._wiping || window._LOCKED || !DB.pets || !DB.pets.length) return;
+    const last = testStorage.getItem('vfc_native_auto') || '';
+    const dias = last ? Math.floor((new Date(todayISO()) - new Date(last))/86400000) : 999;
+    if(dias < 3 && !window._nativeAutoForce) return;
+    const snap = await completeBackupSnapshot({lazy:true});
+    const blob = bkMontarBlob(snap);
+    const n = (parseInt(testStorage.getItem('vfc_native_n')||'0')+1) % 2;
+    await nativeGravar('VetFlowCare/backup_automatico_'+n+'.json', blob);
+    testStorage.setItem('vfc_native_n', String(n)); testStorage.setItem('vfc_native_auto', todayISO());
+    zerarAlteracoes();
+    toast('💾 Backup automático salvo em Documentos/VetFlowCare');
+    return true;
+  }catch(e){ console.warn('backup automático', e); return false; }
+}
+// Procura backup automático guardado em Documentos (sobrevive a limpar dados do app) e oferece restaurar
+async function nativeOferecerRestauracao(){
+  try{
+    if(!isNativeApp()) return false;
+    const FS = nPlug('Filesystem'); if(!FS) return false;
+    try{ await FS.requestPermissions(); }catch(e){}
+    let melhor = null;
+    for(const n of [0,1]){
+      try{ const st = await FS.stat({path:'VetFlowCare/backup_automatico_'+n+'.json', directory:'DOCUMENTS'}); if(st && st.size > 100 && (!melhor || (st.mtime||0) > (melhor.mtime||0))) melhor = {n, mtime:st.mtime||0, size:st.size}; }catch(e){}
+    }
+    if(!melhor) return false;
+    window._nativeBk = melhor;
+    const q = melhor.mtime ? new Date(melhor.mtime) : null;
+    vfcConfirm({icon:'🛟', title:'Encontramos um backup automático!',
+      msg:'Há um backup guardado em <b>Documentos/VetFlowCare</b>'+(q?' de <b>'+fmtDate(q.toISOString().slice(0,10))+'</b>':'')+' ('+(melhor.size/1048576).toFixed(1)+' MB).<br>Quer restaurar seus pacientes e dados agora?',
+      note:'Seus dados atuais (se houver) serão substituídos.', noteColor:'var(--success)',
+      noLabel:'Agora não', yesLabel:'🛟 Restaurar', yesBg:'var(--success)', yes:'nativeRestaurarAuto()'});
+    return true;
+  }catch(e){ console.warn('oferta restauração', e); return false; }
+}
+async function nativeRestaurarAuto(){
+  try{
+    const FS = nPlug('Filesystem'), m = window._nativeBk; if(!FS || !m) return;
+    const r = await FS.getUri({path:'VetFlowCare/backup_automatico_'+m.n+'.json', directory:'DOCUMENTS'});
+    const resp = await fetch(window.Capacitor.convertFileSrc(r.uri));
+    const blob = await resp.blob();
+    const arq = new File([blob], 'backup_automatico_'+m.n+'.json', {type:'application/json'});
+    window._posRestoreReload = true;
+    importJSON({files:[arq], value:''});
+  }catch(e){ bkErroDialog('Não foi possível ler o backup automático', e, ''); }
+}
+function restaurarPreCadastro(){
+  fecharLgvOverlay();
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,.vfcbak'; inp.style.display = 'none';
+  inp.onchange = () => { window._posRestoreReload = true; importJSON(inp); };
+  document.body.appendChild(inp); inp.click();
+}
 async function saveFileSAF(name, blob){
+  if(isNativeApp()){
+    try{
+      window._nativeUri = await nativeGravar('VetFlowCare/'+name, blob);
+      vfcConfirm({icon:'✅', title:'Backup salvo!', msg:'Arquivo <b style="word-break:break-all">'+esc(name)+'</b><br>salvo na pasta <b>Documentos/VetFlowCare</b> do celular.',
+        note:'Quer mandar uma cópia para o Drive ou WhatsApp?', noteColor:'var(--vac)', noLabel:'Fechar', yesLabel:'📤 Enviar cópia', yesBg:'var(--primary)', yes:'nativeCompartilhar()'});
+      return true;
+    }catch(e){ console.warn('gravar nativo', e); toast('⚠ Não consegui salvar em Documentos: '+(e.message||e)); }
+  }
   // 1) Desktop/Chrome com seletor de arquivo nativo
   if(window.showSaveFilePicker){
     try{
@@ -9748,6 +9859,7 @@ async function completeBackupSnapshot(opt){
   opt = opt || {}; const blobs = [];
   // v10.03: antes de dar o arquivo como perdido, procura em todas as áreas do aparelho
   try{ if(todosDocsRegistro().some(d=>d&&!d.data)) await localizarArquivos(); }catch(e){}
+  try{ await hidratarGrandes(); }catch(e){}
   const snapshot=JSON.parse(JSON.stringify(DB));
   const documents=[...snapshot.pets.flatMap(p=>[...(p.documents||[]),...(p.termos||[]).map(t=>t.foto).filter(Boolean)]),...(snapshot.tutors||[]).filter(t=>t.ficha).map(t=>t.ficha)];
   const faltando=[]; let incluidos=0, conhecidos=0;
@@ -9841,7 +9953,7 @@ async function doExportJSON(){
   let blob;
   try{ blob = bkMontarBlob(snapshot); }catch(e){ toast('⚠ Backup não concluído. '+e.message); return; }
   try{
-    if(window.showSaveFilePicker){ await saveFileSAF('vetflowcare_backup_'+todayISO()+'.json', blob); bkAvisoFinal(); return; }
+    if(window.showSaveFilePicker || isNativeApp()){ await saveFileSAF('vetflowcare_backup_'+todayISO()+'.json', blob); bkAvisoFinal(); return; }
     throw new Error('unsupported');
   }catch(e){ if(e?.name==='AbortError') return; }
   const a = document.createElement('a');
@@ -10015,7 +10127,7 @@ function importJSON(input){
         window._restAdded = null;
         window._restStep = 'atualizar a tela';
         try{ applyDark(); render(); }catch(e){ console.warn('render pós-restauração', e); }
-        toast('✅ Dados importados com sucesso!'); bkAvisoRestauracao(); return;
+        toast('✅ Dados importados com sucesso!'); bkAvisoRestauracao(); if(window._posRestoreReload){ window._posRestoreReload = false; setTimeout(()=>location.reload(), 2500); } return;
       }
       try{ txt = await f.text(); }
       catch(e1){ txt = await new Promise((ok,no)=>{ const r=new FileReader(); r.onload=()=>ok(r.result); r.onerror=()=>no(r.error||new Error('leitura falhou')); r.readAsText(f); }); }
@@ -10029,7 +10141,7 @@ function importJSON(input){
       await restoreJSONSnapshot(data);
       window._restStep = 'atualizar a tela';
       try{ applyDark(); render(); }catch(e){ console.warn('render pós-restauração', e); }
-      toast('✅ Dados importados com sucesso!'); bkAvisoRestauracao();
+      toast('✅ Dados importados com sucesso!'); bkAvisoRestauracao(); if(window._posRestoreReload){ window._posRestoreReload = false; setTimeout(()=>location.reload(), 2500); }
     }catch(err){
       try{ if(window._restAdded) await Promise.all(window._restAdded.map(id=>idbDel(id).catch(()=>{}))); window._restAdded = null; }catch(e){}
       bkErroDialog('Importação não concluída', err, mb);
@@ -10258,9 +10370,9 @@ function iosSemInstalar(){
 function nivelRisco(){
   const alt = altsSemBackup(), dias = daysSinceBackup();
   if(iosSemInstalar()) return 3;
-  if(dias > 14 || alt >= 40) return 3;
-  if(dias > 7  || alt >= 15) return 2;
-  if(dias > 3  || alt >= 5)  return 1;
+  if(dias > 7 || alt >= 25) return 3;
+  if(dias > 3 || alt >= 8)  return 2;
+  if(dias > 1 || alt >= 3)  return 1;
   return 0;
 }
 
@@ -10292,9 +10404,15 @@ function openCentralProtecao(){
     <div class="card">
       <div class="irow"><span class="k">📱 Neste aparelho</span><span class="v" style="color:var(--success)">✓ Ativo</span></div>
       <div class="irow"><span class="k">🔄 Cópia de segurança interna</span><span class="v" id="stEspelho">verificando…</span></div>
-      <div class="irow"><span class="k">🔒 Armazenamento protegido</span><span class="v" style="color:${window._persistOK?'var(--success)':'var(--warning)'}">${window._persistOK?'✓ Sim':'⚠ Não confirmado'}</span></div>
+      <div class="irow" id="stPersistLinha"><span class="k">🔒 Armazenamento protegido</span><span class="v" style="color:${window._persistOK?'var(--success)':'var(--warning)'}">${window._persistOK?'✓ Sim':'⚠ Não confirmado'}</span></div>
       <div class="irow"><span class="k">💾 Backup externo</span><span class="v" style="color:${dias<=7?'var(--success)':'var(--danger)'}">${dias>999?'Nunca':fmtDate(testStorage.getItem('vfc_last_backup'))}</span></div>
       <div class="irow"><span class="k">📸 Pontos de restauração</span><span class="v">${snaps.length}</span></div>
+    </div>
+
+    <div class="card" style="margin-top:10px;border-color:var(--warning)">
+      <b style="font-size:13px">🧹 Vai limpar o histórico do Chrome?</b>
+      <div style="font-size:12px;margin-top:6px;line-height:1.65">Ao limpar, <b>desmarque "Cookies e dados de sites"</b> (deixe só "Histórico de navegação" e "Imagens e arquivos em cache" se quiser). Marcar "dados de sites" apaga os dados do VetFlowCare deste aparelho.<br>Se já limpou: abra o app, toque em <b>Já tenho cadastro</b> e restaure seu último backup.</div>
+      ${window._persistOK?'':`<button class="btn sm outline" style="margin-top:9px" onclick="reforcarPersistencia().then(ok=>{toast(ok?'✅ Armazenamento protegido':'⚠ O Android não concedeu — instale o app na Tela de Início');closeSheet();openCentralProtecao()})">🔒 Tentar proteger o armazenamento</button>`}
     </div>
 
     <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;margin:16px 0 7px">Restaurar um ponto anterior</div>
@@ -12956,8 +13074,40 @@ if('serviceWorker' in navigator){
 }
 
 // ═══════════ INIT ═══════════
+// v10.16: aviso ao abrir quando o backup está atrasado (1x por dia) — não roda em navegador automatizado (testes), salvo flag
+function avisoBackupAbertura(){
+  try{
+    if(navigator.webdriver && !window._vfcForceBkModal) return;
+    if(!DB.pets || !DB.pets.length) return;
+    if(nivelRisco() < 2) return;
+    if(testStorage.getItem('vfc_bk_modal') === todayISO()) return;
+    if(document.getElementById('modals2').innerHTML.trim() || document.querySelector('.access-screen') || document.querySelector('#modals .modal')) return;
+    const d = daysSinceBackup(), a = altsSemBackup();
+    vfcConfirm({icon:'💾', title:'Hora de fazer o backup',
+      msg: (d>999 ? 'Você ainda <b>não fez nenhum backup</b>.' : 'Seu último backup foi há <b>'+d+' dia'+(d===1?'':'s')+'</b>.') + (a?'<br><b>'+a+'</b> alterações ainda não estão protegidas.':'') + '<br>Se o celular for perdido ou o Chrome for limpo, é o backup que salva tudo.',
+      note:'Leva poucos segundos. Salve no Drive ou mande para você no WhatsApp.', noteColor:'var(--vac)',
+      noLabel:'Depois', yesLabel:'💾 Fazer backup agora', yesBg:'var(--success)', yes:"testStorage.setItem('vfc_bk_modal','"+todayISO()+"');exportJSON()", no:"testStorage.setItem('vfc_bk_modal','"+todayISO()+"')"});
+  }catch(e){ console.warn('avisoBackup', e); }
+}
+// v10.16: tenta de novo travar o armazenamento (Chrome só concede após uso/instalação) — num toque do usuário
+async function reforcarPersistencia(){
+  try{
+    if(navigator.storage && navigator.storage.persist){
+      window._persistOK = await navigator.storage.persisted() || await navigator.storage.persist();
+    }
+  }catch(e){}
+  return !!window._persistOK;
+}
+(function(){
+  let feito = false;
+  const f = () => { if(feito) return; feito = true; if(!window._persistOK) reforcarPersistencia(); document.removeEventListener('pointerdown', f, true); };
+  document.addEventListener('pointerdown', f, true);
+})();
 function bootApp(){
   applyDark();
+  setTimeout(nativeBackupAuto, 25000);
+  setTimeout(avisoBackupAbertura, 4000);
+  hidratarGrandes().then(n=>{ if(n && testStorage.getItem('vfc_entered')){ try{ render(); }catch(e){} } }).catch(()=>{});
   // Restaura em memória a senha do certificado A1, SE o veterinário optou por
   // salvá-la neste aparelho (DB.vet.cert.savePassword). Se ele escolheu não
   // salvar, savedPassword fica null e a senha precisa ser digitada de novo.
@@ -13136,7 +13286,7 @@ function showEntryRegister(){
       </div>
     </div>
     <button class="reg-submit" onclick="doEntryRegister()">Criar acesso e entrar →</button>
-    <button class="reg-link" onclick="showLoginExistente()">Já tenho cadastro — entrar</button>
+    <button class="reg-link" onclick="showLoginExistente()">Já tenho cadastro — entrar ou restaurar backup</button>
     <div id="regErr" class="reg-err"></div>
   </div>
   <div class="reg-foot">B&G Systems · Gestão veterinária completa</div>`;
@@ -13151,7 +13301,7 @@ function showLoginExistente(){
  if(getAuth()){showLockScreen();return;}
  accessView('lgvOverlay','Já tenho cadastro','Acesse os dados salvos neste aparelho ou restaure um backup.',`
  <div class="access-notice"><b>Seu cadastro fica no aparelho</b><p>Digitar o e-mail e a senha em outro dispositivo não recupera seus dados automaticamente.</p></div>
- ${DB.userProfile?'<button onclick="fecharLgvOverlay();enterApp()">Acessar meus dados</button>':'<p class="access-note">Não há cadastro local disponível. Para trazer seus dados, use um backup JSON ou o pacote criptografado exportado pelo app.</p><button onclick="doLoginExistente()">Abrir opções de restauração →</button>'}
+ ${DB.userProfile?'<button onclick="fecharLgvOverlay();enterApp()">Acessar meus dados</button>':'<p class="access-note">Não há cadastro local disponível. Para trazer seus dados, use um backup JSON ou o pacote criptografado exportado pelo app.</p><button onclick="restaurarPreCadastro()">📥 Restaurar backup agora</button><button class="access-link" onclick="doLoginExistente()">Outras opções de restauração</button>'}
  <button class="access-link" onclick="fecharLgvOverlay()">← Voltar ao cadastro</button>`);
 }
 async function doLoginExistente(){
@@ -13303,6 +13453,7 @@ function afterLGPD(){
   if(window._LOCKED){showLockScreen();return;}
   if(getAuth() || DB.userProfile || testStorage.getItem('vfc_skip_lock')){bootApp();return;}
   showEntryRegister();
+  setTimeout(nativeOferecerRestauracao, 1200);
 }
 if(!testStorage.getItem('vfc_lgpd'))showLGPD();else afterLGPD();
 </script>
