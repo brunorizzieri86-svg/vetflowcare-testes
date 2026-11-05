@@ -3220,6 +3220,8 @@ nav button:active{transform:scale(.9)}
 .btn.pulou{animation:vfcPulou .35s ease}
 @keyframes vfcPulou{0%{transform:scale(1)}40%{transform:scale(.93);filter:brightness(.85)}100%{transform:scale(1)}}
 .btn.feito{background:var(--success)!important;color:#fff!important;border-color:var(--success)!important}
+.sCusto,#fPCustoTxt{color:var(--danger)!important}
+.sCusto::placeholder{color:rgba(224,82,82,.55)}
 .srow.catlinha{border-left:3px solid var(--primary);padding-left:8px;border-radius:2px}
 .srow.novo{animation:vfcNovo 1.4s ease}
 @keyframes vfcNovo{0%{background:rgba(45,192,174,.35)}100%{background:transparent}}
@@ -3322,14 +3324,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.13';
+const APP_VER = '10.14';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.13',
+  ver: '10.14',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🧾','Custos em vermelho, “Lucro total” sem ícone','No Novo Atendimento, os custos agora aparecem em vermelho (no item e no total) e o “Lucro total” ficou só com o texto em verde, sem o coração.'],
     ['💾','Backups grandes (100 MB ou mais) agora funcionam','O backup e a restauração passaram a trabalhar em pedaços, sem carregar o arquivo inteiro na memória do celular. Clínicas com muitos anexos (PDFs, fotos, termos) conseguem fazer e restaurar o backup completo. Durante a restauração aparece o andamento em porcentagem.'],
     ['🛟','Restaurar backup mais forte','Se a restauração falhar, o app agora mostra o motivo completo (com botão “Copiar detalhes”) e mantém seus dados atuais. Um anexo com problema não derruba mais a restauração inteira: os dados voltam e o app avisa quais arquivos ficaram de fora. Também tratamos memória cheia e arquivo de backup incompleto.'],
     ['👆','Botões que respondem ao toque','Todos os botões e opções agora dão um efeito ao serem tocados (afundam, mudam de cor e vibram de leve), para você ter certeza de que o toque funcionou.'],
@@ -9306,7 +9309,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.13 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.14 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -11075,8 +11078,8 @@ function openApptForm(petId, editId){
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>Subtotal dos serviços:</span><b id="fPSubTxt">R$ 0,00</b></div>
       <div id="fPDescBox" style="display:none;justify-content:space-between;font-size:12px;color:var(--danger);margin-top:2px"><span>Desconto aplicado:</span><b id="fPDescTxt">− R$ 0,00</b></div>
       <div style="display:flex;justify-content:space-between;margin-top:4px;padding-top:4px;border-top:1px solid var(--border)">💰 Total: <b id="fPTotalTxt">R$ 0,00</b></div>
-      <div id="fPCustoLine" style="display:none;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px"><span>🧾 Custos (não vão no PDF):</span><b id="fPCustoTxt">R$ 0,00</b></div>
-      <div id="fPLucroLine" style="display:none;justify-content:space-between;font-size:15px;font-weight:800;color:var(--success);margin-top:4px"><span id="fPLucroLbl">💚 Lucro total</span><b id="fPLucroTxt">R$ 0,00</b></div></div>
+      <div id="fPCustoLine" style="display:none;justify-content:space-between;font-size:12px;color:var(--danger);margin-top:6px"><span>🧾 Custos (não vão no PDF):</span><b id="fPCustoTxt">R$ 0,00</b></div>
+      <div id="fPLucroLine" style="display:none;justify-content:space-between;font-size:15px;font-weight:800;color:var(--success);margin-top:4px"><span id="fPLucroLbl">Lucro total</span><b id="fPLucroTxt">R$ 0,00</b></div></div>
     <div id="fPOrcValWrap" style="margin-top:10px;display:flex;align-items:center;gap:8px;background:var(--vetbg);border-radius:10px;padding:8px 12px">
       <label for="fPOrcDias" style="margin:0;font-size:12px;font-weight:800;flex:1;line-height:1.3">⏳ Dias de validade da proposta</label>
       <input id="fPOrcDias" type="number" inputmode="numeric" min="1" max="365" step="1" value="${orcDiasPadrao()}" style="width:76px;text-align:center;font-weight:800;margin:0">
@@ -11171,7 +11174,7 @@ function servItemRow(i, desc='', valor='', custo='', iid='', despId='', cat=null
     <button type="button" style="background:none;color:var(--muted);font-size:15px;flex-shrink:0" onclick="this.parentElement.remove();recalcServTotal();catAtualizaBotao()">✕</button>
     <div style="flex-basis:100%;display:flex;align-items:center;gap:8px">
       ${faixaSel}
-      <span style="font-size:11px;font-weight:800;color:var(--muted);flex-shrink:0">🧾${faixaSel?'':' Custo'}</span>
+      <span style="font-size:11px;font-weight:800;color:var(--danger);flex-shrink:0">🧾${faixaSel?'':' Custo'}</span>
       <input class="sCusto" inputmode="numeric" placeholder="${faixaSel?'Custo':'R$ 0,00 · sua despesa neste item'}" value="${moedaInit(custo)}" data-valor="${parseFloat(custo)||0}" style="flex:1;min-width:0;font-size:14px" ${trava?'disabled':''}
         onfocus="if(!isPro()){this.blur();openProModal('O custo dos itens alimenta a aba Despesas do Financeiro — recurso Pro.')}" oninput="maskMoeda(this);recalcServTotal()">
     </div></div>`;
@@ -11285,12 +11288,12 @@ function recalcServTotal(){ if(!document.getElementById('fPValor'))return;
   const lucro = total - custos;
   const ll = document.getElementById('fPLucroLine');
   if(ll){ ll.style.display = custos > 0 ? 'flex' : 'none'; ll.style.color = lucro >= 0 ? 'var(--success)' : 'var(--danger)';
-    const lt = document.getElementById('fPLucroLbl'); if(lt) lt.textContent = lucro >= 0 ? '💚 Lucro total' : '⚠ Prejuízo';
+    const lt = document.getElementById('fPLucroLbl'); if(lt) lt.textContent = lucro >= 0 ? 'Lucro total' : '⚠ Prejuízo';
     const lv = document.getElementById('fPLucroTxt'); if(lv) lv.textContent = fmtBRL(Math.abs(lucro)); }
   const fs = document.getElementById('fPFootSum');
   if(fs){ const n = document.querySelectorAll('#fPItens .sVal').length && [...document.querySelectorAll('#fPItens .srow')].filter(r=>moedaVal(r.querySelector('.sVal'))>0||r.querySelector('.sDesc').value.trim()).length;
     fs.style.display = subtotal > 0 ? 'flex' : 'none';
-    fs.innerHTML = `<span>📋 ${n} ${n===1?'item':'itens'}</span><span>💰 <b>${fmtBRL(total)}</b></span>` + (custos>0 ? `<span style="color:${lucro>=0?'var(--success)':'var(--danger)'}">${lucro>=0?'💚 Lucro':'⚠ Prejuízo'} <b>${fmtBRL(Math.abs(lucro))}</b></span>` : ''); }
+    fs.innerHTML = `<span>📋 ${n} ${n===1?'item':'itens'}</span><span>💰 <b>${fmtBRL(total)}</b></span>` + (custos>0 ? `<span style="color:${lucro>=0?'var(--success)':'var(--danger)'}">${lucro>=0?'Lucro':'⚠ Prejuízo'} <b>${fmtBRL(Math.abs(lucro))}</b></span>` : ''); }
   recalcParcelas();
 }
 function parseBRDate(txt){
