@@ -3324,14 +3324,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.21';
+const APP_VER = '10.22';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.21',
+  ver: '10.22',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['📦','Filtro de Pacotes e lista do catálogo mais clara','Novo botão <b>📦 Pacotes</b> (e 🐾 Por peso) na tela do Catálogo e ao puxar do catálogo no atendimento: toque e veja só os pacotes. A lista ficou mais limpa: nome em destaque, tipo do item, preço grande, desconto do pacote em destaque e o quadro “O pacote inclui” com cada item e seu valor.'],
     ['📦','Pacotes mostram os valores e deixam você montar o preço','No Catálogo, cada item do pacote mostra o valor de tabela e você pode <b>alterar o valor dele dentro do pacote</b> (ex.: exame de R$ 50 por R$ 45). O app soma tudo, mostra o desconto e o lucro, e você ainda pode digitar o <b>total do pacote</b> ou um <b>% de desconto</b> que ele divide entre os itens. Na lista e na busca, o pacote já aparece com o preço total e o que tem dentro.'],
     ['✅','Aviso de backup some depois de fazer o backup','Corrigido: a faixa vermelha “Seus dados estão em risco” continuava aparecendo mesmo depois de salvar o backup. Agora, assim que o arquivo é salvo (ou enviado ao destino escolhido), o contador zera e a faixa some. Se você cancelar, o aviso continua.'],
     ['⚖️','Catálogo: pesos do jeito que você quiser','Nos itens “Varia por peso” agora você digita cada peso (1 kg, 2 kg, 3 kg, 4 kg, 7,5 kg…) com o seu preço e custo, adiciona e remove linhas, ou gera uma tabela de 1 em 1, 2 em 2, 3 em 3, 5 em 5 ou 10 em 10 kg e ajusta depois.'],
@@ -9343,7 +9344,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.21 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.22 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -11896,11 +11897,38 @@ function catPacTotais(it, pesoKg){
   const pacote = rnd2(ls.reduce((a,x)=>a+x.venda,0)); tabela = rnd2(tabela);
   return {tabela, pacote, desc: rnd2(tabela-pacote), pct: tabela>0 ? Math.round((tabela-pacote)/tabela*1000)/10 : 0, n: ls.length};
 }
+// v10.22 — filtros do catálogo: Todos · 📦 Pacotes · 🐾 Por peso · grupos
+function catChipsDef(lista){
+  const out = [{v:'Todos', l:'Todos'}];
+  const np = lista.filter(x=>x.tipo==='pacote').length, nw = lista.filter(x=>x.tipo==='peso').length;
+  if(np) out.push({v:'__pac', l:'📦 Pacotes ('+np+')'});
+  if(nw) out.push({v:'__peso', l:'🐾 Por peso'});
+  CAT_GRUPOS.filter(g=>lista.some(x=>x.grupo===g)).forEach(g=>out.push({v:g, l:g}));
+  return out;
+}
+function catNoFiltro(x, g){ return g==='Todos' || (g==='__pac' ? x.tipo==='pacote' : g==='__peso' ? x.tipo==='peso' : x.grupo===g); }
+function catTipoPill(it){
+  return it.tipo==='pacote' ? '<span style="background:#E6F4F1;color:#1B7F72;border-radius:10px;padding:1px 8px;font-weight:700">📦 Pacote</span>'
+    : it.tipo==='peso' ? '<span style="background:#EAF0FB;color:#2C5AA0;border-radius:10px;padding:1px 8px;font-weight:700">🐾 Por peso</span>' : '';
+}
+function catPrecoBloco(it, pesoKg){
+  if(it.tipo==='pacote'){
+    const t = catPacTotais(it, pesoKg);
+    return `<span style="font-size:19px;font-weight:800;color:var(--vet)">${fmtBRL(t.pacote)}</span>`
+      + (t.desc>0.004 ? ` <s style="font-size:12px;color:var(--muted)">${fmtBRL(t.tabela)}</s> <span style="background:#E8F7EE;color:#1E8E4E;border-radius:10px;padding:1px 8px;font-size:11px;font-weight:800">−${String(t.pct).replace('.',',')}%</span>` : '')
+      + ` <span style="font-size:11px;color:var(--muted)">· ${t.n} ${t.n===1?'item':'itens'}</span>`;
+  }
+  if(it.tipo==='peso'){ const v = (it.faixas||[]).map(f=>f.venda).filter(x=>x>0);
+    return v.length ? `<span style="font-size:12px;color:var(--muted)">de</span> <span style="font-size:17px;font-weight:800;color:var(--vet)">${fmtBRL(Math.min(...v))}</span> <span style="font-size:12px;color:var(--muted)">a ${fmtBRL(Math.max(...v))}</span>` : '<span style="font-size:12px;color:var(--muted)">preencha as faixas de peso</span>'; }
+  return it.venda>0 ? `<span style="font-size:19px;font-weight:800;color:var(--vet)">${fmtBRL(it.venda)}</span>` : '<span style="font-size:12px;color:var(--muted)">sem preço</span>';
+}
 function catPacDetalhe(it, pesoKg){
   const ls = catResolver(it, pesoKg||0); if(!ls.length) return '';
   const t = catPacTotais(it, pesoKg);
-  return ls.map(l=>`<div style="display:flex;justify-content:space-between;gap:8px"><span style="min-width:0">${esc(l.desc)}</span><b style="flex-shrink:0">${l.venda>0?fmtBRL(l.venda):'sem preço'}</b></div>`).join('')
-    + (t.desc>0.004 ? `<div style="margin-top:3px;color:var(--success);font-weight:700">Desconto do pacote: ${fmtBRL(t.desc)} (${String(t.pct).replace('.',',')}%) · tabela ${fmtBRL(t.tabela)}</div>` : '');
+  return `<div style="background:var(--bg2,#F1F7F5);border-radius:10px;padding:8px 10px"><div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:2px">O pacote inclui</div>`
+    + ls.map(l=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid rgba(0,0,0,.07);font-size:12px;color:var(--text,#1A2F5A)"><span style="min-width:0">${esc(l.desc)}</span><b style="flex-shrink:0">${l.venda>0?fmtBRL(l.venda):'sem preço'}</b></div>`).join('')
+    + (t.desc>0.004 ? `<div style="margin-top:4px;padding-top:5px;border-top:1px solid rgba(0,0,0,.07);color:var(--success);font-weight:700;font-size:12px">Desconto do pacote: ${fmtBRL(t.desc)} (${String(t.pct).replace('.',',')}%) · tabela ${fmtBRL(t.tabela)}</div>` : '')
+    + '</div>';
 }
 // Preço ATUAL no catálogo para um item já gravado num atendimento/orçamento (null = item do catálogo não existe mais)
 function catPrecoAtual(i){
@@ -11921,13 +11949,13 @@ function catPrecoAtual(i){
 // ── Tela do catálogo ──
 function renderCatalog(){
   const lista = catLista();
-  const grupos = ['Todos'].concat(CAT_GRUPOS.filter(g => lista.some(x=>x.grupo===g)));
+  const grupos = catChipsDef(lista);
   return `<div class="sec"><div class="sec-h"><span>📚 Catálogo de serviços</span>
       <button class="btn sm" onclick="catForm()">➕ Novo item</button></div>
     <div class="card" style="font-size:12px;color:var(--muted);margin-bottom:10px">
       Cadastre uma vez o que você faz: preço de venda e quanto custa. No <b>Novo Atendimento</b> é só tocar em <b>📚 Puxar do catálogo</b>. Reajustou o preço? Altere aqui — os novos atendimentos já saem com o valor certo.</div>
     ${lista.length ? `<input id="catBusca" placeholder="🔎 Buscar no catálogo" value="${esc(catBusca)}" oninput="catBusca=this.value;catRedesenhar()" style="margin-bottom:8px">
-    <div class="chips" id="catChips">${grupos.map(g=>`<button class="chip ${catGrupoSel===g?'on':''}" onclick="catGrupoSel='${g}';render()">${g}</button>`).join('')}</div>
+    <div class="chips" id="catChips" style="flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">${grupos.map(g=>`<button class="chip ${catGrupoSel===g.v?'on':''}" style="flex-shrink:0;white-space:nowrap" onclick="catGrupoSel='${g.v}';render()">${g.l}</button>`).join('')}</div>
     <div id="catLista"></div>` : `<div class="card" style="text-align:center;padding:22px 14px;font-size:13px;color:var(--muted)">
       Seu catálogo está vazio.<br><br>
       <button class="btn" onclick="catForm()">➕ Cadastrar o primeiro item</button><br><br>
@@ -11937,7 +11965,7 @@ function renderCatalog(){
 function catRedesenhar(){
   const box = document.getElementById('catLista'); if(!box) return;
   const q = (catBusca||'').toLowerCase().trim();
-  const itens = catLista().filter(x => (catGrupoSel==='Todos' || x.grupo===catGrupoSel) && (!q || x.nome.toLowerCase().includes(q)))
+  const itens = catLista().filter(x => catNoFiltro(x, catGrupoSel) && (!q || x.nome.toLowerCase().includes(q)))
     .sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   box.innerHTML = itens.length ? itens.map(it => {
     const venda = it.tipo==='simples' ? it.venda : null;
@@ -11947,7 +11975,7 @@ function catRedesenhar(){
     return `<div class="card catrec" data-catid="${it.id}" style="${inativo?'opacity:.55':''}">
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
         <div style="min-width:0"><b style="font-size:14px">${esc(it.nome)}</b>
-          <div style="font-size:11px;color:var(--muted)">${esc(it.grupo||'Outros')}${it.tipo==='peso'?' · 🐾 por peso':''}${it.tipo==='pacote'?' · 📦 pacote':''}${inativo?' · desativado':''}</div></div>
+          <div style="font-size:11px;color:var(--muted)">${esc(it.grupo||'Outros')} ${catTipoPill(it)}${inativo?' · desativado':''}</div></div>
         <div style="text-align:right;font-weight:800;color:var(--vet);font-size:13px;flex-shrink:0">${catPrecoTxt(it)}</div></div>
       ${it.tipo==='simples' && custo>0 ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">🧾 custo ${fmtBRL(custo)}${lucro}</div>`:''}
       ${it.tipo==='pacote' ? `<div class="pacdet" style="font-size:11px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px dashed var(--border,#DDE7E4)">${catPacDetalhe(it, 0)}</div>`:''}
@@ -12130,10 +12158,53 @@ function catPacRestaurar(){
     if(x.tab != null) catPacSet(x, x.tab); else { x.inp.value = ''; x.inp.dataset.valor = '0'; } });
   catPacRecalc();
 }
-function catAddComp(){
-  const id = document.getElementById('cfCompSel').value; if(!id) return;
-  if(document.querySelector('#cfComps .comp[data-item="'+id+'"]')){ toast('Este item já está no pacote'); return; }
+function catAddComp(id){
+  if(!id){ const sel = document.getElementById('cfCompSel'); id = sel && sel.value; }
+  if(!id) return false;
+  if(document.querySelector('#cfComps .comp[data-item="'+id+'"]')){ toast('Este item já está no pacote'); return false; }
   document.getElementById('cfComps').insertAdjacentHTML('beforeend', catCompRow(id,1)); catPacRecalc();
+  return true;
+}
+// v10.22 — escolher itens do pacote numa tela própria (busca + filtros + cartões com preço) no lugar da lista comprida
+function catCompElegiveis(){ const self = window._catEditId; return catLista().filter(x=>x.tipo!=='pacote' && x.id!==self && x.ativo!==false); }
+function catCompPickerAbrir(){
+  window._cpPG = 'Todos';
+  document.getElementById('modals2').innerHTML = `
+  <div class="modal" style="z-index:160" onclick="if(event.target===this)catCompPickerFechar()">
+    <div class="sheet" style="height:90%;max-height:90%" role="dialog" aria-modal="true" aria-label="Adicionar itens ao pacote">
+      <div class="mh"><h2>📦 Adicionar ao pacote</h2><button class="x" onclick="catCompPickerFechar()" aria-label="Fechar">✕</button></div>
+      <div style="padding:10px 18px 0;flex-shrink:0"><input id="cpBusca" placeholder="🔎 Buscar item" oninput="catCompPickerLista()" style="margin:0">
+        <div class="chips" id="cpChips"></div></div>
+      <div class="mb" id="cpLista"></div>
+      <div class="mf"><div id="cpResumo" style="flex:1;font-size:12px;color:var(--muted);align-self:center"></div><button class="btn" style="width:auto;flex:1" onclick="catCompPickerFechar()">✓ Concluir</button></div>
+    </div></div>`;
+  try{ window.vfcFitViewport && window.vfcFitViewport(); }catch(e){}
+  catCompPickerLista();
+}
+function catCompPickerFechar(){ document.getElementById('modals2').innerHTML = ''; try{ window.vfcFitViewport && window.vfcFitViewport(); }catch(e){} catPacRecalc(); }
+function catCompPickerLista(){
+  const box = document.getElementById('cpLista'); if(!box) return;
+  const q = (document.getElementById('cpBusca')?.value||'').toLowerCase().trim();
+  const todos = catCompElegiveis();
+  const chips = document.getElementById('cpChips');
+  if(chips){ const gs = catChipsDef(todos).filter(g=>g.v!=='__pac');
+    chips.style.cssText = 'margin-top:8px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px';
+    chips.innerHTML = gs.length>2 ? gs.map(g=>`<button type="button" class="chip ${window._cpPG===g.v?'on':''}" style="flex-shrink:0;white-space:nowrap" onclick="window._cpPG='${g.v}';catCompPickerLista()">${g.l}</button>`).join('') : ''; }
+  const itens = todos.filter(x=>catNoFiltro(x, window._cpPG) && (!q || x.nome.toLowerCase().includes(q))).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const jaTem = id => !!document.querySelector('#cfComps .comp[data-item="'+id+'"]');
+  box.innerHTML = itens.map(it => `<div class="card cpitem" data-catid="${it.id}" style="padding:12px 14px;margin:0 0 10px">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+        <div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:800;line-height:1.25;color:var(--text,#1A2F5A)">${esc(it.nome)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px">${esc(it.grupo||'')} ${catTipoPill(it)}</div>
+          <div style="margin-top:6px">${catPrecoBloco(it, 0)}</div></div>
+        <button type="button" class="btn sm ${jaTem(it.id)?'feito':''}" style="flex-shrink:0" onclick="catCompPickerUsar('${it.id}')">${jaTem(it.id)?'✓ No pacote':'➕ Incluir'}</button></div></div>`).join('')
+    || '<div style="font-size:13px;color:var(--muted);padding:14px;text-align:center">'+(todos.length?'Nada encontrado.':'Cadastre antes os itens simples ou por peso que fazem parte do pacote.')+'</div>';
+  const n = document.querySelectorAll('#cfComps .comp').length;
+  const r = document.getElementById('cpResumo'); if(r) r.innerHTML = n ? `No pacote: <b>${n} ${n===1?'item':'itens'}</b>` : 'Nenhum item ainda';
+}
+function catCompPickerUsar(id){
+  if(document.querySelector('#cfComps .comp[data-item="'+id+'"]')){ toast('Este item já está no pacote'); return; }
+  catAddComp(id); catCompPickerLista();
 }
 function catForm(id){
   const it = id ? catItem(id) : null;
@@ -12169,8 +12240,7 @@ function catForm(id){
     <div id="cfB_pacote" style="display:${_catTipo==='pacote'?'block':'none'}">
       <div style="font-size:11px;color:var(--muted);margin:4px 0">Ao escolher o pacote no atendimento, todos os itens entram de uma vez. Cada item mostra o valor de tabela: <b>altere o “Valor no pacote”</b> para montar um preço melhor (ex.: exame de 50 por 45). Item por peso entra na faixa do paciente, ou digite um valor fixo.</div>
       <div id="cfComps">${(it?.comps||[]).map(c=>catCompRow(c.itemId,c.qtd,c.venda)).join('')}</div>
-      ${outros.length ? `<div style="display:flex;gap:6px;margin-top:8px"><select id="cfCompSel" style="flex:1;margin:0"><option value="">Escolha um item…</option>${outros.map(o=>`<option value="${o.id}">${esc(o.nome)} — ${esc(catPrecoTxt(o))}</option>`).join('')}</select>
-        <button type="button" class="btn sm outline" onclick="catAddComp()">➕ Incluir</button></div>` : '<div style="font-size:12px;color:var(--danger);margin-top:8px">Cadastre antes os itens simples ou por peso que fazem parte do pacote.</div>'}
+      ${outros.length ? `<button type="button" class="btn outline" style="margin-top:10px" onclick="catCompPickerAbrir()">➕ Adicionar item ao pacote</button>` : '<div style="font-size:12px;color:var(--danger);margin-top:8px">Cadastre antes os itens simples ou por peso que fazem parte do pacote.</div>'}
       <div id="cfPacResumo" style="font-size:12px;margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--bg2,#F1F7F5);line-height:1.5"></div>
       <label style="margin-top:10px">Fechar por um total (o app divide entre os itens)</label>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
@@ -12267,10 +12337,11 @@ function catPainelLista(){
   const todos = catLista().filter(x=>x.ativo!==false);
   const box = document.getElementById('fPCatLista'); if(!box) return;
   const chips = document.getElementById('fPCatChips');
-  if(chips){ const gs = ['Todos'].concat(CAT_GRUPOS.filter(g=>todos.some(x=>x.grupo===g)));
-    chips.innerHTML = gs.length>2 ? gs.map(g=>`<button type="button" class="chip ${window._catPG===g?'on':''}" onclick="window._catPG='${g}';catPainelLista()">${g}</button>`).join('') : ''; }
+  if(chips){ const gs = catChipsDef(todos);
+    chips.style.cssText = 'margin-top:8px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px';
+    chips.innerHTML = gs.length>2 ? gs.map(g=>`<button type="button" class="chip ${window._catPG===g.v?'on':''}" style="flex-shrink:0;white-space:nowrap" onclick="window._catPG='${g.v}';catPainelLista()">${g.l}</button>`).join('') : ''; }
   if(!catLista().length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:14px;text-align:center">Seu catálogo está vazio.<br>Cadastre os serviços na aba <b>📚 Catálogo</b> do menu.</div>'; catPickerResumo(); return; }
-  const itens = todos.filter(x=>(window._catPG==='Todos'||x.grupo===window._catPG) && (!q || x.nome.toLowerCase().includes(q))).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const itens = todos.filter(x=>catNoFiltro(x, window._catPG) && (!q || x.nome.toLowerCase().includes(q))).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   box.innerHTML = itens.map(it => {
     let sel = '';
     if(it.tipo === 'peso'){
@@ -12279,9 +12350,13 @@ function catPainelLista(){
         + (pre>=0 ? `<div style="font-size:10px;color:var(--muted);margin-top:2px">Faixa sugerida pelo peso do paciente (${pet.weight} kg) — confira.</div>` : `<div style="font-size:10px;color:var(--danger);margin-top:2px">Paciente sem peso cadastrado — escolha a faixa.</div>`);
     }
     const n = window._catUsados[it.id] || 0;
-    return `<div class="card" style="padding:10px 12px;margin:0 0 8px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
-      <div style="min-width:0"><b style="font-size:14px">${esc(it.nome)}</b><div style="font-size:11px;color:var(--muted)">${esc(it.grupo||'')} · ${catPrecoTxt(it, pet?.weight)}</div></div>
-      <button type="button" id="catU_${it.id}" class="btn sm ${n?'feito':''}" style="flex-shrink:0" onclick="catAdicionar('${it.id}')">${n?'✓ Adicionado'+(n>1?' ×'+n:''):'➕ Usar'}</button></div>${sel}${it.tipo==='pacote' ? `<div class="pacdet" style="font-size:11px;color:var(--muted);margin-top:8px;padding-top:6px;border-top:1px dashed var(--border,#DDE7E4)">${catPacDetalhe(it, pet?.weight)}<div style="margin-top:3px;font-size:10px">Depois de adicionar, você ainda pode alterar o valor de cada linha no atendimento.</div></div>` : ''}</div>`;
+    return `<div class="card catpk" data-catid="${it.id}" style="padding:12px 14px;margin:0 0 10px">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+        <div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:800;line-height:1.25;color:var(--text,#1A2F5A)">${esc(it.nome)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px">${esc(it.grupo||'')} ${catTipoPill(it)}</div></div>
+        <button type="button" id="catU_${it.id}" class="btn sm ${n?'feito':''}" style="flex-shrink:0" onclick="catAdicionar('${it.id}')">${n?'✓ Adicionado'+(n>1?' ×'+n:''):'➕ Usar'}</button></div>
+      <div style="margin-top:8px">${catPrecoBloco(it, pet?.weight)}</div>${sel}
+      ${it.tipo==='pacote' ? `<div class="pacdet" style="margin-top:10px">${catPacDetalhe(it, pet?.weight)}<div style="margin-top:5px;font-size:10px;color:var(--muted)">Depois de adicionar, você ainda pode alterar o valor de cada linha no atendimento.</div></div>` : ''}</div>`;
   }).join('') || '<div style="font-size:13px;color:var(--muted);padding:14px;text-align:center">Nada encontrado.</div>';
   catPickerResumo();
 }
