@@ -3324,14 +3324,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.22';
+const APP_VER = '10.23';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.22',
+  ver: '10.23',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🧩','Lista do catálogo se ajusta a nomes grandes','Corrigido: quando o nome do item era comprido (ex.: “Aplicação Agemoxi CL”), o selo “Por peso” e o preço quebravam de linha e bagunçavam o cartão. Agora o nome ocupa a linha toda, o selo nunca quebra e o preço desce para a sua própria linha, tudo alinhado.'],
     ['📦','Filtro de Pacotes e lista do catálogo mais clara','Novo botão <b>📦 Pacotes</b> (e 🐾 Por peso) na tela do Catálogo e ao puxar do catálogo no atendimento: toque e veja só os pacotes. A lista ficou mais limpa: nome em destaque, tipo do item, preço grande, desconto do pacote em destaque e o quadro “O pacote inclui” com cada item e seu valor.'],
     ['📦','Pacotes mostram os valores e deixam você montar o preço','No Catálogo, cada item do pacote mostra o valor de tabela e você pode <b>alterar o valor dele dentro do pacote</b> (ex.: exame de R$ 50 por R$ 45). O app soma tudo, mostra o desconto e o lucro, e você ainda pode digitar o <b>total do pacote</b> ou um <b>% de desconto</b> que ele divide entre os itens. Na lista e na busca, o pacote já aparece com o preço total e o que tem dentro.'],
     ['✅','Aviso de backup some depois de fazer o backup','Corrigido: a faixa vermelha “Seus dados estão em risco” continuava aparecendo mesmo depois de salvar o backup. Agora, assim que o arquivo é salvo (ou enviado ao destino escolhido), o contador zera e a faixa some. Se você cancelar, o aviso continua.'],
@@ -9344,7 +9345,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.22 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.23 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -11908,8 +11909,8 @@ function catChipsDef(lista){
 }
 function catNoFiltro(x, g){ return g==='Todos' || (g==='__pac' ? x.tipo==='pacote' : g==='__peso' ? x.tipo==='peso' : x.grupo===g); }
 function catTipoPill(it){
-  return it.tipo==='pacote' ? '<span style="background:#E6F4F1;color:#1B7F72;border-radius:10px;padding:1px 8px;font-weight:700">📦 Pacote</span>'
-    : it.tipo==='peso' ? '<span style="background:#EAF0FB;color:#2C5AA0;border-radius:10px;padding:1px 8px;font-weight:700">🐾 Por peso</span>' : '';
+  return it.tipo==='pacote' ? '<span style="display:inline-block;white-space:nowrap;background:#E6F4F1;color:#1B7F72;border-radius:10px;padding:1px 8px;font-weight:700">📦 Pacote</span>'
+    : it.tipo==='peso' ? '<span style="display:inline-block;white-space:nowrap;background:#EAF0FB;color:#2C5AA0;border-radius:10px;padding:1px 8px;font-weight:700">🐾 Por peso</span>' : '';
 }
 function catPrecoBloco(it, pesoKg){
   if(it.tipo==='pacote'){
@@ -11927,7 +11928,7 @@ function catPacDetalhe(it, pesoKg){
   const t = catPacTotais(it, pesoKg);
   return `<div style="background:var(--bg2,#F1F7F5);border-radius:10px;padding:8px 10px"><div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:2px">O pacote inclui</div>`
     + ls.map(l=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid rgba(0,0,0,.07);font-size:12px;color:var(--text,#1A2F5A)"><span style="min-width:0">${esc(l.desc)}</span><b style="flex-shrink:0">${l.venda>0?fmtBRL(l.venda):'sem preço'}</b></div>`).join('')
-    + (t.desc>0.004 ? `<div style="margin-top:4px;padding-top:5px;border-top:1px solid rgba(0,0,0,.07);color:var(--success);font-weight:700;font-size:12px">Desconto do pacote: ${fmtBRL(t.desc)} (${String(t.pct).replace('.',',')}%) · tabela ${fmtBRL(t.tabela)}</div>` : '')
+    + (t.desc>0.004 ? `<div style="margin-top:4px;padding-top:5px;border-top:1px solid rgba(0,0,0,.07);color:var(--success);font-weight:700;font-size:12px">Desconto do pacote: ${fmtBRL(t.desc)} (${String(t.pct).replace('.',',')}%) <span style="white-space:nowrap">· tabela ${fmtBRL(t.tabela)}</span></div>` : '')
     + '</div>';
 }
 // Preço ATUAL no catálogo para um item já gravado num atendimento/orçamento (null = item do catálogo não existe mais)
@@ -11973,10 +11974,9 @@ function catRedesenhar(){
     const lucro = (venda>0 && custo!=null) ? ` · lucro ${fmtBRL(venda-custo)}` : '';
     const inativo = it.ativo === false;
     return `<div class="card catrec" data-catid="${it.id}" style="${inativo?'opacity:.55':''}">
-      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
-        <div style="min-width:0"><b style="font-size:14px">${esc(it.nome)}</b>
-          <div style="font-size:11px;color:var(--muted)">${esc(it.grupo||'Outros')} ${catTipoPill(it)}${inativo?' · desativado':''}</div></div>
-        <div style="text-align:right;font-weight:800;color:var(--vet);font-size:13px;flex-shrink:0">${catPrecoTxt(it)}</div></div>
+      <div style="min-width:0"><b style="font-size:15px;line-height:1.25;display:block;overflow-wrap:anywhere">${esc(it.nome)}</b>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center"><span>${esc(it.grupo||'Outros')}</span>${catTipoPill(it)}${inativo?'<span>· desativado</span>':''}</div>
+        <div style="font-weight:800;color:var(--vet);font-size:14px;margin-top:6px;line-height:1.35;overflow-wrap:anywhere">${catPrecoTxt(it)}</div></div>
       ${it.tipo==='simples' && custo>0 ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">🧾 custo ${fmtBRL(custo)}${lucro}</div>`:''}
       ${it.tipo==='pacote' ? `<div class="pacdet" style="font-size:11px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px dashed var(--border,#DDE7E4)">${catPacDetalhe(it, 0)}</div>`:''}
       <div style="display:flex;gap:6px;margin-top:8px"><button class="btn sm outline" onclick="catForm('${it.id}')">✏️ Editar</button>
@@ -12194,8 +12194,8 @@ function catCompPickerLista(){
   const jaTem = id => !!document.querySelector('#cfComps .comp[data-item="'+id+'"]');
   box.innerHTML = itens.map(it => `<div class="card cpitem" data-catid="${it.id}" style="padding:12px 14px;margin:0 0 10px">
       <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
-        <div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:800;line-height:1.25;color:var(--text,#1A2F5A)">${esc(it.nome)}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:3px">${esc(it.grupo||'')} ${catTipoPill(it)}</div>
+        <div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:800;line-height:1.25;overflow-wrap:anywhere;color:var(--text,#1A2F5A)">${esc(it.nome)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center"><span>${esc(it.grupo||'')}</span>${catTipoPill(it)}</div>
           <div style="margin-top:6px">${catPrecoBloco(it, 0)}</div></div>
         <button type="button" class="btn sm ${jaTem(it.id)?'feito':''}" style="flex-shrink:0" onclick="catCompPickerUsar('${it.id}')">${jaTem(it.id)?'✓ No pacote':'➕ Incluir'}</button></div></div>`).join('')
     || '<div style="font-size:13px;color:var(--muted);padding:14px;text-align:center">'+(todos.length?'Nada encontrado.':'Cadastre antes os itens simples ou por peso que fazem parte do pacote.')+'</div>';
@@ -12352,8 +12352,8 @@ function catPainelLista(){
     const n = window._catUsados[it.id] || 0;
     return `<div class="card catpk" data-catid="${it.id}" style="padding:12px 14px;margin:0 0 10px">
       <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
-        <div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:800;line-height:1.25;color:var(--text,#1A2F5A)">${esc(it.nome)}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:3px">${esc(it.grupo||'')} ${catTipoPill(it)}</div></div>
+        <div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:800;line-height:1.25;overflow-wrap:anywhere;color:var(--text,#1A2F5A)">${esc(it.nome)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center"><span>${esc(it.grupo||'')}</span>${catTipoPill(it)}</div></div>
         <button type="button" id="catU_${it.id}" class="btn sm ${n?'feito':''}" style="flex-shrink:0" onclick="catAdicionar('${it.id}')">${n?'✓ Adicionado'+(n>1?' ×'+n:''):'➕ Usar'}</button></div>
       <div style="margin-top:8px">${catPrecoBloco(it, pet?.weight)}</div>${sel}
       ${it.tipo==='pacote' ? `<div class="pacdet" style="margin-top:10px">${catPacDetalhe(it, pet?.weight)}<div style="margin-top:5px;font-size:10px;color:var(--muted)">Depois de adicionar, você ainda pode alterar o valor de cada linha no atendimento.</div></div>` : ''}</div>`;
