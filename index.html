@@ -3324,14 +3324,15 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.20';
+const APP_VER = '10.21';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.20',
+  ver: '10.21',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['📦','Pacotes mostram os valores e deixam você montar o preço','No Catálogo, cada item do pacote mostra o valor de tabela e você pode <b>alterar o valor dele dentro do pacote</b> (ex.: exame de R$ 50 por R$ 45). O app soma tudo, mostra o desconto e o lucro, e você ainda pode digitar o <b>total do pacote</b> ou um <b>% de desconto</b> que ele divide entre os itens. Na lista e na busca, o pacote já aparece com o preço total e o que tem dentro.'],
     ['✅','Aviso de backup some depois de fazer o backup','Corrigido: a faixa vermelha “Seus dados estão em risco” continuava aparecendo mesmo depois de salvar o backup. Agora, assim que o arquivo é salvo (ou enviado ao destino escolhido), o contador zera e a faixa some. Se você cancelar, o aviso continua.'],
     ['⚖️','Catálogo: pesos do jeito que você quiser','Nos itens “Varia por peso” agora você digita cada peso (1 kg, 2 kg, 3 kg, 4 kg, 7,5 kg…) com o seu preço e custo, adiciona e remove linhas, ou gera uma tabela de 1 em 1, 2 em 2, 3 em 3, 5 em 5 ou 10 em 10 kg e ajusta depois.'],
     ['🔁','Restaurar backup sem pedir cadastro de novo','Corrigido: depois de restaurar um backup antigo, o app voltava a mostrar “Crie seu acesso” ao reabrir. Agora ele reconhece seus dados e abre direto. Quem já estava nesse problema é reconhecido automaticamente ao atualizar.'],
@@ -9342,7 +9343,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.20 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.21 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -11303,7 +11304,7 @@ function servItemRow(i, desc='', valor='', custo='', iid='', despId='', cat=null
   const trava = !!window._custoLock;
   cat = cat || {};
   const _ci = cat.catId ? catItem(cat.catId) : null;
-  const catAttr = cat.catId ? `data-catid="${cat.catId}" ${cat.faixaI!=null?`data-faixa="${cat.faixaI}"`:''} ${cat.qtd&&cat.qtd!==1?`data-qtd="${cat.qtd}"`:''} ${cat.custoDet?`data-custodet="${esc(cat.custoDet)}"`:''}` : '';
+  const catAttr = cat.catId ? `data-catid="${cat.catId}" ${cat.faixaI!=null?`data-faixa="${cat.faixaI}"`:''} ${cat.qtd&&cat.qtd!==1?`data-qtd="${cat.qtd}"`:''} ${cat.custoDet?`data-custodet="${esc(cat.custoDet)}"`:''} ${cat.pac?`data-pac="${cat.pac}"`:''}` : '';
   const faixaSel = (_ci && _ci.tipo==='peso' && cat.faixaI!=null) ? `<select class="sFaixa" style="margin:0;font-size:13px;flex:1.3;min-width:0" onchange="catTrocaFaixa(this)">${_ci.faixas.map((f,k)=>`<option value="${k}" ${k===cat.faixaI?'selected':''}>🐾 ${catFaixaLabel(_ci,k)}</option>`).join('')}</select>` : '';
   return `<div class="srow${cat.catId?' catlinha':''}" ${iid?`data-iid="${iid}"`:''} ${despId?`data-desp="${despId}"`:''} ${catAttr} style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px">
     <input class="sDesc" placeholder="Ex: Consulta · Vacina V10 · Hemograma" value="${desc}" style="flex:2;min-width:0">
@@ -11570,7 +11571,7 @@ function saveAppt(petId, force){
       if(c > 0) it.custo = c;
       if(c > 0 || row.dataset.iid) it.id = row.dataset.iid || uid();
       if(row.dataset.desp) it.despId = row.dataset.desp;
-      if(row.dataset.catid){ it.catId = row.dataset.catid; if(row.dataset.faixa!==undefined && row.dataset.faixa!=='') it.faixaI = parseInt(row.dataset.faixa); if(row.dataset.qtd && row.dataset.qtd!=='1') it.qtd = parseInt(row.dataset.qtd)||1; if(row.dataset.custodet) it.custoDet = row.dataset.custodet; }
+      if(row.dataset.catid){ it.catId = row.dataset.catid; if(row.dataset.faixa!==undefined && row.dataset.faixa!=='') it.faixaI = parseInt(row.dataset.faixa); if(row.dataset.qtd && row.dataset.qtd!=='1') it.qtd = parseInt(row.dataset.qtd)||1; if(row.dataset.custodet) it.custoDet = row.dataset.custodet; if(row.dataset.pac) it.pac = row.dataset.pac; }
       itens.push(it);
     }
   });
@@ -11860,7 +11861,17 @@ function catResolver(it, pesoKg, faixaI, qtd){
   qtd = qtd || 1; const q = qtd>1 ? qtd+'× ' : '';
   if(it.tipo === 'pacote'){
     let out = [];
-    (it.comps||[]).forEach(c => { const sub = catItem(c.itemId); if(sub && sub.tipo !== 'pacote') out = out.concat(catResolver(sub, pesoKg, null, (c.qtd||1))); });
+    (it.comps||[]).forEach(c => {
+      const sub = catItem(c.itemId); if(!sub || sub.tipo === 'pacote') return;
+      const q = c.qtd||1; const ls = catResolver(sub, pesoKg, null, q);
+      ls.forEach(l => { l.pac = it.id; });
+      // v10.21: valor do item DENTRO do pacote (ex.: exame de 50 sai por 45)
+      if(c.venda != null && isFinite(c.venda) && ls.length === 1){
+        const l = ls[0]; l.venda = rnd2(c.venda*q); l.fixoPac = true;
+        if(sub.tipo === 'peso'){ delete l.faixaI; l.semFaixa = false; l.desc = (q>1?q+'× ':'')+sub.nome; }
+      }
+      out = out.concat(ls);
+    });
     return out;
   }
   if(it.tipo === 'peso'){
@@ -11873,14 +11884,32 @@ function catResolver(it, pesoKg, faixaI, qtd){
   const det = (it.custos||[]).filter(c=>c.valor>0).map(c=>(c.desc||'Custo')+' '+fmtBRL(c.valor)).join(' + ');
   return [{desc: q+it.nome, venda: rnd2((it.venda||0)*qtd), custo: rnd2(catCustoTotal(it)*qtd), custoDet: det, catId: it.id, qtd}];
 }
-function catPrecoTxt(it){
+function catPrecoTxt(it, pesoKg){
   if(it.tipo === 'peso'){ const v = (it.faixas||[]).map(f=>f.venda).filter(x=>x>0); return v.length ? 'de '+fmtBRL(Math.min(...v))+' a '+fmtBRL(Math.max(...v))+' (por peso)' : 'preencha as faixas de peso'; }
-  if(it.tipo === 'pacote'){ const l = catResolver(it, 0); return fmtBRL(l.reduce((s,x)=>s+x.venda,0))+' (pacote de '+(it.comps||[]).length+')'; }
+  if(it.tipo === 'pacote'){ const t = catPacTotais(it, pesoKg); return fmtBRL(t.pacote)+(t.tabela>t.pacote+0.004?' <s style="font-weight:400;color:var(--muted)">'+fmtBRL(t.tabela)+'</s>':'')+' (pacote de '+(it.comps||[]).length+')'; }
   return it.venda > 0 ? fmtBRL(it.venda) : 'sem preço';
+}
+// v10.21 — totais do pacote: valor de tabela (soma dos itens) x valor do pacote (com os valores alterados)
+function catPacTotais(it, pesoKg){
+  const ls = catResolver(it, pesoKg||0); let tabela = 0;
+  (it.comps||[]).forEach(c => { const sub = catItem(c.itemId); if(!sub || sub.tipo==='pacote') return; tabela += catResolver(sub, pesoKg||0, null, c.qtd||1).reduce((a,x)=>a+x.venda,0); });
+  const pacote = rnd2(ls.reduce((a,x)=>a+x.venda,0)); tabela = rnd2(tabela);
+  return {tabela, pacote, desc: rnd2(tabela-pacote), pct: tabela>0 ? Math.round((tabela-pacote)/tabela*1000)/10 : 0, n: ls.length};
+}
+function catPacDetalhe(it, pesoKg){
+  const ls = catResolver(it, pesoKg||0); if(!ls.length) return '';
+  const t = catPacTotais(it, pesoKg);
+  return ls.map(l=>`<div style="display:flex;justify-content:space-between;gap:8px"><span style="min-width:0">${esc(l.desc)}</span><b style="flex-shrink:0">${l.venda>0?fmtBRL(l.venda):'sem preço'}</b></div>`).join('')
+    + (t.desc>0.004 ? `<div style="margin-top:3px;color:var(--success);font-weight:700">Desconto do pacote: ${fmtBRL(t.desc)} (${String(t.pct).replace('.',',')}%) · tabela ${fmtBRL(t.tabela)}</div>` : '');
 }
 // Preço ATUAL no catálogo para um item já gravado num atendimento/orçamento (null = item do catálogo não existe mais)
 function catPrecoAtual(i){
   const it = i.catId ? catItem(i.catId) : null; if(!it) return null;
+  if(i.pac){   // linha que veio de um pacote: vale o valor do item DENTRO do pacote
+    const pk = catItem(i.pac); const c = pk && pk.tipo==='pacote' && (pk.comps||[]).find(x=>x.itemId===i.catId);
+    if(!c) return null;
+    if(c.venda != null && isFinite(c.venda)) return {venda: rnd2(c.venda*(i.qtd||1))};
+  }
   if(it.tipo === 'peso'){
     let fi = i.faixaI; if(fi == null || !it.faixas[fi]) return null;
     return {venda: rnd2((it.faixas[fi].venda||0)*(i.qtd||1))};
@@ -11921,6 +11950,7 @@ function catRedesenhar(){
           <div style="font-size:11px;color:var(--muted)">${esc(it.grupo||'Outros')}${it.tipo==='peso'?' · 🐾 por peso':''}${it.tipo==='pacote'?' · 📦 pacote':''}${inativo?' · desativado':''}</div></div>
         <div style="text-align:right;font-weight:800;color:var(--vet);font-size:13px;flex-shrink:0">${catPrecoTxt(it)}</div></div>
       ${it.tipo==='simples' && custo>0 ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">🧾 custo ${fmtBRL(custo)}${lucro}</div>`:''}
+      ${it.tipo==='pacote' ? `<div class="pacdet" style="font-size:11px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px dashed var(--border,#DDE7E4)">${catPacDetalhe(it, 0)}</div>`:''}
       <div style="display:flex;gap:6px;margin-top:8px"><button class="btn sm outline" onclick="catForm('${it.id}')">✏️ Editar</button>
         <button class="btn sm gray" onclick="catDuplicar('${it.id}')">⧉ Duplicar</button>
         <button class="btn sm gray" style="margin-left:auto" onclick="catExcluir('${it.id}')">🗑</button></div></div>`;
@@ -12025,18 +12055,85 @@ function catTipoSel(t){
   _catTipo = t;
   document.querySelectorAll('#cfTipo .chip').forEach(c=>c.classList.toggle('on', c.dataset.t===t));
   ['simples','peso','pacote'].forEach(k => { const e = document.getElementById('cfB_'+k); if(e) e.style.display = k===t?'block':'none'; });
+  if(t==='pacote') catPacRecalc();
   if(t==='peso' && !document.querySelector('#cfFaixas .frow')){ const m=document.getElementById('cfMax'); if(m && !m.value) m.value=30; catGerarFaixas(); }
 }
-function catCompRow(itemId, qtd){
+function catCompRow(itemId, qtd, venda){
   const sub = catItem(itemId); if(!sub) return '';
-  return `<div class="comp" data-item="${sub.id}" style="display:flex;gap:6px;align-items:center;margin-top:6px">
-    <span style="flex:1;font-size:13px;font-weight:700;min-width:0">${esc(sub.nome)}<span style="font-size:10px;color:var(--muted);font-weight:400"> · ${catPrecoTxt(sub)}</span></span>
-    <input class="cfQtd" type="number" min="1" max="99" value="${qtd||1}" style="width:58px;text-align:center;margin:0"><button type="button" style="background:none;color:var(--muted);font-size:15px" onclick="this.parentElement.remove()">✕</button></div>`;
+  const peso = sub.tipo === 'peso';
+  const tab = peso ? '' : (sub.venda>0 ? sub.venda : '');
+  const ini = (venda != null && isFinite(venda)) ? venda : tab;
+  const temIni = ini !== '' && ini != null;
+  return `<div class="comp" data-item="${sub.id}" data-tab="${tab}" data-peso="${peso?'1':''}" style="margin-top:8px;padding:8px 10px;border:1px solid var(--border,#DDE7E4);border-radius:12px">
+    <div style="display:flex;gap:6px;align-items:center">
+      <span style="flex:1;font-size:13px;font-weight:700;min-width:0">${esc(sub.nome)}<div style="font-size:10px;color:var(--muted);font-weight:400">Tabela: ${catPrecoTxt(sub)}</div></span>
+      <span style="font-size:10px;color:var(--muted)">Qtd</span>
+      <input class="cfQtd" type="number" min="1" max="99" value="${qtd||1}" style="width:54px;text-align:center;margin:0" oninput="catPacRecalc()">
+      <button type="button" aria-label="Remover do pacote" style="background:none;color:var(--muted);font-size:15px" onclick="this.closest('.comp').remove();catPacRecalc()">✕</button></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:6px"><span style="font-size:11px;font-weight:700;flex-shrink:0">Valor no pacote</span>
+      <input class="cfCVenda" inputmode="numeric" placeholder="${peso?'por peso':'R$ 0,00'}" value="${temIni?moedaInit(ini):''}" data-valor="${temIni?ini:0}" style="flex:1;min-width:0;margin:0" oninput="maskMoeda(this);catPacRecalc()"></div>
+    <div class="cfCSub" style="font-size:11px;color:var(--muted);margin-top:4px"></div></div>`;
+}
+function catPacLer(){
+  return [...document.querySelectorAll('#cfComps .comp')].map(r => {
+    const inp = r.querySelector('.cfCVenda'); const vazio = (inp.value||'').trim() === '';
+    return {r, sub: catItem(r.dataset.item), q: Math.max(1, parseInt(r.querySelector('.cfQtd').value)||1),
+      u: vazio ? null : moedaVal(inp), tab: r.dataset.tab === '' ? null : parseFloat(r.dataset.tab), peso: r.dataset.peso === '1', inp};
+  });
+}
+function catPacSet(x, v){ v = rnd2(v); x.inp.dataset.valor = String(v); x.inp.value = v>0 ? moedaInit(v) : 'R$ 0,00'; x.u = v; }
+function catPacRecalc(){
+  const box = document.getElementById('cfPacResumo'); if(!box) return;
+  const L = catPacLer(); let tabela = 0, pac = 0, custo = 0, nAuto = 0, temPeso = false;
+  L.forEach(x => {
+    const sb = x.r.querySelector('.cfCSub');
+    if(x.u != null){
+      pac += x.u*x.q; tabela += (x.tab != null ? x.tab : x.u)*x.q;
+      const d = (x.tab != null && x.tab > 0 && x.u < x.tab - 0.004) ? ` · <span style="color:var(--success);font-weight:700">−${String(Math.round((x.tab-x.u)/x.tab*1000)/10).replace('.',',')}% (${fmtBRL(x.tab-x.u)} a menos)</span>` : (x.tab != null && x.u > x.tab + 0.004 ? ` · <span style="color:var(--danger);font-weight:700">+${fmtBRL(x.u-x.tab)} acima da tabela</span>` : '');
+      if(sb) sb.innerHTML = `${x.q}× ${fmtBRL(x.u)} = <b style="color:var(--text,#1A2F5A)">${fmtBRL(x.u*x.q)}</b>${d}`;
+    } else { nAuto++; if(sb) sb.textContent = 'Sem valor fixo: no atendimento entra o valor da faixa de peso do paciente.'; }
+    if(x.sub){ if(x.peso) temPeso = true; else custo += catCustoTotal(x.sub)*x.q; }
+  });
+  pac = rnd2(pac); tabela = rnd2(tabela); const desc = rnd2(tabela-pac);
+  box.dataset.tabela = String(tabela);
+  if(!L.length){ box.innerHTML = '<span style="color:var(--muted)">Inclua itens para ver o total do pacote.</span>'; return; }
+  const lucro = (!temPeso && custo > 0) ? ` · Custo <b>${fmtBRL(custo)}</b> · Lucro <b style="color:${pac-custo>=0?'var(--success)':'var(--danger)'}">${fmtBRL(pac-custo)}</b>` : '';
+  box.innerHTML = `<div style="display:flex;justify-content:space-between;gap:8px"><span>Valor de tabela dos itens</span><b>${fmtBRL(tabela)}</b></div>
+    <div style="display:flex;justify-content:space-between;gap:8px;font-size:15px;margin-top:2px"><span><b>Total do pacote</b></span><b style="color:var(--vet)">${fmtBRL(pac)}</b></div>
+    ${desc > 0.004 ? `<div style="color:var(--success);font-weight:700;margin-top:2px">Desconto de ${fmtBRL(desc)} (${String(Math.round(desc/tabela*1000)/10).replace('.',',')}%) para o cliente</div>` : ''}
+    ${nAuto ? `<div style="color:var(--muted);margin-top:2px">+ ${nAuto} ${nAuto===1?'item':'itens'} por peso (valor definido no atendimento)</div>` : ''}
+    ${lucro ? `<div style="margin-top:2px">${lucro.replace(/^ · /,'')}</div>` : ''}`;
+  const t = document.getElementById('cfPacTotal');
+  if(t && document.activeElement !== t){ t.dataset.valor = String(pac); t.value = pac>0 ? moedaInit(pac) : ''; }
+}
+// digita o TOTAL do pacote (ou % de desconto) e o app divide proporcionalmente entre os itens
+function catPacAplicarTotal(alvo){
+  const L = catPacLer().filter(x => x.u != null);
+  if(!L.length){ toast('⚠ Inclua itens com valor no pacote'); return; }
+  const base = L.map(x => (x.tab != null ? x.tab : x.u)*x.q); const soma = base.reduce((a,b)=>a+b,0);
+  if(alvo == null) alvo = moedaVal(document.getElementById('cfPacTotal'));
+  if(!(alvo >= 0) || !(soma > 0)){ toast('⚠ Informe o total do pacote'); return; }
+  L.forEach((x,i) => catPacSet(x, alvo*base[i]/soma/x.q));
+  const atual = rnd2(L.reduce((a,x)=>a+x.u*x.q,0)); const dif = rnd2(alvo-atual);
+  if(Math.abs(dif) >= 0.01){ const a = L.find(x=>x.q===1); if(a) catPacSet(a, a.u+dif); }
+  const t = document.getElementById('cfPacTotal'); if(t) t.blur();
+  catPacRecalc();
+}
+function catPacAplicarPct(){
+  const el = document.getElementById('cfPacPct'); const p = parseFloat(String(el.value||'').replace(',','.'));
+  const tab = parseFloat(document.getElementById('cfPacResumo').dataset.tabela)||0;
+  if(!(p >= 0 && p <= 100)){ toast('⚠ Desconto entre 0 e 100%'); return; }
+  catPacAplicarTotal(rnd2(tab*(1-p/100)));
+}
+function catPacRestaurar(){
+  document.querySelectorAll('#cfComps .comp').forEach(r => { const x = catPacLer().find(y=>y.r===r); if(!x) return;
+    if(x.tab != null) catPacSet(x, x.tab); else { x.inp.value = ''; x.inp.dataset.valor = '0'; } });
+  catPacRecalc();
 }
 function catAddComp(){
   const id = document.getElementById('cfCompSel').value; if(!id) return;
   if(document.querySelector('#cfComps .comp[data-item="'+id+'"]')){ toast('Este item já está no pacote'); return; }
-  document.getElementById('cfComps').insertAdjacentHTML('beforeend', catCompRow(id,1));
+  document.getElementById('cfComps').insertAdjacentHTML('beforeend', catCompRow(id,1)); catPacRecalc();
 }
 function catForm(id){
   const it = id ? catItem(id) : null;
@@ -12070,14 +12167,20 @@ function catForm(id){
       <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button type="button" class="btn sm outline" onclick="catAddFaixa()">➕ Adicionar peso</button>
         <button type="button" class="btn sm outline" onclick="catAddAcima()">➕ Linha “Acima do último”</button></div></div>
     <div id="cfB_pacote" style="display:${_catTipo==='pacote'?'block':'none'}">
-      <div style="font-size:11px;color:var(--muted);margin:4px 0">Ao escolher o pacote no atendimento, todos os itens abaixo entram de uma vez (item por peso já vem na faixa do paciente).</div>
-      <div id="cfComps">${(it?.comps||[]).map(c=>catCompRow(c.itemId,c.qtd)).join('')}</div>
-      ${outros.length ? `<div style="display:flex;gap:6px;margin-top:8px"><select id="cfCompSel" style="flex:1;margin:0"><option value="">Escolha um item…</option>${outros.map(o=>`<option value="${o.id}">${esc(o.nome)}</option>`).join('')}</select>
-        <button type="button" class="btn sm outline" onclick="catAddComp()">➕ Incluir</button></div>` : '<div style="font-size:12px;color:var(--danger);margin-top:8px">Cadastre antes os itens simples ou por peso que fazem parte do pacote.</div>'}</div>
+      <div style="font-size:11px;color:var(--muted);margin:4px 0">Ao escolher o pacote no atendimento, todos os itens entram de uma vez. Cada item mostra o valor de tabela: <b>altere o “Valor no pacote”</b> para montar um preço melhor (ex.: exame de 50 por 45). Item por peso entra na faixa do paciente, ou digite um valor fixo.</div>
+      <div id="cfComps">${(it?.comps||[]).map(c=>catCompRow(c.itemId,c.qtd,c.venda)).join('')}</div>
+      ${outros.length ? `<div style="display:flex;gap:6px;margin-top:8px"><select id="cfCompSel" style="flex:1;margin:0"><option value="">Escolha um item…</option>${outros.map(o=>`<option value="${o.id}">${esc(o.nome)} — ${esc(catPrecoTxt(o))}</option>`).join('')}</select>
+        <button type="button" class="btn sm outline" onclick="catAddComp()">➕ Incluir</button></div>` : '<div style="font-size:12px;color:var(--danger);margin-top:8px">Cadastre antes os itens simples ou por peso que fazem parte do pacote.</div>'}
+      <div id="cfPacResumo" style="font-size:12px;margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--bg2,#F1F7F5);line-height:1.5"></div>
+      <label style="margin-top:10px">Fechar por um total (o app divide entre os itens)</label>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <input id="cfPacTotal" inputmode="numeric" placeholder="Total do pacote R$" style="flex:1.4;min-width:120px;margin:0" oninput="maskMoeda(this)" onchange="catPacAplicarTotal()">
+        <input id="cfPacPct" inputmode="decimal" placeholder="% desc." style="flex:.8;min-width:70px;margin:0;text-align:center" onchange="catPacAplicarPct()">
+        <button type="button" class="btn sm outline" onclick="catPacRestaurar()">↺ Valores de tabela</button></div></div>
     <label>Observação (opcional)</label><input id="cfObs" value="${esc(it?.obs||'')}" placeholder="Só você vê">
     <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="cfAtivo" style="width:auto;margin:0" ${it?.ativo===false?'':'checked'}> Item ativo (aparece ao puxar no atendimento)</label>`,
     `<button class="btn gray" onclick="closeSheet()">Cancelar</button><button class="btn" onclick="catSalvar()">💾 Salvar</button>`);
-  catRecalc();
+  catRecalc(); catPacRecalc();
 }
 function catSalvar(){
   const nome = val('cfNome').trim(); if(!nome){ toast('⚠ Informe o nome do serviço'); return; }
@@ -12103,7 +12206,15 @@ function catSalvar(){
     if(!base.faixas.length){ toast('⚠ Adicione pelo menos um peso'); return; }
     if(!base.faixas.some(f=>f.venda>0)){ toast('⚠ Preencha o preço de venda de pelo menos uma faixa'); return; }
   } else {
-    base.comps = [...document.querySelectorAll('#cfComps .comp')].map(c=>({itemId:c.dataset.item, qtd: Math.max(1, parseInt(c.querySelector('.cfQtd').value)||1)}));
+    base.comps = [];
+    for(const x of catPacLer()){
+      const c = {itemId: x.r.dataset.item, qtd: x.q};
+      if(x.u != null){
+        if(x.u < 0){ toast('⚠ Valor negativo — corrija'); return; }
+        if(!(x.tab != null && Math.abs(x.u-x.tab) < 0.005)) c.venda = x.u;   // igual à tabela = acompanha o catálogo
+      }
+      base.comps.push(c);
+    }
     if(!base.comps.length){ toast('⚠ Inclua pelo menos um item no pacote'); return; }
   }
   delete base._neg;
@@ -12169,8 +12280,8 @@ function catPainelLista(){
     }
     const n = window._catUsados[it.id] || 0;
     return `<div class="card" style="padding:10px 12px;margin:0 0 8px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
-      <div style="min-width:0"><b style="font-size:14px">${esc(it.nome)}</b><div style="font-size:11px;color:var(--muted)">${esc(it.grupo||'')} · ${catPrecoTxt(it)}</div></div>
-      <button type="button" id="catU_${it.id}" class="btn sm ${n?'feito':''}" style="flex-shrink:0" onclick="catAdicionar('${it.id}')">${n?'✓ Adicionado'+(n>1?' ×'+n:''):'➕ Usar'}</button></div>${sel}</div>`;
+      <div style="min-width:0"><b style="font-size:14px">${esc(it.nome)}</b><div style="font-size:11px;color:var(--muted)">${esc(it.grupo||'')} · ${catPrecoTxt(it, pet?.weight)}</div></div>
+      <button type="button" id="catU_${it.id}" class="btn sm ${n?'feito':''}" style="flex-shrink:0" onclick="catAdicionar('${it.id}')">${n?'✓ Adicionado'+(n>1?' ×'+n:''):'➕ Usar'}</button></div>${sel}${it.tipo==='pacote' ? `<div class="pacdet" style="font-size:11px;color:var(--muted);margin-top:8px;padding-top:6px;border-top:1px dashed var(--border,#DDE7E4)">${catPacDetalhe(it, pet?.weight)}<div style="margin-top:3px;font-size:10px">Depois de adicionar, você ainda pode alterar o valor de cada linha no atendimento.</div></div>` : ''}</div>`;
   }).join('') || '<div style="font-size:13px;color:var(--muted);padding:14px;text-align:center">Nada encontrado.</div>';
   catPickerResumo();
 }
@@ -12189,7 +12300,7 @@ function catAdicionar(id){
   if(rows.length === 1 && !rows[0].querySelector('.sDesc').value.trim() && !moedaVal(rows[0].querySelector('.sVal'))) rows[0].remove();
   const pode = isPro() && !window._custoLock;
   linhas.forEach(l => {
-    box.insertAdjacentHTML('beforeend', servItemRow(0, esc(l.desc), l.venda, pode ? l.custo : '', '', '', {catId:l.catId, faixaI:l.faixaI, qtd:l.qtd, custoDet: pode ? l.custoDet : ''}));
+    box.insertAdjacentHTML('beforeend', servItemRow(0, esc(l.desc), l.venda, pode ? l.custo : '', '', '', {catId:l.catId, faixaI:l.faixaI, qtd:l.qtd, custoDet: pode ? l.custoDet : '', pac:l.pac}));
     const nr = box.lastElementChild; if(nr) nr.classList.add('novo');
   });
   recalcServTotal();
@@ -12223,7 +12334,7 @@ function orcSalvarNaFicha(pet, o, dias, hoje){
   const v = new Date(hoje+'T12:00:00'); v.setDate(v.getDate()+dias);
   const meioKey = document.querySelector('#fPMeio .chip.on')?.dataset.meio || '';
   const rec = {id:uid(), emitido:hoje, dias, validoAte:v.toISOString().slice(0,10), tipo:o.tipo, resumo:o.resumo,
-    itens:o.itens.map(i=>{ const x={desc:i.desc, valor:i.valor}; if(i.catId){ x.catId=i.catId; if(i.faixaI!=null) x.faixaI=i.faixaI; if(i.qtd&&i.qtd!==1) x.qtd=i.qtd; } return x; }),
+    itens:o.itens.map(i=>{ const x={desc:i.desc, valor:i.valor}; if(i.catId){ x.catId=i.catId; if(i.faixaI!=null) x.faixaI=i.faixaI; if(i.qtd&&i.qtd!==1) x.qtd=i.qtd; if(i.pac) x.pac=i.pac; } return x; }),
     subtotal:o.subtotal, pct:o.pct, descV:o.descV, total:o.total, meioKey, dateISO:o.dateISO, time:o.time, clinic:o.clinic};
   pet.orcamentos.push(rec); save(); return rec;
 }
@@ -12300,7 +12411,7 @@ function orcamentoColetar(){
   const itens = [...document.querySelectorAll('#fPItens .srow')].map(r => ({
     desc: (r.querySelector('.sDesc')?.value||'').trim(), valor: moedaVal(r.querySelector('.sVal')) || 0,
     catId: r.dataset.catid || undefined, faixaI: (r.dataset.faixa!==undefined && r.dataset.faixa!=='') ? parseInt(r.dataset.faixa) : undefined,
-    qtd: r.dataset.qtd ? (parseInt(r.dataset.qtd)||1) : undefined
+    qtd: r.dataset.qtd ? (parseInt(r.dataset.qtd)||1) : undefined, pac: r.dataset.pac || undefined
   })).filter(i => i.desc || i.valor);
   const subtotal = itens.reduce((a,i)=>a+i.valor, 0);
   let pct = parseFloat(String(document.getElementById('fPDesc')?.value||'').replace(',','.')) || 0;
