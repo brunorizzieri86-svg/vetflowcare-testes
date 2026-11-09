@@ -3324,14 +3324,16 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.19';
+const APP_VER = '10.20';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.19',
+  ver: '10.20',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['✅','Aviso de backup some depois de fazer o backup','Corrigido: a faixa vermelha “Seus dados estão em risco” continuava aparecendo mesmo depois de salvar o backup. Agora, assim que o arquivo é salvo (ou enviado ao destino escolhido), o contador zera e a faixa some. Se você cancelar, o aviso continua.'],
+    ['⚖️','Catálogo: pesos do jeito que você quiser','Nos itens “Varia por peso” agora você digita cada peso (1 kg, 2 kg, 3 kg, 4 kg, 7,5 kg…) com o seu preço e custo, adiciona e remove linhas, ou gera uma tabela de 1 em 1, 2 em 2, 3 em 3, 5 em 5 ou 10 em 10 kg e ajusta depois.'],
     ['🔁','Restaurar backup sem pedir cadastro de novo','Corrigido: depois de restaurar um backup antigo, o app voltava a mostrar “Crie seu acesso” ao reabrir. Agora ele reconhece seus dados e abre direto. Quem já estava nesse problema é reconhecido automaticamente ao atualizar.'],
     ['📥','Restaurar backup ficou mais fácil','Na tela de cadastro, toque em “Já tenho cadastro — entrar ou restaurar backup” e depois em “Restaurar backup agora” para trazer seus dados de volta com um arquivo de backup, sem refazer tudo. O aviso de backup também ficou mais firme, e na Central de Proteção há um guia de como limpar o Chrome sem apagar o VetFlowCare.'],
     ['🛡️','Proteção de dados reforçada','O lembrete de backup ficou mais firme (aviso ao abrir o app e faixa que não some quando o risco é alto). Novo guia na Central de Proteção: como limpar o histórico do Chrome SEM apagar o VetFlowCare. O app também tenta de novo travar o armazenamento contra limpeza automática do Android.'],
@@ -9340,7 +9342,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.19 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.20 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -9812,6 +9814,7 @@ async function saveFileSAF(name, blob){
   if(isNativeApp()){
     try{
       window._nativeUri = await nativeGravar('VetFlowCare/'+name, blob);
+      backupConcluido();
       vfcConfirm({icon:'✅', title:'Backup salvo!', msg:'Arquivo <b style="word-break:break-all">'+esc(name)+'</b><br>salvo na pasta <b>Documentos/VetFlowCare</b> do celular.',
         note:'Quer mandar uma cópia para o Drive ou WhatsApp?', noteColor:'var(--vac)', noLabel:'Fechar', yesLabel:'📤 Enviar cópia', yesBg:'var(--primary)', yes:'nativeCompartilhar()'});
       return true;
@@ -9823,9 +9826,10 @@ async function saveFileSAF(name, blob){
       const h = await showSaveFilePicker({suggestedName:name});
       const w = await h.createWritable();
       await w.write(blob); await w.close();
+      backupConcluido();
       toast('💾 Backup salvo!');
       return true;
-    }catch(e){ if(e.name === 'AbortError') return true; }
+    }catch(e){ if(e.name === 'AbortError') return false; }
   }
   // 2) Android/celular: oferece escolher o destino (Arquivos/Drive/WhatsApp) ou baixar direto
   window._pendFile = {name, blob};
@@ -9847,12 +9851,14 @@ function dlPendFile(){
   const a = document.createElement('a');
   a.href = URL.createObjectURL(p.blob);
   a.download = p.name; a.click();
+  backupConcluido();
   toast('📥 Backup salvo em Downloads');
 }
 async function sharePendFile(){
   const p = window._pendFile; if(!p) return;
   try{
     await navigator.share({files:[new File([p.blob], p.name, {type:'application/json'})], title:p.name});
+    backupConcluido();
     toast('💾 Backup enviado ao destino escolhido!');
   }catch(e){ if(e.name !== 'AbortError') dlPendFile(); }
 }
@@ -9960,7 +9966,7 @@ async function doExportJSON(){
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `vetflowcare_backup_${todayISO()}.json`;
-  a.click(); toast('📥 Backup exportado!'); bkAvisoFinal();
+  a.click(); backupConcluido(); toast('📥 Backup exportado!'); bkAvisoFinal();
 }
 // v10.12 — restauração blindada: erro completo na tela, anexo com problema não derruba tudo, memória cheia tratada
 // ═══ v10.13 — BACKUP GRANDE: leitura em pedaços (streaming) sem carregar o arquivo inteiro na memória ═══
@@ -10363,6 +10369,11 @@ function marcarAlteracao(){
   }catch(e){}
 }
 function altsSemBackup(){ return parseInt(testStorage.getItem('vfc_alt') || '0') || 0; }
+// v10.20: chamado SÓ quando o arquivo de backup foi realmente salvo/enviado (nunca em cancelamento)
+function backupConcluido(){
+  try{ zerarAlteracoes(); }catch(e){}
+  try{ render(); }catch(e){}
+}
 function zerarAlteracoes(){
   testStorage.setItem('vfc_alt', '0');
   testStorage.setItem('vfc_last_backup', todayISO());
@@ -11945,23 +11956,64 @@ function catCustoRow(c){ c = c||{};
     <input class="cfCVal" inputmode="numeric" placeholder="R$ 0,00" value="${moedaInit(c.valor)}" data-valor="${c.valor||0}" style="flex:1;min-width:0" oninput="maskMoeda(this);catRecalc()">
     <button type="button" style="background:none;color:var(--muted);font-size:15px" onclick="this.parentElement.remove();catRecalc()">✕</button></div>`;
 }
-function catFaixaRow(f, label){
-  return `<div class="frow" data-ate="${f.ate==null?'':f.ate}" style="display:flex;gap:6px;align-items:center;margin-top:6px">
-    <span style="flex:1.1;font-size:12px;font-weight:700">${label}</span>
+function catFaixaRow(f){
+  const acima = f.ate==null;
+  const input = acima
+    ? `<span style="flex:1.1;font-size:12px;font-weight:700">Acima do último</span>`
+    : `<span style="flex:1.1;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700">Até <input class="cfFAte" type="text" inputmode="decimal" placeholder="kg" value="${f.ate==null?'':String(f.ate).replace('.',',')}" style="margin:0;width:100%;min-width:0;padding:8px 6px;text-align:center"> kg</span>`;
+  return `<div class="frow" data-ate="${acima?'':f.ate}" data-acima="${acima?'1':''}" style="display:flex;gap:6px;align-items:center;margin-top:6px">
+    ${input}
     <input class="cfFVenda" inputmode="numeric" placeholder="Venda" value="${moedaInit(f.venda)}" data-valor="${f.venda||0}" style="flex:1;min-width:0" oninput="maskMoeda(this)">
-    <input class="cfFCusto" inputmode="numeric" placeholder="Custo" value="${moedaInit(f.custo)}" data-valor="${f.custo||0}" style="flex:1;min-width:0" oninput="maskMoeda(this)"></div>`;
+    <input class="cfFCusto" inputmode="numeric" placeholder="Custo" value="${moedaInit(f.custo)}" data-valor="${f.custo||0}" style="flex:1;min-width:0" oninput="maskMoeda(this)">
+    <button type="button" aria-label="Remover faixa" style="background:none;color:var(--muted);font-size:15px" onclick="this.parentElement.remove();catFaixaVazio()">✕</button></div>`;
 }
 function catFaixasHTML(arr){
-  return arr.map((f,i)=> catFaixaRow(f, f.ate==null ? 'Acima de '+(i>0?arr[i-1].ate:0)+' kg' : 'Até '+f.ate+' kg')).join('');
+  const a = (arr||[]).slice().sort((x,y)=> (x.ate==null?1e9:x.ate) - (y.ate==null?1e9:y.ate));
+  return a.map(catFaixaRow).join('');
+}
+function catPesoNum(v){ const n = parseFloat(String(v==null?'':v).replace(',','.')); return isFinite(n) ? n : NaN; }
+function catFaixasLer(){
+  return [...document.querySelectorAll('#cfFaixas .frow')].map(r => ({
+    acima: r.dataset.acima==='1',
+    ate: r.dataset.acima==='1' ? null : catPesoNum(r.querySelector('.cfFAte').value),
+    venda: moedaVal(r.querySelector('.cfFVenda')), custo: moedaVal(r.querySelector('.cfFCusto'))}));
+}
+function catFaixaVazio(){
+  const box = document.getElementById('cfFaixas'); if(!box) return;
+  const dica = document.getElementById('cfFaixasVazia'); if(dica) dica.style.display = box.querySelector('.frow') ? 'none' : 'block';
+}
+function catFaixasRedesenhar(arr){
+  document.getElementById('cfFaixas').innerHTML = catFaixasHTML(arr); catFaixaVazio();
+}
+function catAddFaixa(){
+  const cur = catFaixasLer(); const nums = cur.filter(f=>!f.acima && isFinite(f.ate)).map(f=>f.ate);
+  const passo = parseFloat(document.getElementById('cfPasso').value)||1;
+  const prox = nums.length ? Math.max(...nums)+passo : passo;
+  const novoArr = cur.filter(f=>!f.acima && isFinite(f.ate)).concat([{ate:prox,venda:0,custo:0}]);
+  // linhas ainda em branco continuam na tela; só acrescenta a nova antes do "acima"
+  const box = document.getElementById('cfFaixas');
+  const acimaRow = box.querySelector('.frow[data-acima="1"]');
+  const tmp = document.createElement('div'); tmp.innerHTML = catFaixaRow({ate:prox,venda:0,custo:0});
+  if(acimaRow) box.insertBefore(tmp.firstElementChild, acimaRow); else box.appendChild(tmp.firstElementChild);
+  catFaixaVazio();
+  const ins = box.querySelectorAll('.cfFAte'); const last = [...ins].find(e=>catPesoNum(e.value)===prox); if(last) last.focus();
+}
+function catAddAcima(){
+  const box = document.getElementById('cfFaixas');
+  if(box.querySelector('.frow[data-acima="1"]')){ toast('Já existe a linha “Acima do último”'); return; }
+  box.insertAdjacentHTML('beforeend', catFaixaRow({ate:null,venda:0,custo:0})); catFaixaVazio();
 }
 function catGerarFaixas(){
-  let max = parseInt(document.getElementById('cfMax').value)||0;
-  if(max < 5 || max > 200){ toast('⚠ Informe o peso máximo entre 5 e 200 kg'); return; }
-  max = Math.ceil(max/5)*5; document.getElementById('cfMax').value = max;
-  const antes = {}; document.querySelectorAll('#cfFaixas .frow').forEach(r => { antes[r.dataset.ate] = {venda: moedaVal(r.querySelector('.cfFVenda')), custo: moedaVal(r.querySelector('.cfFCusto'))}; });
-  const arr = []; for(let k=5;k<=max;k+=5) arr.push(Object.assign({ate:k,venda:0,custo:0}, antes[k]||{}));
-  arr.push(Object.assign({ate:null,venda:0,custo:0}, antes[''] || {}));
-  document.getElementById('cfFaixas').innerHTML = catFaixasHTML(arr);
+  const max = catPesoNum(document.getElementById('cfMax').value);
+  const passo = catPesoNum(document.getElementById('cfPasso').value);
+  if(!(passo>0) || !(max>0) || max>200){ toast('⚠ Informe o peso máximo (até 200 kg) e de quanto em quanto kg'); return; }
+  if(max/passo > 120){ toast('⚠ Muitas faixas — aumente o intervalo'); return; }
+  const antes = {}; let temAcima = null;
+  catFaixasLer().forEach(f => { if(f.acima) temAcima = f; else if(isFinite(f.ate)) antes[f.ate] = f; });
+  const arr = [];
+  for(let k=passo; k<=max+1e-9; k=Math.round((k+passo)*1000)/1000){ const kk = Math.round(k*1000)/1000; arr.push(Object.assign({ate:kk,venda:0,custo:0}, antes[kk]?{venda:antes[kk].venda,custo:antes[kk].custo}:{})); }
+  arr.push(temAcima ? {ate:null,venda:temAcima.venda,custo:temAcima.custo} : {ate:null,venda:0,custo:0});
+  catFaixasRedesenhar(arr);
 }
 function catRecalc(){
   let c = 0; document.querySelectorAll('#cfCustos .cfCVal').forEach(e=>c+=moedaVal(e));
@@ -11973,7 +12025,7 @@ function catTipoSel(t){
   _catTipo = t;
   document.querySelectorAll('#cfTipo .chip').forEach(c=>c.classList.toggle('on', c.dataset.t===t));
   ['simples','peso','pacote'].forEach(k => { const e = document.getElementById('cfB_'+k); if(e) e.style.display = k===t?'block':'none'; });
-  if(t==='peso' && !document.querySelector('#cfFaixas .frow')) catGerarFaixas();
+  if(t==='peso' && !document.querySelector('#cfFaixas .frow')){ const m=document.getElementById('cfMax'); if(m && !m.value) m.value=30; catGerarFaixas(); }
 }
 function catCompRow(itemId, qtd){
   const sub = catItem(itemId); if(!sub) return '';
@@ -11991,7 +12043,8 @@ function catForm(id){
   _catTipo = it ? it.tipo : 'simples'; window._catEditId = id || null;
   const outros = catLista().filter(x=>x.tipo!=='pacote' && x.id!==id);
   const faixas = it && it.tipo==='peso' ? it.faixas : null;
-  const maxKg = faixas ? Math.max(...faixas.filter(f=>f.ate!=null).map(f=>f.ate), 5) : 30;
+  const maxKg = faixas ? String(Math.max(...faixas.filter(f=>f.ate!=null).map(f=>f.ate), 1)).replace('.',',') : 30;
+  const passoIni = (()=>{ if(!faixas) return 5; const n=faixas.filter(f=>f.ate!=null).map(f=>f.ate).sort((x,y)=>x-y); if(n.length<2) return 5; const d=Math.round((n[1]-n[0])*1000)/1000; return [1,2,3,5,10].includes(d)?d:5; })();
   showSheet(it ? '✏️ Editar item' : '📚 Novo item do catálogo', `
     <label>Nome do serviço *</label><input id="cfNome" value="${esc(it?.nome||'')}" placeholder="Ex: Castração de cadela">
     <label>Grupo</label><select id="cfGrupo">${CAT_GRUPOS.map(g=>`<option ${(it?.grupo||'Consulta')===g?'selected':''}>${g}</option>`).join('')}</select>
@@ -12007,11 +12060,15 @@ function catForm(id){
       <button type="button" class="btn sm outline" style="margin-top:8px" onclick="document.getElementById('cfCustos').insertAdjacentHTML('beforeend',catCustoRow());">➕ Adicionar custo</button>
       <div id="cfResumo" style="font-size:12px;margin-top:8px"></div></div>
     <div id="cfB_peso" style="display:${_catTipo==='peso'?'block':'none'}">
-      <div style="font-size:11px;color:var(--muted);margin:4px 0">Faixas de 5 em 5 kg. Preencha o preço de venda e o custo de cada faixa.</div>
-      <div style="display:flex;gap:8px;align-items:center"><span style="font-size:12px;flex-shrink:0">Peso máximo</span><input id="cfMax" type="number" inputmode="numeric" value="${maxKg}" style="width:80px;margin:0"><span style="font-size:12px">kg</span>
-        <button type="button" class="btn sm outline" onclick="catGerarFaixas()">Gerar faixas</button></div>
-      <div style="display:flex;gap:6px;margin-top:8px;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase"><span style="flex:1.1">Faixa</span><span style="flex:1">Venda</span><span style="flex:1">Custo</span></div>
-      <div id="cfFaixas">${faixas ? catFaixasHTML(faixas) : ''}</div></div>
+      <div style="font-size:11px;color:var(--muted);margin:4px 0">Monte a tabela do seu jeito: digite cada peso (ex.: 1, 2, 3, 4… ou 2,5) e o preço/custo dele. O paciente cai na primeira linha cujo peso seja maior ou igual ao dele.</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span style="font-size:12px">Gerar até</span><input id="cfMax" type="text" inputmode="decimal" value="${maxKg}" style="width:64px;margin:0;text-align:center"><span style="font-size:12px">kg, de</span>
+        <select id="cfPasso" style="width:auto;margin:0">${[1,2,3,5,10].map(p=>`<option value="${p}" ${p===passoIni?'selected':''}>${p} em ${p} kg</option>`).join('')}</select>
+        <button type="button" class="btn sm outline" onclick="catGerarFaixas()">Gerar tabela</button></div>
+      <div style="display:flex;gap:6px;margin-top:8px;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase"><span style="flex:1.1">Peso</span><span style="flex:1">Venda</span><span style="flex:1">Custo</span><span style="width:18px"></span></div>
+      <div id="cfFaixas">${faixas ? catFaixasHTML(faixas) : ''}</div>
+      <div id="cfFaixasVazia" style="display:${faixas&&faixas.length?'none':'block'};font-size:12px;color:var(--muted);margin-top:6px">Nenhuma linha ainda. Toque em “Gerar tabela” ou em “➕ Adicionar peso”.</div>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button type="button" class="btn sm outline" onclick="catAddFaixa()">➕ Adicionar peso</button>
+        <button type="button" class="btn sm outline" onclick="catAddAcima()">➕ Linha “Acima do último”</button></div></div>
     <div id="cfB_pacote" style="display:${_catTipo==='pacote'?'block':'none'}">
       <div style="font-size:11px;color:var(--muted);margin:4px 0">Ao escolher o pacote no atendimento, todos os itens abaixo entram de uma vez (item por peso já vem na faixa do paciente).</div>
       <div id="cfComps">${(it?.comps||[]).map(c=>catCompRow(c.itemId,c.qtd)).join('')}</div>
@@ -12030,9 +12087,20 @@ function catSalvar(){
     document.querySelectorAll('#cfCustos .crow').forEach(r => { const v = moedaVal(r.querySelector('.cfCVal')); const d = r.querySelector('.cfCDesc').value.trim(); if(v < 0){ base._neg = 1; } if(v > 0) base.custos.push({id:uid(), desc:d||'Custo', valor:v}); });
     if(base.venda < 0 || base._neg){ toast('⚠ Valor negativo — corrija'); return; }
   } else if(_catTipo === 'peso'){
-    base.faixas = [];
-    document.querySelectorAll('#cfFaixas .frow').forEach(r => base.faixas.push({ate: r.dataset.ate===''?null:parseFloat(r.dataset.ate), venda: moedaVal(r.querySelector('.cfFVenda')), custo: moedaVal(r.querySelector('.cfFCusto'))}));
-    if(!base.faixas.length){ toast('⚠ Toque em "Gerar faixas" e preencha os preços'); return; }
+    const lidas = catFaixasLer(); base.faixas = [];
+    if(!lidas.length){ toast('⚠ Toque em “Gerar tabela” ou “Adicionar peso” e preencha os preços'); return; }
+    const vistos = new Set(); let acima = null;
+    for(const f of lidas){
+      if(f.acima){ if(acima){ toast('⚠ Só pode haver uma linha “Acima do último”'); return; } acima = {ate:null,venda:f.venda,custo:f.custo}; continue; }
+      if(!isFinite(f.ate) || f.ate<=0){ toast('⚠ Digite o peso (maior que zero) em todas as linhas'); return; }
+      if(f.ate>500){ toast('⚠ Peso muito alto: '+f.ate+' kg'); return; }
+      if(f.venda<0 || f.custo<0){ toast('⚠ Valor negativo — corrija'); return; }
+      if(vistos.has(f.ate)){ toast('⚠ O peso '+String(f.ate).replace('.',',')+' kg aparece duas vezes'); return; }
+      vistos.add(f.ate); base.faixas.push({ate:f.ate, venda:f.venda, custo:f.custo});
+    }
+    base.faixas.sort((x,y)=>x.ate-y.ate);
+    if(acima){ if(acima.venda<0||acima.custo<0){ toast('⚠ Valor negativo — corrija'); return; } base.faixas.push(acima); }
+    if(!base.faixas.length){ toast('⚠ Adicione pelo menos um peso'); return; }
     if(!base.faixas.some(f=>f.venda>0)){ toast('⚠ Preencha o preço de venda de pelo menos uma faixa'); return; }
   } else {
     base.comps = [...document.querySelectorAll('#cfComps .comp')].map(c=>({itemId:c.dataset.item, qtd: Math.max(1, parseInt(c.querySelector('.cfQtd').value)||1)}));
