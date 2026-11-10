@@ -3324,14 +3324,16 @@ try{
 const IG_GLYPH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="12" r="4.4" stroke="#fff" stroke-width="2.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="#fff"/></svg>';
 
 // ═══ AVISO DE NOVA VERSÃO ═══
-const APP_VER = '10.23';
+const APP_VER = '10.25';
 // Novidades desta versão — atualize este bloco a cada lançamento.
 // O aviso aparece automaticamente para TODO usuário que abrir o app numa
 // versão que ainda não viu (controle por APP_VER), uma única vez.
 const NOVIDADES = {
-  ver: '10.23',
+  ver: '10.25',
   titulo: 'Novidades da versão 🚀',
   itens: [
+    ['🧾','Orçamento de vários animais também no Novo Atendimento','No Novo Atendimento, ao lado de “Orçamento em PDF”, apareceu o botão <b>🧾 Vários animais</b>. Ele traz o tutor do paciente e os animais dele, leva os serviços que você já lançou para o primeiro animal e deixa você adicionar os outros. O atendimento que você está preenchendo <b>não é perdido</b>. Toque em “ⓘ Como funciona” para ver o passo a passo.'],
+    ['🧾','Orçamento para vários animais do mesmo tutor','Na ficha do tutor, toque em <b>🧾 Orçamento (vários animais)</b>: adicione cada animal, lance os serviços dele (digitando ou puxando do catálogo), e o app soma tudo em um só PDF com o total, <b>à vista com desconto (ex.: 5%)</b> e <b>parcelamento em 2x, 3x…</b> sem juros. O orçamento fica guardado na ficha do tutor para reimprimir ou editar.'],
     ['🧩','Lista do catálogo se ajusta a nomes grandes','Corrigido: quando o nome do item era comprido (ex.: “Aplicação Agemoxi CL”), o selo “Por peso” e o preço quebravam de linha e bagunçavam o cartão. Agora o nome ocupa a linha toda, o selo nunca quebra e o preço desce para a sua própria linha, tudo alinhado.'],
     ['📦','Filtro de Pacotes e lista do catálogo mais clara','Novo botão <b>📦 Pacotes</b> (e 🐾 Por peso) na tela do Catálogo e ao puxar do catálogo no atendimento: toque e veja só os pacotes. A lista ficou mais limpa: nome em destaque, tipo do item, preço grande, desconto do pacote em destaque e o quadro “O pacote inclui” com cada item e seu valor.'],
     ['📦','Pacotes mostram os valores e deixam você montar o preço','No Catálogo, cada item do pacote mostra o valor de tabela e você pode <b>alterar o valor dele dentro do pacote</b> (ex.: exame de R$ 50 por R$ 45). O app soma tudo, mostra o desconto e o lucro, e você ainda pode digitar o <b>total do pacote</b> ou um <b>% de desconto</b> que ele divide entre os itens. Na lista e na busca, o pacote já aparece com o preço total e o que tem dentro.'],
@@ -7330,7 +7332,7 @@ function renderTutorProfile(){
   <div class="subtabs">
     <button class="chip ${tutorTab==='resp'?'on':''}" onclick="tutorTab='resp';render()">Responsável</button>
     <button class="chip ${tutorTab==='animais'?'on':''}" onclick="tutorTab='animais';render()">Animais (${animals.length})</button>
-  </div>`;
+  </div>${omSecaoHTML(t)}`;
 
   if(tutorTab === 'resp'){
     h += `<div class="sec"><div class="sec-h"><span>Dados do responsável</span></div>
@@ -9345,7 +9347,7 @@ function renderSettings(){
     <div style="font-weight:900;font-size:20px;margin-top:10px">Vet<span style="color:var(--primary)">Flow</span></div>
     <div style="font-family:Georgia,serif;font-style:italic;color:var(--primary);font-size:14px">Care</div>
     <div style="color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:600;margin-top:6px">ORGANIZA · CONECTA · CUIDA</div>
-    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.23 · Gestão Veterinária</div>
+    <div style="color:var(--muted);font-size:11px;margin-top:8px">v10.25 · Gestão Veterinária</div>
     <div style="margin-top:26px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
       <button style="background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;padding:0;margin-bottom:12px" onclick="viewTermsAgain()">📜 Termos de Uso e Privacidade</button>
       <div style="font-size:12px;font-weight:800;color:var(--text);letter-spacing:.5px">B&amp;G Systems</div>
@@ -11224,8 +11226,10 @@ function openApptForm(petId, editId){
       <label for="fPOrcDias" style="margin:0;font-size:12px;font-weight:800;flex:1;line-height:1.3">⏳ Dias de validade da proposta</label>
       <input id="fPOrcDias" type="number" inputmode="numeric" min="1" max="365" step="1" value="${orcDiasPadrao()}" style="width:76px;text-align:center;font-weight:800;margin:0">
       <span style="font-size:12px;color:var(--muted)">dias</span></div>
-    <button type="button" id="fPOrcBtn" class="btn sm" style="display:block;margin-top:8px;width:100%;background:linear-gradient(135deg,#1E3A6E,#2D5FA8)" onclick="printOrcamento('${petId}')">📄 Orçamento em PDF</button>
-    <div id="fPOrcHint" style="display:block;font-size:11px;color:var(--muted);margin:4px 2px 0;line-height:1.5">Gera um orçamento para o tutor com os itens, o desconto e o total acima. Não lança cobrança nem salva o atendimento.</div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button type="button" id="fPOrcBtn" class="btn sm" style="display:block;flex:1;min-width:0;margin:0;width:auto;font-size:13px;background:linear-gradient(135deg,#1E3A6E,#2D5FA8)" onclick="printOrcamento('${petId}')">📄 Orçamento em PDF</button>
+      <button type="button" id="fPOrcMultiBtn" class="btn sm" style="display:block;flex:1;min-width:0;margin:0;width:auto;font-size:13px;background:#fff;color:#1E3A6E;border:2px solid #1E3A6E" onclick="omAbrirDoAtendimento('${petId}')">🧾 Vários animais</button></div>
+    <div id="fPOrcHint" style="display:block;font-size:11px;color:var(--muted);margin:4px 2px 0;line-height:1.5"><b>PDF</b>: só deste animal, com os itens, o desconto e o total acima. <b>Vários animais</b>: um orçamento único para o tutor. <a href="#" onclick="omComoFunciona();return false" style="color:#2D5FA8;font-weight:700;text-decoration:underline">ⓘ Como funciona</a> Não lança cobrança nem salva o atendimento.</div>
     <input type="hidden" id="fPValor" value="0">
     ${eA?.parcelas?.length ? `
     <label>Pagamento</label>
@@ -12543,6 +12547,300 @@ function orcamentoHTML(pet, o, hoje, dias, aviso){
     <div style="font-size:13px;font-weight:700;color:#1A2F5A">${esc(v.name||'Médico(a) Veterinário(a)')}</div>
     <div style="font-size:12px;color:#6B7A8D">${crmvFull()||''}</div></div>`;
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// v10.24 — ORÇAMENTO DO TUTOR (vários animais num só PDF)
+// ═══════════════════════════════════════════════════════════════════
+function omBRL(v){ v = Math.round((Number(v)||0)*100)/100; const neg = v<0; v = Math.abs(v); const [i,d] = v.toFixed(2).split('.'); return (neg?'− ':'')+'R$ '+i.replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+d; }
+function omPag(){ const p = DB.vet && DB.vet.orcPag; return {avista: (p && p.avista!=null) ? p.avista : 5, parcelas: (p && Array.isArray(p.parcelas)) ? p.parcelas : [2,3]}; }
+function omSecaoHTML(t){
+  const lista = (t.orcamentos||[]).slice().sort((a,b)=>(b.emitido+b.id).localeCompare(a.emitido+a.id));
+  return `<div class="sec" id="omSecao"><button class="btn" style="width:100%" onclick="omAbrir('${t.id}')">🧾 Orçamento (vários animais)</button>
+    ${lista.map(r => { const venc = todayISO() > r.validoAte;
+      return `<div class="card omrec" data-omid="${r.id}" style="margin-top:8px">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div style="min-width:0"><b style="font-size:14px">Orçamento · ${fmtDate(r.emitido)}</b>
+          <div style="font-size:11px;color:var(--muted);overflow-wrap:anywhere">${r.blocos.map(b=>esc(b.nome)).join(', ')}</div></div>
+          <b style="color:var(--vet);flex-shrink:0">${omBRL(r.total)}</b></div>
+        <div style="font-size:11px;margin-top:4px">${venc ? '<span style="color:var(--danger);font-weight:800">⛔ Vencido em '+fmtDate(r.validoAte)+'</span>' : '<span style="color:var(--success);font-weight:800">✅ Vigente até '+fmtDate(r.validoAte)+'</span>'}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+          <button class="btn sm rx" onclick="omImprimir('${t.id}','${r.id}')">🖨️ Ver / Imprimir</button>
+          <button class="btn sm outline" onclick="omAbrir('${t.id}','${r.id}')">✏️ Editar</button>
+          <button class="btn sm gray" style="margin-left:auto" onclick="omExcluir('${t.id}','${r.id}')">🗑</button></div></div>`; }).join('')}
+  </div>`;
+}
+function omRowHTML(desc, valor){
+  return `<div class="omrow" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border,#DDE7E4)"><input class="omDesc" placeholder="Serviço (ex.: Proheart)" value="${esc(desc||'')}" style="flex:1 1 100%;min-width:0;margin:0">
+    <input class="omVal" inputmode="numeric" placeholder="R$ 0,00" value="${moedaInit(valor)}" data-valor="${parseFloat(valor)||0}" style="flex:1;min-width:0;margin:0" oninput="maskMoeda(this);omRecalc()">
+    <button type="button" aria-label="Remover serviço" style="background:none;color:var(--muted);font-size:15px" onclick="this.parentElement.remove();omRecalc()">✕</button></div>`;
+}
+function omBlocoHTML(id, b){
+  const animals = DB.pets.filter(p=>p.tutorId===window._om.tid);
+  const usados = new Set([...document.querySelectorAll('#omBlocos .omPet')].map(x=>x.value));
+  let alvo = b && b.petId ? b.petId : '';
+  if(!alvo && !(b && b.nome)){ const livre = animals.find(p=>!usados.has(p.id)); alvo = livre ? livre.id : '__novo'; }
+  if(alvo && alvo !== '__novo' && !animals.some(p=>p.id===alvo)) alvo = '__novo';
+  if(b && b.nome && !b.petId) alvo = '__novo';
+  const nomeNovo = (alvo==='__novo') ? ((b && b.nome) || '') : '';
+  return `<div class="card omb" id="${id}" style="padding:12px;margin-bottom:10px">
+    <div style="display:flex;gap:8px;align-items:center"><select class="omPet" style="flex:1;margin:0;min-width:0" onchange="omPetMudou('${id}')">
+      ${animals.map(p=>`<option value="${p.id}" ${alvo===p.id?'selected':''}>${petEmoji(p)} ${esc(p.name)}${p.weight?' · '+p.weight+' kg':''}</option>`).join('')}
+      <option value="__novo" ${alvo==='__novo'?'selected':''}>✏️ Outro animal (digitar o nome)</option></select>
+      <button type="button" aria-label="Remover animal" style="background:none;color:var(--muted);font-size:17px" onclick="omRemBloco('${id}')">🗑</button></div>
+    <input class="omNome" placeholder="Nome do animal" value="${esc(nomeNovo)}" style="display:${alvo==='__novo'?'block':'none'};margin-top:8px">
+    <div class="omItens">${((b && b.itens && b.itens.length) ? b.itens : [{desc:'',valor:0}]).map(i=>omRowHTML(i.desc,i.valor)).join('')}</div>
+    <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button type="button" class="btn sm outline" onclick="omAddRow('${id}')">➕ Serviço</button>
+      <button type="button" class="btn sm outline" onclick="omCatAbrir('${id}')">📚 Do catálogo</button></div>
+    <div class="omSub" style="text-align:right;font-size:12px;margin-top:8px"></div></div>`;
+}
+function omAddBloco(b){
+  const id = 'omb_' + (++window._om.seq);
+  document.getElementById('omBlocos').insertAdjacentHTML('beforeend', omBlocoHTML(id, b));
+  omRecalc(); return id;
+}
+function omRemBloco(id){
+  const n = document.querySelectorAll('#omBlocos .omb').length;
+  if(n <= 1){ toast('⚠ O orçamento precisa de pelo menos um animal'); return; }
+  document.getElementById(id)?.remove(); omRecalc();
+}
+function omPetMudou(id){
+  const b = document.getElementById(id); if(!b) return;
+  b.querySelector('.omNome').style.display = b.querySelector('.omPet').value === '__novo' ? 'block' : 'none';
+}
+function omAddRow(id, desc, valor){
+  const box = document.querySelector('#'+id+' .omItens'); if(!box) return;
+  box.insertAdjacentHTML('beforeend', omRowHTML(desc, valor));
+  if(desc == null){ const i = box.lastElementChild.querySelector('.omDesc'); try{ i.focus(); }catch(e){} }
+  omRecalc();
+}
+function omPagLinhas(total, avPct, parcelas){
+  const out = [];
+  if(avPct > 0){ const v = rnd2(total*(1-avPct/100)); out.push({k:'À vista com '+String(avPct).replace('.',',')+'% de desconto', v:omBRL(v), extra:'economia de '+omBRL(rnd2(total-v)), val:v}); }
+  (parcelas||[]).slice().sort((a,b)=>a-b).forEach(n => {
+    const p = rnd2(total/n), ult = rnd2(total - p*(n-1));
+    out.push({k:n+'x sem juros', v: Math.abs(ult-p) < 0.005 ? n+'x de '+omBRL(p) : (n-1)+'x de '+omBRL(p)+' + 1x de '+omBRL(ult), extra:'', val:total});
+  });
+  return out;
+}
+function omPagLer(){
+  const on = document.getElementById('omAvOn')?.checked;
+  const raw = String(document.getElementById('omAvPct')?.value||'').replace(',','.').trim();
+  let pct = on ? (parseFloat(raw)||0) : 0; if(pct < 0) pct = 0; if(pct > 90) pct = 90;
+  const parcelas = [...document.querySelectorAll('#omParc .chip.on')].map(c=>parseInt(c.dataset.n,10));
+  return {avista: pct, avOn: !!on, parcelas};
+}
+function omParcToggle(btn){ btn.classList.toggle('on'); omRecalc(); }
+function omRecalc(){
+  let total = 0;
+  document.querySelectorAll('#omBlocos .omb').forEach(b => {
+    let sub = 0; b.querySelectorAll('.omVal').forEach(i => { sub += moedaVal(i); }); sub = rnd2(sub);
+    total += sub; const el = b.querySelector('.omSub'); if(el) el.innerHTML = `Subtotal do animal: <b>${omBRL(sub)}</b>`;
+  });
+  total = rnd2(total); window._omTotal = total;
+  const box = document.getElementById('omTotal'); if(!box) return;
+  const pg = omPagLer(); const lin = omPagLinhas(total, pg.avista, pg.parcelas);
+  box.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;font-size:15px"><b>Total do orçamento</b><b style="color:var(--vet);font-size:20px">${omBRL(total)}</b></div>`
+    + (total>0 && lin.length ? `<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;font-size:12px;line-height:1.7">${lin.map(l=>`<div style="display:flex;justify-content:space-between;gap:10px"><span>${l.k}</span><b style="text-align:right">${l.v}</b></div>${l.extra?`<div style="text-align:right;color:var(--success);font-size:11px">${l.extra}</div>`:''}`).join('')}</div>` : '');
+}
+// v10.25 — a partir do Novo Atendimento o orçamento abre POR CIMA (modals2) para não perder o que já foi preenchido
+function omSheet(title, body, foot, over){
+  if(!over){ showSheet(title, body, foot); return; }
+  document.getElementById('modals2').innerHTML = `
+  <div class="modal" style="z-index:150" onclick="if(event.target===this)omFechar()">
+    <div class="sheet" style="height:92%;max-height:92%" role="dialog" aria-modal="true" aria-label="${String(title).replace(/<[^>]*>/g,'')}">
+      <div class="mh"><h2>${title}</h2><button class="x" onclick="omFechar()" aria-label="Fechar">✕</button></div>
+      <div class="mb">${body}</div>${foot?`<div class="mf">${foot}</div>`:''}
+    </div></div>`;
+  try{ window.vfcFitViewport && window.vfcFitViewport(); }catch(e){}
+}
+function omFechar(){
+  if(window._om && window._om.over){ const c = document.getElementById('omModals3'); if(c) c.innerHTML = ''; document.getElementById('modals2').innerHTML = ''; try{ window.vfcFitViewport && window.vfcFitViewport(); }catch(e){} }
+  else closeSheet();
+}
+function omComoFunciona(){
+  vfcConfirm({icon:'🧾', title:'Orçamento de vários animais',
+    msg:`<div style="text-align:left;font-size:13px;line-height:1.6">Use quando o <b>mesmo tutor</b> tem mais de um animal. Você monta <b>um orçamento só</b>:<br><br><b>1.</b> O app traz o tutor e os animais dele.<br><b>2.</b> Escolha um animal e lance os serviços dele (digitando ou do catálogo).<br><b>3.</b> Toque em <b>➕ Adicionar animal</b> e repita.<br><b>4.</b> O PDF sai com o <b>total</b>, <b>à vista com desconto</b> e <b>parcelamento</b>.</div>`,
+    note:'Não lança cobrança nem salva o atendimento. O orçamento fica guardado na ficha do tutor.', noteColor:'var(--muted)',
+    noLabel:'Fechar', yesLabel:'🧾 Abrir agora', yesBg:'var(--primary)', yes:'omAbrirDoAtendimento(window._apptPetId)'});
+}
+function omAbrirDoAtendimento(petId){
+  const pet = DB.pets.find(p=>p.id===petId); const t = pet && tutorOf(pet);
+  if(!pet || !t){ toast('⚠ Este paciente não tem tutor cadastrado. Cadastre o tutor para montar o orçamento de vários animais.'); return; }
+  const itens = [...document.querySelectorAll('#fPItens .srow')].map(r => ({desc:(r.querySelector('.sDesc')?.value||'').trim(), valor: moedaVal(r.querySelector('.sVal'))})).filter(i=>i.desc || i.valor);
+  omAbrir(t.id, null, {over:true, petId: pet.id, itens});
+}
+function omAbrir(tid, recId, opt){
+  opt = opt || {};
+  const t = DB.tutors.find(x=>x.id===tid); if(!t) return;
+  const rec = recId ? (t.orcamentos||[]).find(r=>r.id===recId) : null;
+  window._om = {tid, recId: rec ? rec.id : null, seq: 0, over: !!opt.over};
+  const pg = rec ? {avista: rec.avistaPct||0, parcelas: rec.parcelas||[]} : omPag();
+  const dias = rec ? rec.dias : orcDiasPadrao();
+  omSheet('🧾 Orçamento — '+esc(t.name), `
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Escolha o animal, lance os serviços dele e toque em <b>➕ Adicionar animal</b> para o próximo. Tudo sai somado em um só PDF.</div>
+    <div id="omBlocos"></div>
+    <button type="button" class="btn outline" style="margin-top:4px" onclick="omAddBloco()">➕ Adicionar animal</button>
+    <div id="omTotal" class="card" style="margin-top:12px"></div>
+    <label style="margin-top:12px">Condições de pagamento</label>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label style="display:flex;gap:6px;align-items:center;margin:0;font-size:13px"><input type="checkbox" id="omAvOn" style="width:auto;margin:0" ${pg.avista>0?'checked':''} onchange="omRecalc()"> À vista com</label>
+      <input id="omAvPct" inputmode="decimal" value="${String(pg.avista>0?pg.avista:5).replace('.',',')}" style="width:64px;margin:0;text-align:center" oninput="omRecalc()"><span style="font-size:13px">% de desconto</span></div>
+    <div style="font-size:12px;color:var(--muted);margin:10px 0 4px">Parcelado sem juros em:</div>
+    <div class="chips" id="omParc">${[2,3,4,5,6].map(n=>`<button type="button" class="chip ${pg.parcelas.includes(n)?'on':''}" data-n="${n}" onclick="omParcToggle(this)">${n}x</button>`).join('')}</div>
+    <div style="display:flex;gap:10px;margin-top:12px;align-items:center"><span style="font-size:13px">Validade</span><input id="omDias" inputmode="numeric" value="${dias}" style="width:70px;margin:0;text-align:center"><span style="font-size:13px">dias</span></div>
+    <label>Observação (opcional — sai no PDF)</label><input id="omObs" value="${esc(rec?.obs||'')}" placeholder="Ex.: valores para aplicação no mesmo dia">`,
+    `<button class="btn gray" onclick="omFechar()">Cancelar</button><button class="btn" onclick="omGerar()">📄 Gerar PDF</button>`, !!opt.over);
+  if(rec && rec.blocos.length) rec.blocos.forEach(b => omAddBloco({petId:b.petId, nome:b.nome, itens:b.itens})); else if(opt.petId) omAddBloco({petId:opt.petId, itens:opt.itens}); else omAddBloco();
+  omRecalc();
+}
+function omColetar(){
+  const blocos = [];
+  document.querySelectorAll('#omBlocos .omb').forEach(b => {
+    const sel = b.querySelector('.omPet').value; const pet = sel!=='__novo' ? DB.pets.find(p=>p.id===sel) : null;
+    const nome = pet ? pet.name : (b.querySelector('.omNome').value||'').trim();
+    const itens = [...b.querySelectorAll('.omrow')].map(r => ({desc:(r.querySelector('.omDesc').value||'').trim(), valor: moedaVal(r.querySelector('.omVal'))})).filter(i=>i.desc || i.valor);
+    blocos.push({petId: pet ? pet.id : '', nome, especie: pet?.species||'', raca: pet ? (pet.breed||'SRD') : '', peso: pet?.weight||'', itens, subtotal: rnd2(itens.reduce((a,i)=>a+i.valor,0))});
+  });
+  return blocos;
+}
+function omGerar(){
+  const t = DB.tutors.find(x=>x.id===window._om?.tid); if(!t) return;
+  const todos = omColetar();
+  if(todos.some(b=>!b.nome && b.itens.length)){ toast('⚠ Digite o nome do animal'); return; }
+  const blocos = todos.filter(b=>b.itens.length);
+  if(!blocos.length || blocos.every(b=>b.subtotal<=0)){ toast('⚠ Adicione ao menos um serviço com valor'); return; }
+  if(blocos.some(b=>b.itens.some(i=>i.valor<0))){ toast('⚠ Valor negativo — corrija'); return; }
+  const raw = String(document.getElementById('omDias')?.value||'').trim();
+  if(!/^\d+$/.test(raw) || +raw<1 || +raw>365){ toast('⚠ Informe os dias de validade (de 1 a 365)'); return; }
+  const dias = parseInt(raw,10); const pg = omPagLer();
+  const total = rnd2(blocos.reduce((a,b)=>a+b.subtotal,0));
+  const old = window._om.recId ? (t.orcamentos||[]).find(r=>r.id===window._om.recId) : null;
+  const hoje = old ? old.emitido : todayISO();
+  const v = new Date(hoje+'T12:00:00'); v.setDate(v.getDate()+dias);
+  const rec = {id: old ? old.id : uid(), num: old ? old.num : 'ORC-'+hoje.replace(/-/g,'')+'-'+new Date().toTimeString().slice(0,5).replace(':',''),
+    emitido: hoje, dias, validoAte: v.toISOString().slice(0,10), blocos, total, avistaPct: pg.avista, parcelas: pg.parcelas,
+    obs: (document.getElementById('omObs')?.value||'').trim()};
+  t.orcamentos = t.orcamentos || [];
+  const i = t.orcamentos.findIndex(r=>r.id===rec.id); if(i>=0) t.orcamentos[i] = rec; else t.orcamentos.push(rec);
+  DB.vet = DB.vet || {}; DB.vet.orcValidadeDias = dias; DB.vet.orcPag = {avista: pg.avOn ? pg.avista : 0, parcelas: pg.parcelas};
+  save(); omFechar(); render();
+  printShell('Orçamento — '+t.name, orcMultiHTML(t, rec), `Orcamento_${orcSlug(t.name)||'Tutor'}_${hoje}`);
+}
+function omImprimir(tid, id){
+  const t = DB.tutors.find(x=>x.id===tid); const rec = t && (t.orcamentos||[]).find(r=>r.id===id); if(!rec) return;
+  printShell('Orçamento — '+t.name, orcMultiHTML(t, rec), `Orcamento_${orcSlug(t.name)||'Tutor'}_${rec.emitido}`);
+}
+function omExcluir(tid, id){ askDel('🧾 Excluir orçamento', 'Remover este orçamento da ficha do tutor?', `omDoExcluir('${tid}','${id}')`); }
+function omDoExcluir(tid, id){
+  const t = DB.tutors.find(x=>x.id===tid); if(!t) return;
+  t.orcamentos = (t.orcamentos||[]).filter(r=>r.id!==id); save(); render(); toast('🗑️ Orçamento removido');
+}
+function orcMultiHTML(t, rec){
+  const v = DB.vet || {};
+  const th = 'padding:8px 12px;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:#fff;background:#1E3A6E;text-align:left';
+  const multi = rec.blocos.length > 1;
+  const blocos = rec.blocos.map(b => {
+    const rows = b.itens.map((i,k)=>`<tr style="background:${k%2?'#F4FAF9':'#fff'}"><td style="padding:9px 12px;font-size:14px">${esc(i.desc||'Serviço')}</td>
+      <td style="padding:9px 12px;font-size:14px;text-align:right;white-space:nowrap;font-weight:700">${omBRL(i.valor)}</td></tr>`).join('');
+    const info = [b.especie, b.raca, b.peso?b.peso+' kg':''].filter(Boolean).map(esc).join(' · ');
+    return `<div style="margin-top:16px;break-inside:avoid;page-break-inside:avoid">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;background:#EDF8F7;border-radius:10px 10px 0 0;padding:9px 14px"><b style="font-size:15px;color:#1E3A6E">${esc(b.nome||'Animal')}</b><span style="font-size:12px;color:#6B7A8D">${info}</span></div>
+      <table style="width:100%;border-collapse:collapse;border:1px solid #D5EBE9"><thead><tr><th style="${th}">Serviço</th><th style="${th};text-align:right">Valor</th></tr></thead><tbody>${rows}</tbody>
+      ${multi?`<tfoot><tr><td style="padding:8px 12px;font-size:12px;color:#6B7A8D;text-align:right">Subtotal ${esc(b.nome||'')}</td><td style="padding:8px 12px;text-align:right;font-weight:800;white-space:nowrap">${omBRL(b.subtotal)}</td></tr></tfoot>`:''}</table></div>`;
+  }).join('');
+  const lin = omPagLinhas(rec.total, rec.avistaPct, rec.parcelas);
+  const pag = (rec.total>0 && lin.length) ? `<div style="margin-top:16px;border:1.5px solid #9FD8D1;border-radius:10px;padding:12px 16px;font-size:13.5px;break-inside:avoid;page-break-inside:avoid">
+      <div style="font-size:10px;letter-spacing:1px;color:#6B7A8D;font-weight:800;margin-bottom:6px">FORMAS DE PAGAMENTO</div>
+      ${lin.map(l=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-top:1px solid #E3F2F0"><span>${l.k}</span><span style="text-align:right"><b>${l.v}</b>${l.extra?`<br><span style="font-size:11px;color:#1E8E4E">${l.extra}</span>`:''}</span></div>`).join('')}</div>` : '';
+  const val = fmtDate(rec.validoAte);
+  return `${letterheadHTML()}
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin:4px 0 14px">
+    <div class="doctitle" style="margin:0;text-align:left;font-size:26px;letter-spacing:6px">ORÇAMENTO</div>
+    <div style="text-align:right;font-size:11px;color:#6B7A8D;line-height:1.6"><b style="color:#1E3A6E">Nº ${esc(rec.num)}</b><br>Emitido em ${fmtDate(rec.emitido)}<br>Válido até ${val}</div></div>
+  <div style="height:3px;background:linear-gradient(90deg,#2DC0AE,#1E3A6E);border-radius:3px;margin-bottom:16px"></div>
+  <div style="background:#EDF8F7;border-radius:10px;padding:11px 14px;font-size:13px;line-height:1.7">
+    <div style="font-size:10px;letter-spacing:1px;color:#6B7A8D;font-weight:800">TUTOR / RESPONSÁVEL</div>
+    <b style="font-size:15px">${esc(t.name||'—')}</b>${t.phone?`<br>${esc(fmtPhone(t.phone))}`:''}</div>
+  ${blocos}
+  <div style="margin:16px 0 0 auto;width:300px;break-inside:avoid;page-break-inside:avoid">
+    <div style="display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#1E3A6E,#2D5FA8);color:#fff;border-radius:10px;padding:12px 14px">
+      <span style="letter-spacing:2px;font-size:12px;font-weight:800">TOTAL</span><b style="font-size:20px">${omBRL(rec.total)}</b></div></div>
+  ${pag}
+  ${rec.obs?`<div style="margin-top:12px;font-size:13px;line-height:1.6"><b>Observação:</b> ${esc(rec.obs)}</div>`:''}
+  <div style="margin-top:18px;border:1.5px dashed #9FD8D1;border-radius:10px;padding:10px 14px;font-size:11.5px;line-height:1.7;color:#4A5B73;background:#FAFEFD;break-inside:avoid;page-break-inside:avoid">
+    Este orçamento é uma <b>estimativa</b> dos serviços e valores, válida por ${rec.dias} ${rec.dias===1?'dia':'dias'} a partir da emissão (até ${val}).
+    Os valores podem ser ajustados conforme a evolução clínica dos pacientes, exames adicionais ou intercorrências, sempre com o seu conhecimento prévio.</div>
+  <div style="margin-top:34px;text-align:center;break-inside:avoid;page-break-inside:avoid">
+    ${v.signature?`<img src="${v.signature}" style="height:56px;object-fit:contain;margin-bottom:-6px">`:''}
+    <div style="border-top:1.5px solid #1A2F5A;width:280px;margin:8px auto 4px"></div>
+    <div style="font-size:13px;font-weight:700;color:#1A2F5A">${esc(v.name||'Médico(a) Veterinário(a)')}</div>
+    <div style="font-size:12px;color:#6B7A8D">${crmvFull()||''}</div></div>`;
+}
+// catálogo dentro do orçamento do tutor
+function omCatBox(){
+  if(!(window._om && window._om.over)) return document.getElementById('modals2');
+  let c = document.getElementById('omModals3'); if(!c){ c = document.createElement('div'); c.id = 'omModals3'; document.body.appendChild(c); } return c;
+}
+function omCatAbrir(bid){
+  window._omCatB = bid; window._omPG = 'Todos'; window._omUsados = {};
+  omCatBox().innerHTML = `
+  <div class="modal" style="z-index:${window._om && window._om.over ? 175 : 160}" onclick="if(event.target===this)omCatFechar()">
+    <div class="sheet" style="height:90%;max-height:90%" role="dialog" aria-modal="true" aria-label="Catálogo de serviços">
+      <div class="mh"><h2>📚 Catálogo de serviços</h2><button class="x" onclick="omCatFechar()" aria-label="Fechar">✕</button></div>
+      <div style="padding:10px 18px 0;flex-shrink:0"><div id="omcPet" style="font-size:12px;color:var(--muted);margin-bottom:6px"></div><input id="omcBusca" placeholder="🔎 Buscar no catálogo" oninput="omCatLista()" style="margin:0"><div class="chips" id="omcChips"></div></div>
+      <div class="mb" id="omcLista"></div>
+      <div class="mf"><div id="omcResumo" style="flex:1;font-size:12px;color:var(--muted);align-self:center"></div><button class="btn" style="width:auto;flex:1" onclick="omCatFechar()">✓ Concluir</button></div>
+    </div></div>`;
+  try{ window.vfcFitViewport && window.vfcFitViewport(); }catch(e){}
+  omCatLista();
+}
+function omCatFechar(){ omCatBox().innerHTML = ''; try{ window.vfcFitViewport && window.vfcFitViewport(); }catch(e){} omRecalc(); }
+function omCatPet(){ const b = document.getElementById(window._omCatB); const sel = b && b.querySelector('.omPet'); return sel && sel.value !== '__novo' ? DB.pets.find(p=>p.id===sel.value) : null; }
+function omCatLista(){
+  const box = document.getElementById('omcLista'); if(!box) return;
+  const pet = omCatPet(); const peso = pet && pet.weight;
+  const pl = document.getElementById('omcPet'); if(pl) pl.innerHTML = pet ? `🐾 Lançando para <b>${esc(pet.name)}</b>${peso?' · '+peso+' kg':''}` : '🐾 Animal sem cadastro (por peso: escolha a faixa)';
+  const q = (document.getElementById('omcBusca')?.value||'').toLowerCase().trim();
+  const todos = catLista().filter(x=>x.ativo!==false);
+  const chips = document.getElementById('omcChips');
+  if(chips){ const gs = catChipsDef(todos);
+    chips.style.cssText = 'margin-top:8px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px';
+    chips.innerHTML = gs.length>2 ? gs.map(g=>`<button type="button" class="chip ${window._omPG===g.v?'on':''}" style="flex-shrink:0;white-space:nowrap" onclick="window._omPG='${g.v}';omCatLista()">${g.l}</button>`).join('') : ''; }
+  if(!catLista().length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:14px;text-align:center">Seu catálogo está vazio.<br>Cadastre os serviços na aba <b>📚 Catálogo</b> do menu, ou digite os serviços direto no orçamento.</div>'; return; }
+  const itens = todos.filter(x=>catNoFiltro(x, window._omPG) && (!q || x.nome.toLowerCase().includes(q))).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  box.innerHTML = itens.map(it => {
+    let sel = '';
+    if(it.tipo === 'peso'){
+      const pre = catFaixaPorPeso(it, peso);
+      sel = `<select id="omcF_${it.id}" style="margin:8px 0 0;font-size:14px">${pre<0?'<option value="">Escolha a faixa de peso…</option>':''}${it.faixas.map((f,i)=>`<option value="${i}" ${i===pre?'selected':''}>${catFaixaLabel(it,i)} — ${f.venda>0?omBRL(f.venda):'sem preço'}</option>`).join('')}</select>`;
+    }
+    const n = window._omUsados[it.id] || 0;
+    return `<div class="card omcitem" data-catid="${it.id}" style="padding:12px 14px;margin:0 0 10px">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+        <div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:800;line-height:1.25;overflow-wrap:anywhere;color:var(--text,#1A2F5A)">${esc(it.nome)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center"><span>${esc(it.grupo||'')}</span>${catTipoPill(it)}</div></div>
+        <button type="button" id="omcU_${it.id}" class="btn sm ${n?'feito':''}" style="flex-shrink:0" onclick="omCatUsar('${it.id}')">${n?'✓ Adicionado'+(n>1?' ×'+n:''):'➕ Usar'}</button></div>
+      <div style="margin-top:8px">${catPrecoBloco(it, peso)}</div>${sel}
+      ${it.tipo==='pacote' ? `<div style="margin-top:10px">${catPacDetalhe(it, peso)}</div>` : ''}</div>`;
+  }).join('') || '<div style="font-size:13px;color:var(--muted);padding:14px;text-align:center">Nada encontrado.</div>';
+  const r = document.getElementById('omcResumo'); const b = document.getElementById(window._omCatB);
+  if(r && b){ const n = [...b.querySelectorAll('.omrow')].filter(x=>x.querySelector('.omDesc').value.trim()||moedaVal(x.querySelector('.omVal'))).length; r.innerHTML = n ? `Neste animal: <b>${n} ${n===1?'serviço':'serviços'}</b>` : 'Nenhum serviço ainda'; }
+}
+function omCatUsar(id){
+  const it = catItem(id); if(!it) return;
+  const b = document.getElementById(window._omCatB); if(!b){ return; }
+  const pet = omCatPet(); let faixaI = null;
+  if(it.tipo === 'peso'){ const s = document.getElementById('omcF_'+id); if(!s || s.value === ''){ toast('⚠ Escolha a faixa de peso'); return; } faixaI = parseInt(s.value,10); }
+  const linhas = catResolver(it, pet && pet.weight, faixaI);
+  if(!linhas.length){ toast('⚠ Este item não tem linhas para lançar'); return; }
+  const box = b.querySelector('.omItens');
+  const rows = [...box.querySelectorAll('.omrow')];
+  rows.forEach(r => { if(!r.querySelector('.omDesc').value.trim() && !moedaVal(r.querySelector('.omVal'))) r.remove(); });
+  linhas.forEach(l => box.insertAdjacentHTML('beforeend', omRowHTML(l.desc, l.venda)));
+  omRecalc();
+  window._omUsados[id] = (window._omUsados[id]||0) + 1;
+  omCatLista();
+  if(linhas.some(l=>!(l.venda>0))) toast('⚠ Adicionado, mas há item sem preço no catálogo');
+}
+
 function printOrcamento(petId){
   const pet = DB.pets.find(p=>p.id===petId);
   if(!pet){ toast('⚠ Paciente não encontrado'); return; }
